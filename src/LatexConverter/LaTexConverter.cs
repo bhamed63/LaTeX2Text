@@ -84,7 +84,8 @@ namespace LatexConverter
             text = Regex.Replace(text, @"<(i|b|strong|span)>(.*?)</\1>", "$2");
             text = Regex.Replace(text, "<sup>(.*?)</sup>", m => ToHtmlUnicode(m.Groups[1].Value, true));
             text = Regex.Replace(text, "<sub>(.*?)</sub>", m => ToHtmlUnicode(m.Groups[1].Value, false));
-            return text;
+            text = Regex.Replace(text, @"\s*([×])\s*", "$1");
+            return text.Trim();
         }
 
         public string ConvertHTMLToScreenReaderFriendlyText(string html_input)
@@ -103,7 +104,12 @@ namespace LatexConverter
                 if (content == "3") return " cubed ";
                 return $" to the power of {content} ";
             });
-            return Regex.Replace(text, @"\s+", " ").Trim();
+            var lines = text.Split('\n');
+            for (int i = 0; i < lines.Length; i++)
+            {
+                lines[i] = Regex.Replace(lines[i], @"[ \t]+", " ").Trim();
+            }
+            return string.Join("\n", lines);
         }
     }
 
