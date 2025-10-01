@@ -12,6 +12,11 @@ public class HtmlConverterTests
     [InlineData("43 &deg;", "43 degrees")]
     [InlineData("<i>xy</i> plane", "xy plane")]
     [InlineData("of <i>&theta;</i>", "of theta")]
+    [InlineData("2 &times; 2", "2 times 2")]
+    [InlineData("line 1<br/>line 2", "line 1\nline 2")]
+    [InlineData("<b>bold</b>", "bold")]
+    [InlineData("<strong>strong</strong>", "strong")]
+    [InlineData("<span>span</span>", "span")]
     public void ConvertHTMLToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToOpenAIFriendlyText(input);
@@ -25,6 +30,11 @@ public class HtmlConverterTests
     [InlineData("43 &deg;", "43°")]
     [InlineData("<i>xy</i> plane", "xy plane")]
     [InlineData("of <i>&theta;</i>", "of θ")]
+    [InlineData("2 &times; 2", "2×2")]
+    [InlineData("line 1<br />line 2", "line 1\nline 2")]
+    [InlineData("<b>bold</b>", "bold")]
+    [InlineData("<strong>strong</strong>", "strong")]
+    [InlineData("<span>span</span>", "span")]
     public void ConvertHTMLToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToHumanFriendlyText(input);
@@ -38,6 +48,11 @@ public class HtmlConverterTests
     [InlineData("43 &deg;", "43 degrees")]
     [InlineData("<i>xy</i> plane", "xy plane")]
     [InlineData("of <i>&theta;</i>", "of theta")]
+    [InlineData("2 &times; 2", "2 times 2")]
+    [InlineData("line 1<br>line 2", "line 1\nline 2")]
+    [InlineData("<b>bold</b>", "bold")]
+    [InlineData("<strong>strong</strong>", "strong")]
+    [InlineData("<span>span</span>", "span")]
     public void ConvertHTMLToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToScreenReaderFriendlyText(input);

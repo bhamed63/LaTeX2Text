@@ -46,7 +46,9 @@ namespace LatexConverter
             var text = html_input;
             text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => m.Groups[1].Value, RegexOptions.IgnoreCase);
             text = Regex.Replace(text, @"\s*&deg;\s*", " degrees");
-            text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
+            text = Regex.Replace(text, @"\s*&times;\s*", " times ");
+            text = Regex.Replace(text, @"<br\s*/?>", "\n");
+            text = Regex.Replace(text, @"<(i|b|strong|span)>(.*?)</\1>", "$2");
             text = Regex.Replace(text, "<sub>(.*?)</sub>", "_$1");
             text = Regex.Replace(text, "<sup>(.*?)</sup>", "^($1)");
             return text.Trim();
@@ -74,11 +76,12 @@ namespace LatexConverter
                 return sb.ToString();
             }
             text = Regex.Replace(text, @"&([a-zA-Z]+);", m => {
-                string key = $"\\{m.Groups[1].Value}";
+                string key = m.Value == "&times;" ? @"\times" : $"\\{m.Groups[1].Value}";
                 return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(key, m.Value);
             });
             text = Regex.Replace(text, @"\s*&deg;\s*", "°");
-            text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
+            text = Regex.Replace(text, @"<br\s*/?>", "\n");
+            text = Regex.Replace(text, @"<(i|b|strong|span)>(.*?)</\1>", "$2");
             text = Regex.Replace(text, "<sup>(.*?)</sup>", m => ToHtmlUnicode(m.Groups[1].Value, true));
             text = Regex.Replace(text, "<sub>(.*?)</sub>", m => ToHtmlUnicode(m.Groups[1].Value, false));
             return text;
@@ -88,9 +91,11 @@ namespace LatexConverter
         {
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
-            text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
+            text = Regex.Replace(text, @"<br\s*/?>", "\n");
+            text = Regex.Replace(text, @"<(i|b|strong|span)>(.*?)</\1>", "$2");
             text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", " $1 ");
             text = Regex.Replace(text, @"\s*&deg;\s*", " degrees ");
+            text = Regex.Replace(text, @"\s*&times;\s*", " times ");
             text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1 ");
             text = Regex.Replace(text, "<sup>(.*?)</sup>", m => {
                 string content = m.Groups[1].Value;
