@@ -17,7 +17,11 @@ namespace LatexConverter
         public string ConvertToHumanFriendlyText(string latex_input)
         {
             if (latex_input == null) return "";
-            return Process(latex_input, new HumanFriendlyVisitor());
+            var result = Process(latex_input, new HumanFriendlyVisitor());
+            // Post-processing to remove spaces around specific operators
+            result = Regex.Replace(result, @"\s*([·×+])\s*", "$1");
+            result = Regex.Replace(result, @"\s*([√])\s*\((.*?)\)", "$1($2)");
+            return result;
         }
 
         public string ConvertToScreenReaderFriendlyText(string latex_input)
@@ -40,13 +44,11 @@ namespace LatexConverter
         {
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
-
             text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => m.Groups[1].Value, RegexOptions.IgnoreCase);
             text = Regex.Replace(text, @"\s*&deg;\s*", " degrees");
             text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
             text = Regex.Replace(text, "<sub>(.*?)</sub>", "_$1");
             text = Regex.Replace(text, "<sup>(.*?)</sup>", "^($1)");
-
             return text.Trim();
         }
 
@@ -54,7 +56,6 @@ namespace LatexConverter
         {
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
-
             string ToHtmlUnicode(string s, bool isSuperscript)
             {
                 var map = isSuperscript ? Dictionaries.SupMap : Dictionaries.SubMap;
@@ -72,20 +73,14 @@ namespace LatexConverter
                 }
                 return sb.ToString();
             }
-
             text = Regex.Replace(text, @"&([a-zA-Z]+);", m => {
                 string key = $"\\{m.Groups[1].Value}";
-                if (Dictionaries.HumanFriendlySymbolMap.TryGetValue(key, out var value))
-                {
-                    return value;
-                }
-                return m.Value;
+                return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(key, m.Value);
             });
             text = Regex.Replace(text, @"\s*&deg;\s*", "°");
             text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
             text = Regex.Replace(text, "<sup>(.*?)</sup>", m => ToHtmlUnicode(m.Groups[1].Value, true));
             text = Regex.Replace(text, "<sub>(.*?)</sub>", m => ToHtmlUnicode(m.Groups[1].Value, false));
-
             return text;
         }
 
@@ -93,20 +88,16 @@ namespace LatexConverter
         {
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
-
             text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
             text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", " $1 ");
             text = Regex.Replace(text, @"\s*&deg;\s*", " degrees ");
-
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1");
-
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1 ");
             text = Regex.Replace(text, "<sup>(.*?)</sup>", m => {
                 string content = m.Groups[1].Value;
-                if (content == "2") return " squared";
-                if (content == "3") return " cubed";
-                return $" to the power of {content}";
+                if (content == "2") return " squared ";
+                if (content == "3") return " cubed ";
+                return $" to the power of {content} ";
             });
-
             return Regex.Replace(text, @"\s+", " ").Trim();
         }
     }
