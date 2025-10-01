@@ -17,6 +17,11 @@ public class HtmlConverterTests
     [InlineData("<b>bold</b>", "bold")]
     [InlineData("<strong>strong</strong>", "strong")]
     [InlineData("<span>span</span>", "span")]
+    [InlineData("<b><i>Grade Summary</i></b>", "Grade Summary")]
+    [InlineData("<u>Diagram</u>", "Diagram")]
+    [InlineData("<hr />", "")]
+    [InlineData("<hr /> some text", "some text")]
+    [InlineData("<center> something here </center>", "something here")]
     public void ConvertHTMLToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToOpenAIFriendlyText(input);
@@ -35,6 +40,11 @@ public class HtmlConverterTests
     [InlineData("<b>bold</b>", "bold")]
     [InlineData("<strong>strong</strong>", "strong")]
     [InlineData("<span>span</span>", "span")]
+    [InlineData("<b><i>Grade Summary</i></b>", "Grade Summary")]
+    [InlineData("<u>Diagram</u>", "Diagram")]
+    [InlineData("<hr />", "")]
+    [InlineData("<hr /> some text", "some text")]
+    [InlineData("<center> something here </center>", "something here")]
     public void ConvertHTMLToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToHumanFriendlyText(input);
@@ -53,6 +63,11 @@ public class HtmlConverterTests
     [InlineData("<b>bold</b>", "bold")]
     [InlineData("<strong>strong</strong>", "strong")]
     [InlineData("<span>span</span>", "span")]
+    [InlineData("<b><i>Grade Summary</i></b>", "Grade Summary")]
+    [InlineData("<u>Diagram</u>", "Diagram")]
+    [InlineData("<hr />", "")]
+    [InlineData("<hr /> some text", "some text")]
+    [InlineData("<center> something here </center>", "something here")]
     public void ConvertHTMLToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToScreenReaderFriendlyText(input);
