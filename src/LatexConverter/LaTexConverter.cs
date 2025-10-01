@@ -55,11 +55,36 @@ namespace LatexConverter
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
 
-            text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => Dictionaries.HtmlGreekMap.GetValueOrDefault(m.Value, m.Value), RegexOptions.IgnoreCase);
+            string ToHtmlUnicode(string s, bool isSuperscript)
+            {
+                var map = isSuperscript ? Dictionaries.SupMap : Dictionaries.SubMap;
+                var sb = new StringBuilder();
+                foreach (char c in s)
+                {
+                    if (map.TryGetValue(c, out char newChar))
+                    {
+                        sb.Append(newChar);
+                    }
+                    else
+                    {
+                        sb.Append(c);
+                    }
+                }
+                return sb.ToString();
+            }
+
+            text = Regex.Replace(text, @"&([a-zA-Z]+);", m => {
+                string key = $"\\{m.Groups[1].Value}";
+                if (Dictionaries.HumanFriendlySymbolMap.TryGetValue(key, out var value))
+                {
+                    return value;
+                }
+                return m.Value;
+            });
             text = Regex.Replace(text, @"\s*&deg;\s*", "°");
             text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
-            text = Regex.Replace(text, "<sup>(.*?)</sup>", m => ToUnicode(m.Groups[1].Value, true));
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", m => ToUnicode(m.Groups[1].Value, false));
+            text = Regex.Replace(text, "<sup>(.*?)</sup>", m => ToHtmlUnicode(m.Groups[1].Value, true));
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", m => ToHtmlUnicode(m.Groups[1].Value, false));
 
             return text;
         }
@@ -69,36 +94,20 @@ namespace LatexConverter
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
 
-            text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => $" {m.Groups[1].Value} ", RegexOptions.IgnoreCase);
-            text = Regex.Replace(text, @"\s*&deg;\s*", " degrees ");
             text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1 ");
+            text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", " $1 ");
+            text = Regex.Replace(text, @"\s*&deg;\s*", " degrees ");
+
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1");
+
             text = Regex.Replace(text, "<sup>(.*?)</sup>", m => {
                 string content = m.Groups[1].Value;
                 if (content == "2") return " squared";
                 if (content == "3") return " cubed";
-                return $" to the power of {content} ";
+                return $" to the power of {content}";
             });
 
             return Regex.Replace(text, @"\s+", " ").Trim();
-        }
-
-        private string ToUnicode(string s, bool isSuperscript)
-        {
-            var map = isSuperscript ? Dictionaries.SupMap : Dictionaries.SubMap;
-            var sb = new StringBuilder();
-            foreach (char c in s)
-            {
-                if (map.TryGetValue(c, out char newChar))
-                {
-                    sb.Append(newChar);
-                }
-                else
-                {
-                    sb.Append(c);
-                }
-            }
-            return sb.ToString();
         }
     }
 
@@ -385,7 +394,7 @@ namespace LatexConverter
     {
         public override string VisitText(TextNode node)
         {
-            if (node.Text == "+") return " + ";
+            if (node.Text == "+") return "+";
             return node.Text;
         }
         public override string VisitGroup(GroupNode node)
@@ -613,22 +622,6 @@ namespace LatexConverter
         {
             {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'B', 'ℬ'}, {'I', 'ℐ'},
             {'R', 'ℛ'}, {'L', 'ℒ'}, {'M', 'ℳ'}
-        };
-
-        public static readonly Dictionary<string, string> HtmlGreekMap = new()
-        {
-            { "&alpha;", "α" }, { "&beta;", "β" }, { "&gamma;", "γ" }, { "&delta;", "δ" },
-            { "&epsilon;", "ε" }, { "&zeta;", "ζ" }, { "&eta;", "η" }, { "&theta;", "θ" },
-            { "&iota;", "ι" }, { "&kappa;", "κ" }, { "&lambda;", "λ" }, { "&mu;", "μ" },
-            { "&nu;", "ν" }, { "&xi;", "ξ" }, { "&omicron;", "ο" }, { "&pi;", "π" },
-            { "&rho;", "ρ" }, { "&sigma;", "σ" }, { "&tau;", "τ" }, { "&upsilon;", "υ" },
-            { "&phi;", "φ" }, { "&chi;", "χ" }, { "&psi;", "ψ" }, { "&omega;", "ω" },
-            { "&Alpha;", "Α" }, { "&Beta;", "Β" }, { "&Gamma;", "Γ" }, { "&Delta;", "Δ" },
-            { "&Epsilon;", "Ε" }, { "&Zeta;", "Ζ" }, { "&Eta;", "Η" }, { "&Theta;", "Θ" },
-            { "&Iota;", "Ι" }, { "&Kappa;", "Κ" }, { "&Lambda;", "Λ" }, { "&Mu;", "Μ" },
-            { "&Nu;", "Ν" }, { "&Xi;", "Ξ" }, { "&Omicron;", "Ο" }, { "&Pi;", "Π" },
-            { "&Rho;", "Ρ" }, { "&Sigma;", "Σ" }, { "&Tau;", "Τ" }, { "&Upsilon;", "Υ" },
-            { "&Phi;", "Φ" }, { "&Chi;", "Χ" }, { "&Psi;", "Ψ" }, { "&Omega;", "Ω" }
         };
     }
     #endregion
