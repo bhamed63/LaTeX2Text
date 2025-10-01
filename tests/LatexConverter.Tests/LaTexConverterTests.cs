@@ -55,7 +55,7 @@ public class LaTexConverterTests
     [InlineData(@"\sqrt{x}", "√(x)")]
     [InlineData(@"x^{10}", "x¹⁰")]
     [InlineData(@"x_1", "x₁")]
-    [InlineData(@"E = mc^2", "E = mc²")]
+    [InlineData(@"E = mc^2", "E=mc²")]
     [InlineData(@"H_2O", "H₂O")]
     [InlineData(@"\sqrt{a^2 + b^2}", "√(a²+b²)")]
     [InlineData(@"\frac{\alpha}{\beta}", "(α)/(β)")]

@@ -19,7 +19,7 @@ namespace LatexConverter
             if (latex_input == null) return "";
             var result = Process(latex_input, new HumanFriendlyVisitor());
             // Post-processing to remove spaces around specific operators
-            result = Regex.Replace(result, @"\s*([·×+])\s*", "$1");
+            result = Regex.Replace(result, @"\s*([·×+=])\s*", "$1");
             result = Regex.Replace(result, @"\s*([√])\s*\((.*?)\)", "$1($2)");
             return result;
         }
