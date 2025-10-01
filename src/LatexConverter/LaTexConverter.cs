@@ -1,0 +1,635 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+
+namespace LatexConverter
+{
+    public class LaTexConverter
+    {
+        public string ConvertToOpenAIFriendlyText(string latex_input)
+        {
+            if (latex_input == null) return "";
+            return Process(latex_input, new OpenAIVisitor());
+        }
+
+        public string ConvertToHumanFriendlyText(string latex_input)
+        {
+            if (latex_input == null) return "";
+            return Process(latex_input, new HumanFriendlyVisitor());
+        }
+
+        public string ConvertToScreenReaderFriendlyText(string latex_input)
+        {
+            if (latex_input == null) return "";
+            return Process(latex_input, new ScreenReaderVisitor());
+        }
+
+        private string Process(string text, IVisitor<string> visitor)
+        {
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+            var result = string.Join("", nodes.Select(n => n.Accept(visitor)));
+            // Condense spaces and tabs, but preserve newlines
+            return Regex.Replace(result, @"[ \t]+", " ").Trim();
+        }
+
+        public string ConvertHTMLToOpenAIFriendlyText(string html_input)
+        {
+            if (string.IsNullOrEmpty(html_input)) return "";
+            var text = html_input;
+
+            text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => m.Groups[1].Value, RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"\s*&deg;\s*", " degrees");
+            text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", "_$1");
+            text = Regex.Replace(text, "<sup>(.*?)</sup>", "^($1)");
+
+            return text.Trim();
+        }
+
+        public string ConvertHTMLToHumanFriendlyText(string html_input)
+        {
+            if (string.IsNullOrEmpty(html_input)) return "";
+            var text = html_input;
+
+            text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => Dictionaries.HtmlGreekMap.GetValueOrDefault(m.Value, m.Value), RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"\s*&deg;\s*", "°");
+            text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
+            text = Regex.Replace(text, "<sup>(.*?)</sup>", m => ToUnicode(m.Groups[1].Value, true));
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", m => ToUnicode(m.Groups[1].Value, false));
+
+            return text;
+        }
+
+        public string ConvertHTMLToScreenReaderFriendlyText(string html_input)
+        {
+            if (string.IsNullOrEmpty(html_input)) return "";
+            var text = html_input;
+
+            text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => $" {m.Groups[1].Value} ", RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"\s*&deg;\s*", " degrees ");
+            text = Regex.Replace(text, "<i>(.*?)</i>", "$1");
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1 ");
+            text = Regex.Replace(text, "<sup>(.*?)</sup>", m => {
+                string content = m.Groups[1].Value;
+                if (content == "2") return " squared";
+                if (content == "3") return " cubed";
+                return $" to the power of {content} ";
+            });
+
+            return Regex.Replace(text, @"\s+", " ").Trim();
+        }
+
+        private string ToUnicode(string s, bool isSuperscript)
+        {
+            var map = isSuperscript ? Dictionaries.SupMap : Dictionaries.SubMap;
+            var sb = new StringBuilder();
+            foreach (char c in s)
+            {
+                if (map.TryGetValue(c, out char newChar))
+                {
+                    sb.Append(newChar);
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
+    }
+
+    #region Parser
+    public enum TokenType { Command, Text, LBrace, RBrace, Superscript, Subscript, Eof, Space }
+
+    public record Token(TokenType Type, string Value = "");
+
+    public static class Tokenizer
+    {
+        private static readonly Regex CommandRegex = new Regex(@"\\[a-zA-Z]+|\\.", RegexOptions.Compiled);
+        public static List<Token> Tokenize(string text)
+        {
+            var tokens = new List<Token>();
+            int pos = 0;
+            while (pos < text.Length)
+            {
+                char currentChar = text[pos];
+                if (currentChar == '\n')
+                {
+                    tokens.Add(new Token(TokenType.Space, "\n"));
+                    pos++;
+                    continue;
+                }
+                if (char.IsWhiteSpace(currentChar))
+                {
+                    tokens.Add(new Token(TokenType.Space, " "));
+                    pos++;
+                    while (pos < text.Length && char.IsWhiteSpace(text[pos]) && text[pos] != '\n') pos++;
+                    continue;
+                }
+                if (char.IsLetter(currentChar))
+                {
+                    int start = pos;
+                    while (pos < text.Length && char.IsLetter(text[pos])) pos++;
+                    tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
+                    continue;
+                }
+                if (char.IsDigit(currentChar))
+                {
+                    int start = pos;
+                    while (pos < text.Length && char.IsDigit(text[pos])) pos++;
+                    tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
+                    continue;
+                }
+                if (currentChar == '\\')
+                {
+                    if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')'))
+                    {
+                        pos += 2;
+                        continue;
+                    }
+                     if (pos + 1 < text.Length && text[pos + 1] == ';')
+                    {
+                        tokens.Add(new Token(TokenType.Space, " "));
+                        pos += 2;
+                        continue;
+                    }
+
+                    var match = CommandRegex.Match(text, pos);
+                    if (match.Success)
+                    {
+                        tokens.Add(new Token(TokenType.Command, match.Value));
+                        pos += match.Length;
+                    }
+                    else
+                    {
+                        tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
+                        pos++;
+                    }
+                }
+                else if (currentChar == '{') { tokens.Add(new Token(TokenType.LBrace)); pos++; }
+                else if (currentChar == '}') { tokens.Add(new Token(TokenType.RBrace)); pos++; }
+                else if (currentChar == '^') { tokens.Add(new Token(TokenType.Superscript)); pos++; }
+                else if (currentChar == '_') { tokens.Add(new Token(TokenType.Subscript)); pos++; }
+                else
+                {
+                    tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
+                    pos++;
+                }
+            }
+            tokens.Add(new Token(TokenType.Eof));
+            return tokens;
+        }
+    }
+
+    public abstract record AstNode
+    {
+        public abstract T Accept<T>(IVisitor<T> visitor);
+    }
+    public record TextNode(string Text) : AstNode
+    {
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitText(this);
+    }
+    public record CommandNode(string Command, List<AstNode> Args, AstNode Subscript, AstNode Superscript) : AstNode
+    {
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCommand(this);
+    }
+    public record GroupNode(List<AstNode> Body) : AstNode
+    {
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
+    }
+    public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript) : AstNode
+    {
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitScript(this);
+    }
+
+    public class Parser
+    {
+        private readonly List<Token> _tokens;
+        private int _pos;
+        private Token CurrentToken => _tokens[_pos];
+
+        public Parser(List<Token> tokens) { _tokens = tokens; }
+
+        public List<AstNode> Parse()
+        {
+            var nodes = new List<AstNode>();
+            while (CurrentToken.Type != TokenType.Eof)
+            {
+                nodes.Add(ParseExpression());
+            }
+            return nodes;
+        }
+
+        private AstNode ParseExpression()
+        {
+            var node = ParsePrimary();
+            while (CurrentToken.Type == TokenType.Superscript || CurrentToken.Type == TokenType.Subscript)
+            {
+                bool isSuperscript = CurrentToken.Type == TokenType.Superscript;
+                _pos++;
+                var script = ParsePrimary();
+                node = new ScriptNode(node, script, isSuperscript);
+            }
+            return node;
+        }
+
+        private AstNode ParsePrimary()
+        {
+            if (CurrentToken.Type == TokenType.LBrace) return ParseGroup();
+            if (CurrentToken.Type == TokenType.Command) return ParseCommand();
+            if (CurrentToken.Type == TokenType.Text || CurrentToken.Type == TokenType.Space)
+            {
+                var token = CurrentToken;
+                _pos++;
+                return new TextNode(token.Value);
+            }
+            _pos++;
+            return new TextNode("");
+        }
+
+        private AstNode ParseGroup()
+        {
+            _pos++; // Consume '{'
+            var nodes = new List<AstNode>();
+            while (CurrentToken.Type != TokenType.RBrace && CurrentToken.Type != TokenType.Eof)
+            {
+                nodes.Add(ParseExpression());
+            }
+            if (CurrentToken.Type == TokenType.RBrace) _pos++; // Consume '}'
+            return new GroupNode(nodes);
+        }
+
+        private bool IsLimitCommand(string command) => command == @"\sum" || command == @"\int" || command == @"\prod";
+
+        private int GetArgumentCount(string command)
+        {
+            return command switch
+            {
+                @"\frac" => 2,
+                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" => 1,
+                _ => 0,
+            };
+        }
+
+        private AstNode ParseCommand()
+        {
+            var token = CurrentToken;
+            _pos++;
+            var args = new List<AstNode>();
+            AstNode subscript = null;
+            AstNode superscript = null;
+
+            if (IsLimitCommand(token.Value))
+            {
+                if (CurrentToken.Type == TokenType.Subscript)
+                {
+                    _pos++;
+                    subscript = ParsePrimary();
+                }
+                if (CurrentToken.Type == TokenType.Superscript)
+                {
+                    _pos++;
+                    superscript = ParsePrimary();
+                }
+            }
+
+            int numArgs = GetArgumentCount(token.Value);
+            for (int i = 0; i < numArgs; i++)
+            {
+                args.Add(ParsePrimary());
+            }
+
+            return new CommandNode(token.Value, args, subscript, superscript);
+        }
+    }
+    #endregion
+
+    #region Visitors
+    public interface IVisitor<T>
+    {
+        T VisitText(TextNode node);
+        T VisitCommand(CommandNode node);
+        T VisitGroup(GroupNode node);
+        T VisitScript(ScriptNode node);
+    }
+
+    public abstract class BaseVisitor<T> : IVisitor<T>
+    {
+        public abstract T VisitText(TextNode node);
+        public abstract T VisitCommand(CommandNode node);
+        public abstract T VisitGroup(GroupNode node);
+        public abstract T VisitScript(ScriptNode node);
+    }
+
+    public class OpenAIVisitor : BaseVisitor<string>
+    {
+        public override string VisitText(TextNode node) => node.Text;
+        public override string VisitGroup(GroupNode node)
+        {
+            var result = string.Join("", node.Body.Select(n => n.Accept(this)));
+            result = Regex.Replace(result, @"\+", " + ");
+            return result;
+        }
+        public override string VisitScript(ScriptNode node)
+        {
+            string baseText = node.Base.Accept(this);
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ")
+            {
+                return $"{baseText} degrees";
+            }
+
+            string scriptText = node.Script.Accept(this);
+            string op = node.IsSuperscript ? "^" : "_";
+
+            if (node.Script is GroupNode)
+            {
+                if (scriptText.Length > 1) return $"{baseText}{op}({scriptText})";
+                return $"{baseText}{op}{scriptText}";
+            }
+
+            return $"{baseText}{op}{scriptText}";
+        }
+        public override string VisitCommand(CommandNode node)
+        {
+            var sb = new StringBuilder();
+            switch (node.Command)
+            {
+                case @"\frac": sb.Append($"({node.Args[0].Accept(this)})/({node.Args[1].Accept(this)})"); break;
+                case @"\sqrt": sb.Append($"sqrt({node.Args[0].Accept(this)})"); break;
+                case @"\vec": sb.Append($"vec({node.Args[0].Accept(this)})"); break;
+                case @"\hat": sb.Append($"hat({node.Args[0].Accept(this)})"); break;
+                case @"\mathcal": sb.Append($"mathcal({node.Args[0].Accept(this)})"); break;
+                case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
+                case @"\mathbb": sb.Append($"mathbb({node.Args[0].Accept(this)})"); break;
+                case @"\big": case @"\Big": case @"\bigg": case @"\Bigg": sb.Append(""); break;
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
+                    sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
+                    if (node.Subscript != null) sb.Append($"_({node.Subscript.Accept(this)})");
+                    if (node.Superscript != null) sb.Append($"^({node.Superscript.Accept(this)})");
+                    break;
+                default:
+                    sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
+                    break;
+            }
+            return sb.ToString();
+        }
+    }
+
+    public class HumanFriendlyVisitor : BaseVisitor<string>
+    {
+        public override string VisitText(TextNode node)
+        {
+            if (node.Text == "+") return " + ";
+            return node.Text;
+        }
+        public override string VisitGroup(GroupNode node)
+        {
+            return string.Join("", node.Body.Select(n => n.Accept(this)));
+        }
+        public override string VisitScript(ScriptNode node)
+        {
+            string baseText = node.Base.Accept(this);
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ")
+            {
+                return $"{baseText}°";
+            }
+            return $"{node.Base.Accept(this)}{ToUnicode(node.Script.Accept(this), node.IsSuperscript, node.Script)}";
+        }
+        public override string VisitCommand(CommandNode node)
+        {
+            var sb = new StringBuilder();
+            switch (node.Command)
+            {
+                case @"\frac": sb.Append($"({node.Args[0].Accept(this)})/({node.Args[1].Accept(this)})"); break;
+                case @"\sqrt": sb.Append($"√({node.Args[0].Accept(this)})"); break;
+                case @"\vec": sb.Append($"{node.Args[0].Accept(this)}\u20D7"); break;
+                case @"\hat": sb.Append($"{node.Args[0].Accept(this)}\u0302"); break;
+                case @"\mathcal": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap)); break;
+                case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
+                case @"\mathbb": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap)); break;
+                case @"\big": case @"\Big": case @"\bigg": case @"\Bigg": sb.Append(""); break;
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
+                    sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
+                    if (node.Subscript != null) sb.Append(ToUnicode(node.Subscript.Accept(this), false, node.Subscript));
+                    if (node.Superscript != null) sb.Append(ToUnicode(node.Superscript.Accept(this), true, node.Superscript));
+                    break;
+                default:
+                    sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
+                    break;
+            }
+            return sb.ToString();
+        }
+        private string ToUnicode(string s, bool? isSuperscript, AstNode originalNode, Dictionary<char, char> map = null)
+        {
+            if (isSuperscript.HasValue && map == null)
+            {
+                map = isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
+            }
+
+            var sb = new StringBuilder();
+            string spaceless_s = s.Replace(" ", "");
+            bool allCharsMapped = true;
+            if (map != null && !string.IsNullOrEmpty(spaceless_s))
+            {
+                foreach (char c in spaceless_s)
+                {
+                    if (map.TryGetValue(c, out char newChar))
+                    {
+                        sb.Append(newChar);
+                    }
+                    else
+                    {
+                        allCharsMapped = false;
+                        break;
+                    }
+                }
+            } else {
+                allCharsMapped = false;
+            }
+
+            if (allCharsMapped)
+            {
+                return sb.ToString();
+            }
+            else
+            {
+                if (isSuperscript.HasValue)
+                {
+                    string op = isSuperscript.Value ? "^" : "_";
+                    if (originalNode is not GroupNode && s.Length > 1) return $"{op}({s})";
+                    if (originalNode is GroupNode) return $"{op}({s})";
+                    return $"{op}{s}";
+                }
+                return s;
+            }
+        }
+    }
+
+    public class ScreenReaderVisitor : BaseVisitor<string>
+    {
+        public override string VisitText(TextNode node)
+        {
+            return node.Text switch
+            {
+                "+" => " plus ",
+                "-" => " minus ",
+                "=" => " equals ",
+                "*" => " times ",
+                "/" => " divided by ",
+                _ => node.Text
+            };
+        }
+        public override string VisitGroup(GroupNode node) => string.Concat(node.Body.Select(n => n.Accept(this)));
+        public override string VisitScript(ScriptNode node)
+        {
+            string baseText = node.Base.Accept(this);
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ")
+            {
+                return $"{baseText} degrees";
+            }
+
+            string scriptText = node.Script.Accept(this);
+            if (node.IsSuperscript)
+            {
+                return $"{baseText} to the power of {scriptText}";
+            }
+            return $"{baseText} subscript {scriptText}";
+        }
+        public override string VisitCommand(CommandNode node)
+        {
+            var sb = new StringBuilder();
+            switch (node.Command)
+            {
+                case @"\frac": sb.Append($"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}"); break;
+                case @"\sqrt": sb.Append($"the square root of {node.Args[0].Accept(this)}"); break;
+                case @"\vec": sb.Append($"vector {node.Args[0].Accept(this)}"); break;
+                case @"\hat": sb.Append($"{node.Args[0].Accept(this)} hat"); break;
+                case @"\mathcal": sb.Append($"calligraphic {node.Args[0].Accept(this)}"); break;
+                case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
+                case @"\mathbb":
+                    if(node.Args[0].Accept(this) == "R") sb.Append("the set of real numbers");
+                    else sb.Append(node.Args[0].Accept(this));
+                    break;
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
+                    var sub = node.Subscript != null ? node.Subscript.Accept(this) : "";
+                    var sup = node.Superscript != null ? node.Superscript.Accept(this) : "";
+                    string commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
+                    sb.Append($"{commandName} from {sub} to {sup}");
+                    break;
+                case @"\big": case @"\Big": case @"\bigg": case @"\Bigg": sb.Append(""); break;
+                default:
+                    string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
+                    sb.Append(Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal));
+                    break;
+            }
+
+            return sb.ToString();
+        }
+    }
+
+    internal static class Dictionaries
+    {
+        public static readonly Dictionary<string, string> SymbolMap = new() {
+            { @"\alpha", "alpha" }, { @"\beta", "beta" }, { @"\gamma", "gamma" }, { @"\delta", "delta" },
+            { @"\epsilon", "epsilon" }, { @"\varepsilon", "varepsilon" }, { @"\zeta", "zeta" }, { @"\eta", "eta" }, { @"\theta", "theta" },
+            { @"\iota", "iota" }, { @"\kappa", "kappa" }, { @"\varkappa", "varkappa" }, { @"\lambda", "lambda" }, { @"\mu", "mu" },
+            { @"\nu", "nu" }, { @"\xi", "xi" }, { @"\omicron", "omicron" }, { @"\pi", "pi" }, { @"\varpi", "varpi" },
+            { @"\rho", "rho" }, { @"\varrho", "varrho" }, { @"\sigma", "sigma" }, { @"\varsigma", "varsigma" }, { @"\tau", "tau" }, { @"\upsilon", "upsilon" },
+            { @"\phi", "phi" }, { @"\varphi", "varphi" }, { @"\chi", "chi" }, { @"\psi", "psi" }, { @"\omega", "omega" },
+            { @"\Gamma", "Gamma" }, { @"\Delta", "Delta" }, { @"\Theta", "Theta" }, { @"\Lambda", "Lambda" },
+            { @"\Xi", "Xi" }, { @"\Pi", "Pi" }, { @"\Sigma", "Sigma" }, { @"\Upsilon", "Upsilon" },
+            { @"\Phi", "Phi" }, { @"\Psi", "Psi" }, { @"\Omega", "Omega" },
+            { @"\times", "times" }, { @"\div", "div" }, { @"\pm", "pm" },
+            { @"\mp", "mp" }, { @"\cdot", "cdot" }, { @"\circ", "circ" },
+            { @"\bullet", "bullet" }, { @"\oplus", "oplus" }, { @"\ominus", "ominus" },
+            { @"\otimes", "otimes" }, { @"\oslash", "oslash" }, { @"\odot", "odot" },
+            { @"\leq", "leq" }, { @"\geq", "geq" },
+            { @"\neq", "neq" }, { @"\approx", "approx" },
+            { @"\equiv", "equiv" }, { @"\propto", "propto" },
+            { @"\infty", "infty" }, { @"\nabla", "nabla" }, { @"\partial", "partial" },
+            { @"\int", "integral" }, { @"\sum", "summation" }, { @"\prod", "product" },
+            { @"\hbar", "hbar" }, { @"\ell", "ell" }, { @"\wp", "wp" },
+            { @"\Re", "Re" }, { @"\Im", "Im" },
+            { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }
+        };
+        public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
+            { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
+            { @"\leq", "less than or equal to" }, { @"\geq", "greater than or equal to" },
+            { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" },
+            { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
+            { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
+            { @"\Re", "Real part" }, { @"\Im", "Imaginary part" }, { @"\forall", "for all" }
+        };
+        public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
+            { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
+            { @"\epsilon", "ε" }, { @"\varepsilon", "ε" }, { @"\zeta", "ζ" }, { @"\eta", "η" }, { @"\theta", "θ" },
+            { @"\iota", "ι" }, { @"\kappa", "κ" }, { @"\varkappa", "ϰ" }, { @"\lambda", "λ" }, { @"\mu", "μ" },
+            { @"\nu", "ν" }, { @"\xi", "ξ" }, { @"\omicron", "ο" }, { @"\pi", "π" }, { @"\varpi", "ϖ" },
+            { @"\rho", "ρ" }, { @"\varrho", "ϱ" }, { @"\sigma", "σ" }, { @"\varsigma", "ς" }, { @"\tau", "τ" }, { @"\upsilon", "υ" },
+            { @"\phi", "φ" }, { @"\varphi", "φ" }, { @"\chi", "χ" }, { @"\psi", "ψ" }, { @"\omega", "ω" },
+            { @"\Gamma", "Γ" }, { @"\Delta", "Δ" }, { @"\Theta", "Θ" }, { @"\Lambda", "Λ" },
+            { @"\Xi", "Ξ" }, { @"\Pi", "Π" }, { @"\Sigma", "Σ" }, { @"\Upsilon", "Υ" },
+            { @"\Phi", "Φ" }, { @"\Psi", "Ψ" }, { @"\Omega", "Ω" },
+            { @"\times", "×" }, { @"\div", "÷" }, { @"\pm", "±" },
+            { @"\mp", "∓" }, { @"\cdot", "·" }, { @"\circ", "∘" },
+            { @"\bullet", "•" }, { @"\oplus", "⊕" }, { @"\ominus", "⊖" },
+            { @"\otimes", "⊗" }, { @"\oslash", "⊘" }, { @"\odot", "⊙" },
+            { @"\leq", "≤" }, { @"\geq", "≥" }, { @"\neq", "≠" }, { @"\approx", "≈" },
+            { @"\equiv", "≡" }, { @"\propto", "∝" }, { @"\infty", "∞" },
+            { @"\nabla", "∇" }, { @"\partial", "∂" },
+            { @"\int", "∫" }, { @"\sum", "∑" }, { @"\prod", "∏" },
+            { @"\hbar", "ħ" }, { @"\ell", "ℓ" },
+            { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" }
+        };
+        public static readonly Dictionary<char, char> SupMap = new() {
+            { '0', '⁰' }, { '1', '¹' }, { '2', '²' }, { '3', '³' }, { '4', '⁴' }, { '5', '⁵' }, { '6', '⁶' }, { '7', '⁷' }, { '8', '⁸' }, { '9', '⁹' },
+            { 'a', 'ᵃ' }, { 'b', 'ᵇ' }, { 'c', 'ᶜ' }, { 'd', 'ᵈ' }, { 'e', 'ᵉ' }, { 'f', 'ᶠ' }, { 'g', 'ᵍ' }, { 'h', 'ʰ' }, { 'i', 'ⁱ' }, { 'j', 'ʲ' },
+            { 'k', 'ᵏ' }, { 'l', 'ˡ' }, { 'm', 'ᵐ' }, { 'n', 'ⁿ' }, { 'o', 'ᵒ' }, { 'p', 'ᵖ' }, { 'r', 'ʳ' }, { 's', 'ˢ' }, { 't', 'ᵗ' }, { 'u', 'ᵘ' },
+            { 'v', 'ᵛ' }, { 'w', 'ʷ' }, { 'x', 'ˣ' }, { 'y', 'ʸ' }, { 'z', 'ᶻ' }, { '+', '⁺' }, { '-', '⁻' }, { '=', '⁼' }, { '(', '⁽' }, { ')', '⁾' },
+            { 'A', 'ᴬ' }, { 'B', 'ᴮ' }, { 'C', 'ᶜ' }, { 'D', 'ᴰ' }, { 'E', 'ᴱ' }, { 'G', 'ᴳ' }, { 'H', 'ᴴ' }, { 'I', 'ᴵ' }, { 'J', 'ᴶ' }, { 'K', 'ᴷ' }, { 'L', 'ᴸ' },
+            { 'M', 'ᴹ' }, { 'N', 'ᴺ' }, { 'O', 'ᴼ' }, { 'P', 'ᴾ' }, { 'R', 'ᴿ' }, { 'T', 'ᵀ' }, { 'U', 'ᵁ' }, { 'V', 'ⱽ' }, { 'W', 'ᵂ' }, { 'Y', 'ʸ' }, { 'Z', 'ᶻ' }
+        };
+        public static readonly Dictionary<char, char> SubMap = new() {
+            { '0', '₀' }, { '1', '₁' }, { '2', '₂' }, { '3', '₃' }, { '4', '₄' }, { '5', '₅' }, { '6', '₆' }, { '7', '₇' }, { '8', '₈' }, { '9', '₉' },
+            { 'a', 'ₐ' }, { 'e', 'ₑ' }, { 'h', 'ₕ' }, { 'i', 'ᵢ' }, { 'j', 'ⱼ' }, { 'k', 'ₖ' }, { 'l', 'ₗ' }, { 'm', 'ₘ' }, { 'n', 'ₙ' }, { 'o', 'ₒ' },
+            { 'p', 'ₚ' }, { 'r', 'ᵣ' }, { 's', 'ₛ' }, { 't', 'ₜ' }, { 'u', 'ᵤ' }, { 'v', 'ᵥ' }, { 'x', 'ₓ' }, { '+', '₊' }, { '-', '₋' }, { '=', '₌' },
+            { '(', '₍' }, { ')', '₎' }
+        };
+        public static readonly Dictionary<char, char> MathbbMap = new()
+        {
+            {'R', 'ℝ'}, {'C', 'ℂ'}, {'N', 'ℕ'}, {'Q', 'ℚ'}, {'Z', 'ℤ'}
+        };
+        public static readonly Dictionary<char, char> MathcalMap = new()
+        {
+            {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'B', 'ℬ'}, {'I', 'ℐ'},
+            {'R', 'ℛ'}, {'L', 'ℒ'}, {'M', 'ℳ'}
+        };
+
+        public static readonly Dictionary<string, string> HtmlGreekMap = new()
+        {
+            { "&alpha;", "α" }, { "&beta;", "β" }, { "&gamma;", "γ" }, { "&delta;", "δ" },
+            { "&epsilon;", "ε" }, { "&zeta;", "ζ" }, { "&eta;", "η" }, { "&theta;", "θ" },
+            { "&iota;", "ι" }, { "&kappa;", "κ" }, { "&lambda;", "λ" }, { "&mu;", "μ" },
+            { "&nu;", "ν" }, { "&xi;", "ξ" }, { "&omicron;", "ο" }, { "&pi;", "π" },
+            { "&rho;", "ρ" }, { "&sigma;", "σ" }, { "&tau;", "τ" }, { "&upsilon;", "υ" },
+            { "&phi;", "φ" }, { "&chi;", "χ" }, { "&psi;", "ψ" }, { "&omega;", "ω" },
+            { "&Alpha;", "Α" }, { "&Beta;", "Β" }, { "&Gamma;", "Γ" }, { "&Delta;", "Δ" },
+            { "&Epsilon;", "Ε" }, { "&Zeta;", "Ζ" }, { "&Eta;", "Η" }, { "&Theta;", "Θ" },
+            { "&Iota;", "Ι" }, { "&Kappa;", "Κ" }, { "&Lambda;", "Λ" }, { "&Mu;", "Μ" },
+            { "&Nu;", "Ν" }, { "&Xi;", "Ξ" }, { "&Omicron;", "Ο" }, { "&Pi;", "Π" },
+            { "&Rho;", "Ρ" }, { "&Sigma;", "Σ" }, { "&Tau;", "Τ" }, { "&Upsilon;", "Υ" },
+            { "&Phi;", "Φ" }, { "&Chi;", "Χ" }, { "&Psi;", "Ψ" }, { "&Omega;", "Ω" }
+        };
+    }
+    #endregion
+}
