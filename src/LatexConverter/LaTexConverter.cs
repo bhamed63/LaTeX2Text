@@ -17,7 +17,8 @@ namespace LatexConverter
         public string ConvertToHumanFriendlyText(string latex_input)
         {
             if (latex_input == null) return "";
-            var result = Process(latex_input, new HumanFriendlyVisitor());
+            var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
+            var result = Process(processed_input, new HumanFriendlyVisitor());
             // Post-processing to remove spaces around specific operators
             result = Regex.Replace(result, @"\s*([·×+=])\s*", "$1");
             result = Regex.Replace(result, @"\s*([√])\s*\((.*?)\)", "$1($2)");

@@ -53,6 +53,8 @@ public class LaTexConverterTests
     [InlineData(@"+q", "+q")]
     [InlineData(@"\frac{1}{2}", "(1)/(2)")]
     [InlineData(@"\sqrt{x}", "√(x)")]
+    [InlineData("sqrt(x)", "√(x)")]
+    [InlineData("sqrt(a^2 + b^2)", "√(a²+b²)")]
     [InlineData(@"x^{10}", "x¹⁰")]
     [InlineData(@"x_1", "x₁")]
     [InlineData(@"E = mc^2", "E=mc²")]
