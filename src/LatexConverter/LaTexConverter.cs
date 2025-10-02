@@ -23,7 +23,7 @@ namespace LatexConverter
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             var result = Process(processed_input, new HumanFriendlyVisitor());
             // Post-processing to remove spaces around specific operators
-            result = Regex.Replace(result, @"\s*([·×+=*/\(\)\[\]])\s*", "$1");
+            result = Regex.Replace(result, @"\s*([·×+=*/\(\)\[\]-])\s*", "$1");
             result = Regex.Replace(result, @"\s*([√])\s*\((.*?)\)", "$1($2)");
             return result;
         }
@@ -424,6 +424,10 @@ namespace LatexConverter
         public override string VisitText(TextNode node)
         {
             if (node.Text == "+") return "+";
+            if (Dictionaries.TextToUnicodeSymbolMap.TryGetValue(node.Text, out var symbol))
+            {
+                return symbol;
+            }
             return node.Text;
         }
         public override string VisitGroup(GroupNode node)
@@ -577,6 +581,17 @@ namespace LatexConverter
 
     internal static class Dictionaries
     {
+        public static readonly Dictionary<string, string> TextToUnicodeSymbolMap = new() {
+            { "alpha", "α" }, { "beta", "β" }, { "gamma", "γ" }, { "delta", "δ" },
+            { "epsilon", "ε" }, { "varepsilon", "ε" }, { "zeta", "ζ" }, { "eta", "η" }, { "theta", "θ" },
+            { "iota", "ι" }, { "kappa", "κ" }, { "varkappa", "ϰ" }, { "lambda", "λ" }, { "mu", "μ" },
+            { "nu", "ν" }, { "xi", "ξ" }, { "omicron", "ο" }, { "pi", "π" }, { "varpi", "ϖ" },
+            { "rho", "ρ" }, { "varrho", "ϱ" }, { "sigma", "σ" }, { "varsigma", "ς" }, { "tau", "τ" }, { "upsilon", "υ" },
+            { "phi", "φ" }, { "varphi", "φ" }, { "chi", "χ" }, { "psi", "ψ" }, { "omega", "ω" },
+            { "Gamma", "Γ" }, { "Delta", "Δ" }, { "Theta", "Θ" }, { "Lambda", "Λ" },
+            { "Xi", "Ξ" }, { "Pi", "Π" }, { "Sigma", "Σ" }, { "Upsilon", "Υ" },
+            { "Phi", "Φ" }, { "Psi", "Ψ" }, { "Omega", "Ω" }
+        };
         public static readonly Dictionary<string, string> SymbolMap = new() {
             { @"\alpha", "alpha" }, { @"\beta", "beta" }, { @"\gamma", "gamma" }, { @"\delta", "delta" },
             { @"\epsilon", "epsilon" }, { @"\varepsilon", "varepsilon" }, { @"\zeta", "zeta" }, { @"\eta", "eta" }, { @"\theta", "theta" },
