@@ -23,7 +23,7 @@ namespace LatexConverter
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             var result = Process(processed_input, new HumanFriendlyVisitor());
             // Post-processing to remove spaces around specific operators
-            result = Regex.Replace(result, @"\s*([·×+=])\s*", "$1");
+            result = Regex.Replace(result, @"\s*([·×+=*/\(\)\[\]])\s*", "$1");
             result = Regex.Replace(result, @"\s*([√])\s*\((.*?)\)", "$1($2)");
             return result;
         }
@@ -52,7 +52,6 @@ namespace LatexConverter
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
-            text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => m.Groups[1].Value, RegexOptions.IgnoreCase);
             text = Regex.Replace(text, @"\s*&deg;\s*", " degrees");
             text = Regex.Replace(text, @"\s*&times;\s*", " times ");
             text = Regex.Replace(text, @"<br\s*/?>", "\n");
@@ -63,6 +62,7 @@ namespace LatexConverter
             } while (text != previous);
             text = Regex.Replace(text, "<sub>(.*?)</sub>", "_$1");
             text = Regex.Replace(text, "<sup>(.*?)</sup>", "^($1)");
+            text = Regex.Replace(text, "&([a-zA-Z]+);", m => m.Groups[1].Value);
             return text.Trim();
         }
 
@@ -70,23 +70,6 @@ namespace LatexConverter
         {
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
-            string ToHtmlUnicode(string s, bool isSuperscript)
-            {
-                var map = isSuperscript ? Dictionaries.SupMap : Dictionaries.SubMap;
-                var sb = new StringBuilder();
-                foreach (char c in s)
-                {
-                    if (map.TryGetValue(c, out char newChar))
-                    {
-                        sb.Append(newChar);
-                    }
-                    else
-                    {
-                        sb.Append(c);
-                    }
-                }
-                return sb.ToString();
-            }
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
             text = Regex.Replace(text, @"&([a-zA-Z]+);", m => {
@@ -100,8 +83,28 @@ namespace LatexConverter
                 previous = text;
                 text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
             } while (text != previous);
-            text = Regex.Replace(text, "<sup>(.*?)</sup>", m => ToHtmlUnicode(m.Groups[1].Value, true));
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", m => ToHtmlUnicode(m.Groups[1].Value, false));
+            text = Regex.Replace(text, "<sup>(.*?)</sup>", m => {
+                var s = m.Groups[1].Value;
+                var map = Dictionaries.SupMap;
+                var sb = new StringBuilder();
+                foreach (char c in s)
+                {
+                    if (map.TryGetValue(c, out char newChar)) sb.Append(newChar);
+                    else sb.Append(c);
+                }
+                return sb.ToString();
+            });
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", m => {
+                var s = m.Groups[1].Value;
+                var map = Dictionaries.SubMap;
+                var sb = new StringBuilder();
+                foreach (char c in s)
+                {
+                    if (map.TryGetValue(c, out char newChar)) sb.Append(newChar);
+                    else sb.Append(c);
+                }
+                return sb.ToString();
+            });
             text = Regex.Replace(text, @"\s*([×])\s*", "$1");
             return text.Trim();
         }
@@ -118,7 +121,6 @@ namespace LatexConverter
                 previous = text;
                 text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
             } while (text != previous);
-            text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", " $1 ");
             text = Regex.Replace(text, @"\s*&deg;\s*", " degrees ");
             text = Regex.Replace(text, @"\s*&times;\s*", " times ");
             text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1 ");
@@ -128,6 +130,7 @@ namespace LatexConverter
                 if (content == "3") return " cubed ";
                 return $" to the power of {content} ";
             });
+            text = Regex.Replace(text, "&([a-zA-Z]+);", " $1 ");
             var lines = text.Split('\n');
             for (int i = 0; i < lines.Length; i++)
             {
@@ -305,7 +308,7 @@ namespace LatexConverter
             return command switch
             {
                 @"\frac" => 2,
-                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\arcsin" or @"\arccos" or @"\arctan" => 1,
+                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" => 1,
                 _ => 0,
             };
         }

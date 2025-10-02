@@ -10,7 +10,9 @@ public class LaTexConverterTests
     [InlineData(null, "")]
     [InlineData(@"\alpha", "alpha")]
     [InlineData(@"90^\circ", "90 degrees")]
+    [InlineData(@"43^\circ", "43 degrees")]
     [InlineData(@"F_\textrm{k}", "F_k")]
+    [InlineData(@"\textrm{k}", "k")]
     [InlineData(@"\frac{1}{2}", "(1)/(2)")]
     [InlineData(@"\sqrt{x}", "sqrt(x)")]
     [InlineData("sqrt(x)", "sqrt(x)")]
@@ -52,7 +54,9 @@ public class LaTexConverterTests
     [InlineData(null, "")]
     [InlineData(@"\alpha", "α")]
     [InlineData(@"90^\circ", "90°")]
+    [InlineData(@"43^\circ", "43°")]
     [InlineData(@"F_\textrm{k}", "Fₖ")]
+    [InlineData(@"\textrm{k}", "k")]
     [InlineData(@"\vec{F}_i", "F⃗ᵢ")]
     [InlineData(@"\vec{F}", "F⃗")]
     [InlineData(@"+q", "+q")]
@@ -76,7 +80,7 @@ public class LaTexConverterTests
     [InlineData(@"\(x_\mathrm{f}\)", "x_f")]
     [InlineData(@"\(x_\mathrm{i} = 0\)", "xᵢ=0")]
     [InlineData(@"\(k = 52\;\mathrm{N}/\mathrm{m}\).", "k=52 N/m.")]
-    [InlineData(@"\bigg( \frac{a}{b} \bigg)", "( (a)/(b) )")]
+    [InlineData(@"\bigg( \frac{a}{b} \bigg)", "((a)/(b))")]
     [InlineData("a\nb", "a\nb")]
     [InlineData(@"\vec{v}_0", "v⃗₀")]
     [InlineData(@"\mu_k", "μₖ")]
@@ -87,7 +91,7 @@ public class LaTexConverterTests
     [InlineData(@"sin^(-1)", "sin⁻¹")]
     [InlineData(@"cos^(-1)", "cos⁻¹")]
     [InlineData(@"tan^(-1)", "tan⁻¹")]
-    [InlineData(@"sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "sin⁻¹[(lambda/(d*pi))*cos⁻¹(√(I/I_0))]")]
+    [InlineData(@"sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "sin⁻¹[(lambda/(d*pi))*cos⁻¹(√(I/I₀))]")]
     public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertToHumanFriendlyText(input);
@@ -100,7 +104,9 @@ public class LaTexConverterTests
     [InlineData(null, "")]
     [InlineData(@"\alpha", "alpha")]
     [InlineData(@"90^\circ", "90 degrees")]
+    [InlineData(@"43^\circ", "43 degrees")]
     [InlineData(@"F_\textrm{k}", "F subscript k")]
+    [InlineData(@"\textrm{k}", "k")]
     [InlineData(@"\geq", "greater than or equal to")]
     [InlineData(@"\frac{1}{2}", "fraction with numerator 1 and denominator 2")]
     [InlineData(@"\sqrt{x}", "the square root of x")]
@@ -134,7 +140,7 @@ public class LaTexConverterTests
     [InlineData(@"sin^(-1)", "arcsin")]
     [InlineData(@"cos^(-1)", "arccos")]
     [InlineData(@"tan^(-1)", "arctan")]
-    [InlineData(@"sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "arcsin [ ( lambda divided by ( d times pi ) ) times arccos ( the square root of I divided by I_0 ) ]")]
+    [InlineData(@"sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "arcsin [ (lambda divided by (d times pi)) times arccos (the square root of I divided by I subscript 0) ]")]
     public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertToScreenReaderFriendlyText(input);
