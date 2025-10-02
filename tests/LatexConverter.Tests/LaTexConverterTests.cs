@@ -13,6 +13,7 @@ public class LaTexConverterTests
     [InlineData(@"F_\textrm{k}", "F_k")]
     [InlineData(@"\frac{1}{2}", "(1)/(2)")]
     [InlineData(@"\sqrt{x}", "sqrt(x)")]
+    [InlineData("sqrt(x)", "sqrt(x)")]
     [InlineData(@"x^{10}", "x^(10)")]
     [InlineData(@"E = mc^2", "E = mc^2")]
     [InlineData(@"\sqrt{\frac{a}{b}}", "sqrt((a)/(b))")]
@@ -35,6 +36,10 @@ public class LaTexConverterTests
     [InlineData(@"\mathcal{E}_1", "mathcal(E)_1")]
     [InlineData(@"mathcal sfd asdf asdf asdf sdf sdf AliReza", "mathcal sfd asdf asdf asdf sdf sdf AliReza")]
     [InlineData(@"mathcal   sfd   AliReza", "mathcal sfd AliReza")]
+    [InlineData(@"sin^(-1)", "arcsin")]
+    [InlineData(@"cos^(-1)", "arccos")]
+    [InlineData(@"tan^(-1)", "arctan")]
+    [InlineData(@"sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "arcsin [ (lambda / (d * pi)) * arccos (sqrt(I / I_0)) ]")]
     public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -79,6 +84,10 @@ public class LaTexConverterTests
     [InlineData(@"\mathcal{E}_1", "ℰ₁")]
     [InlineData(@"mathcal sfd asdf asdf asdf sdf sdf AliReza", "mathcal sfd asdf asdf asdf sdf sdf AliReza")]
     [InlineData(@"mathcal   sfd   AliReza", "mathcal sfd AliReza")]
+    [InlineData(@"sin^(-1)", "sin⁻¹")]
+    [InlineData(@"cos^(-1)", "cos⁻¹")]
+    [InlineData(@"tan^(-1)", "tan⁻¹")]
+    [InlineData(@"sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "sin⁻¹[(lambda/(d*pi))*cos⁻¹(√(I/I_0))]")]
     public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertToHumanFriendlyText(input);
@@ -95,6 +104,7 @@ public class LaTexConverterTests
     [InlineData(@"\geq", "greater than or equal to")]
     [InlineData(@"\frac{1}{2}", "fraction with numerator 1 and denominator 2")]
     [InlineData(@"\sqrt{x}", "the square root of x")]
+    [InlineData("sqrt(x)", "the square root of x")]
     [InlineData(@"x^{2}", "x to the power of 2")]
     [InlineData(@"x^3", "x to the power of 3")]
     [InlineData(@"x^{10}", "x to the power of 10")]
@@ -121,6 +131,10 @@ public class LaTexConverterTests
     [InlineData(@"\mathcal{E}_1", "calligraphic E subscript 1")]
     [InlineData(@"mathcal sfd asdf asdf asdf sdf sdf AliReza", "mathcal sfd asdf asdf asdf sdf sdf AliReza")]
     [InlineData(@"mathcal   sfd   AliReza", "mathcal sfd AliReza")]
+    [InlineData(@"sin^(-1)", "arcsin")]
+    [InlineData(@"cos^(-1)", "arccos")]
+    [InlineData(@"tan^(-1)", "arctan")]
+    [InlineData(@"sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "arcsin [ ( lambda divided by ( d times pi ) ) times arccos ( the square root of I divided by I_0 ) ]")]
     public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertToScreenReaderFriendlyText(input);

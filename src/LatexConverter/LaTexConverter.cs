@@ -11,13 +11,16 @@ namespace LatexConverter
         public string ConvertToOpenAIFriendlyText(string latex_input)
         {
             if (latex_input == null) return "";
-            return Process(latex_input, new OpenAIVisitor());
+            var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
+            processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
+            return Process(processed_input, new OpenAIVisitor());
         }
 
         public string ConvertToHumanFriendlyText(string latex_input)
         {
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
+            processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             var result = Process(processed_input, new HumanFriendlyVisitor());
             // Post-processing to remove spaces around specific operators
             result = Regex.Replace(result, @"\s*([·×+=])\s*", "$1");
@@ -28,7 +31,9 @@ namespace LatexConverter
         public string ConvertToScreenReaderFriendlyText(string latex_input)
         {
             if (latex_input == null) return "";
-            return Process(latex_input, new ScreenReaderVisitor());
+            var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
+            processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
+            return Process(processed_input, new ScreenReaderVisitor());
         }
 
         private string Process(string text, IVisitor<string> visitor)
@@ -300,7 +305,7 @@ namespace LatexConverter
             return command switch
             {
                 @"\frac" => 2,
-                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" => 1,
+                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\arcsin" or @"\arccos" or @"\arctan" => 1,
                 _ => 0,
             };
         }
@@ -590,7 +595,8 @@ namespace LatexConverter
             { @"\int", "integral" }, { @"\sum", "summation" }, { @"\prod", "product" },
             { @"\hbar", "hbar" }, { @"\ell", "ell" }, { @"\wp", "wp" },
             { @"\Re", "Re" }, { @"\Im", "Im" },
-            { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }
+            { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" },
+            { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" }
         };
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
             { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
@@ -598,7 +604,8 @@ namespace LatexConverter
             { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" },
             { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
             { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
-            { @"\Re", "Real part" }, { @"\Im", "Imaginary part" }, { @"\forall", "for all" }
+            { @"\Re", "Real part" }, { @"\Im", "Imaginary part" }, { @"\forall", "for all" },
+            { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" }
         };
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
             { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
@@ -619,7 +626,8 @@ namespace LatexConverter
             { @"\nabla", "∇" }, { @"\partial", "∂" },
             { @"\int", "∫" }, { @"\sum", "∑" }, { @"\prod", "∏" },
             { @"\hbar", "ħ" }, { @"\ell", "ℓ" },
-            { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" }
+            { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" },
+            { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" }
         };
         public static readonly Dictionary<char, char> SupMap = new() {
             { '0', '⁰' }, { '1', '¹' }, { '2', '²' }, { '3', '³' }, { '4', '⁴' }, { '5', '⁵' }, { '6', '⁶' }, { '7', '⁷' }, { '8', '⁸' }, { '9', '⁹' },
