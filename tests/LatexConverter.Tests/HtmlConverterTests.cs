@@ -22,6 +22,7 @@ public class HtmlConverterTests
     [InlineData("<hr />", "")]
     [InlineData("<hr /> some text", "some text")]
     [InlineData("<center> something here </center>", "something here")]
+    [InlineData("hello&nbsp;world", "hello world")]
     public void ConvertHTMLToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToOpenAIFriendlyText(input);
@@ -45,6 +46,7 @@ public class HtmlConverterTests
     [InlineData("<hr />", "")]
     [InlineData("<hr /> some text", "some text")]
     [InlineData("<center> something here </center>", "something here")]
+    [InlineData("hello&nbsp;world", "hello world")]
     public void ConvertHTMLToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToHumanFriendlyText(input);
@@ -68,6 +70,7 @@ public class HtmlConverterTests
     [InlineData("<hr />", "")]
     [InlineData("<hr /> some text", "some text")]
     [InlineData("<center> something here </center>", "something here")]
+    [InlineData("hello&nbsp;world", "hello world")]
     public void ConvertHTMLToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToScreenReaderFriendlyText(input);

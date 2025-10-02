@@ -45,6 +45,7 @@ namespace LatexConverter
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
+            text = text.Replace("&nbsp;", " ");
             text = Regex.Replace(text, "&(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega);", m => m.Groups[1].Value, RegexOptions.IgnoreCase);
             text = Regex.Replace(text, @"\s*&deg;\s*", " degrees");
             text = Regex.Replace(text, @"\s*&times;\s*", " times ");
@@ -81,6 +82,7 @@ namespace LatexConverter
                 return sb.ToString();
             }
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
+            text = text.Replace("&nbsp;", " ");
             text = Regex.Replace(text, @"&([a-zA-Z]+);", m => {
                 string key = m.Value == "&times;" ? @"\times" : $"\\{m.Groups[1].Value}";
                 return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(key, m.Value);
@@ -103,6 +105,7 @@ namespace LatexConverter
             if (string.IsNullOrEmpty(html_input)) return "";
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
+            text = text.Replace("&nbsp;", " ");
             text = Regex.Replace(text, @"<br\s*/?>", "\n");
             string previous;
             do {
