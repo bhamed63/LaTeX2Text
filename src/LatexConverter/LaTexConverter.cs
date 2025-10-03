@@ -21,12 +21,7 @@ namespace LatexConverter
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
-            var result = Process(processed_input, new HumanFriendlyVisitor());
-            // Post-processing to remove spaces around specific operators, but not between a word and a parenthesis
-            result = Regex.Replace(result, @"\s*([·×+=*/\[\]\-])\s*", "$1");
-            result = Regex.Replace(result, @"\s*([√])\s*\((.*?)\)", "$1($2)");
-            result = Regex.Replace(result, @"\(\s*(.*?)\s*\)", "($1)");
-            return result;
+            return Process(processed_input, new HumanFriendlyVisitor());
         }
 
         public string ConvertToScreenReaderFriendlyText(string latex_input)
@@ -39,20 +34,25 @@ namespace LatexConverter
 
         private string Process(string text, IVisitor<string> visitor)
         {
+            text = Regex.Replace(text, @"\\(big|Big|bigg|Bigg)[l|r]?\s*[\(\)]", "");
             var tokens = Tokenizer.Tokenize(text);
             var parser = new Parser(tokens);
             var nodes = parser.Parse();
             var result = string.Join("", nodes.Select(n => n.Accept(visitor)));
-            // Condense spaces and tabs, but preserve newlines
-            return Regex.Replace(result, @"[ \t]+", " ").Trim();
+            result = Regex.Replace(result, @"\s+", " ").Trim();
+             if (visitor is HumanFriendlyVisitor)
+            {
+                 result = Regex.Replace(result, @"\s*([·×+=\-/\[\]])\s*", "$1");
+                 result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
+            }
+            return result;
         }
 
         public string ConvertHTMLToOpenAIFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
+            if (html_input.Trim() == "<hr>" || html_input.Trim() == "<hr/>" ) return " ";
             if (html_input.Trim() == "<br>" || html_input.Trim() == "<br/>") return "\n";
-            if (html_input.Trim() == "<hr>" || html_input.Trim() == "<hr/>") return " ";
-
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
@@ -77,9 +77,8 @@ namespace LatexConverter
         public string ConvertHTMLToHumanFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
-            if (html_input.Trim() == "<br>" || html_input.Trim() == "<br/>") return "\n";
             if (html_input.Trim() == "<hr>" || html_input.Trim() == "<hr/>") return " ";
-
+            if (html_input.Trim() == "<br>" || html_input.Trim() == "<br/>") return "\n";
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
@@ -123,9 +122,8 @@ namespace LatexConverter
         public string ConvertHTMLToScreenReaderFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
-            if (html_input.Trim() == "<br>" || html_input.Trim() == "<br/>") return "\n";
             if (html_input.Trim() == "<hr>" || html_input.Trim() == "<hr/>") return " ";
-
+            if (html_input.Trim() == "<br>" || html_input.Trim() == "<br/>") return "\n";
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
@@ -185,7 +183,10 @@ namespace LatexConverter
                 if (char.IsLetter(currentChar))
                 {
                     int start = pos;
-                    while (pos < text.Length && char.IsLetter(text[pos])) pos++;
+                     while (pos < text.Length && (char.IsLetter(text[pos]) || (text[pos] == '-' && pos > 0 && char.IsLetter(text[pos-1]) && pos+1<text.Length && char.IsLetter(text[pos+1]))))
+                    {
+                        pos++;
+                    }
                     tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
                     continue;
                 }
@@ -379,68 +380,49 @@ namespace LatexConverter
 
     public class OpenAIVisitor : BaseVisitor<string>
     {
-        public override string VisitText(TextNode node)
-        {
-            var sb = new StringBuilder();
-            foreach (char c in node.Text)
-            {
-                string s_char = c.ToString();
-                if (Dictionaries.ReverseHumanFriendlySymbolMap.TryGetValue(s_char, out var command))
-                {
-                    sb.Append(command);
-                }
-                else
-                {
-                    sb.Append(c);
-                }
-            }
-            return sb.ToString();
-        }
-        public override string VisitGroup(GroupNode node)
-        {
-            var result = string.Join("", node.Body.Select(n => n.Accept(this)));
-            result = Regex.Replace(result, @"\+", " + ");
-            return result;
-        }
+        public override string VisitText(TextNode node) => node.Text;
+
+        public override string VisitGroup(GroupNode node) => string.Join("", node.Body.Select(n => n.Accept(this)));
+
         public override string VisitScript(ScriptNode node)
         {
             string baseText = node.Base.Accept(this);
+            string scriptText = node.Script.Accept(this);
+            string op = node.IsSuperscript ? "^" : "_";
+
             if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ")
             {
                 return $"{baseText} degrees";
             }
 
-            string scriptText = node.Script.Accept(this);
-            string op = node.IsSuperscript ? "^" : "_";
-
-            if (node.IsSuperscript) {
+            if (scriptText.Length > 1)
+            {
                 return $"{baseText}{op}({scriptText})";
             }
-
-            // It's a subscript
-            if (scriptText.Length == 1)
-            {
-                 return $"{baseText}{op}{scriptText}";
-            }
-
-            return $"{baseText}{op}({scriptText})";
+            return $"{baseText}{op}{scriptText}";
         }
+
         public override string VisitCommand(CommandNode node)
         {
             var sb = new StringBuilder();
             switch (node.Command)
             {
-                case @"\frac": sb.Append($"({node.Args[0].Accept(this)})/({node.Args[1].Accept(this)})"); break;
-                case @"\sqrt": sb.Append($"sqrt({node.Args[0].Accept(this)})"); break;
-                case @"\vec": sb.Append($"vec({node.Args[0].Accept(this)})"); break;
-                case @"\hat": sb.Append($"hat({node.Args[0].Accept(this)})"); break;
-                case @"\mathcal": sb.Append($"mathcal({node.Args[0].Accept(this)})"); break;
-                case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
-                case @"\mathbb": sb.Append($"mathbb({node.Args[0].Accept(this)})"); break;
-                case @"\big": case @"\Big": case @"\bigg": case @"\Bigg": sb.Append(""); break;
-                case @"\sum":
-                case @"\int":
-                case @"\prod":
+                case @"\frac":
+                    sb.Append($"({node.Args[0].Accept(this)})/({node.Args[1].Accept(this)})");
+                    break;
+                case @"\sqrt":
+                    sb.Append($"sqrt({node.Args[0].Accept(this)})");
+                    break;
+                case @"\vec": case @"\hat": case @"\mathcal": case @"\mathbb": case @"\text": case @"\mathrm": case @"\textrm":
+                     var content = node.Args[0].Accept(this);
+                     if (node.Command == @"\text" || node.Command == @"\mathrm" || node.Command == @"\textrm")
+                     {
+                        sb.Append(content);
+                     } else {
+                        sb.Append($"{node.Command.Substring(1)} {content}");
+                     }
+                    break;
+                case @"\sum": case @"\int": case @"\prod":
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
                     if (node.Subscript != null) sb.Append($"_({node.Subscript.Accept(this)})");
                     if (node.Superscript != null) sb.Append($"^({node.Superscript.Accept(this)})");
@@ -457,54 +439,43 @@ namespace LatexConverter
     {
         private string TryConvertPlainTextCommand(string text)
         {
-            // This method's call can be commented out to disable the feature.
             if (Dictionaries.HumanFriendlySymbolMap.TryGetValue($@"\{text}", out var symbol))
             {
-                if (Dictionaries.DeniedConvertWithoutSlash.Contains($@"\{text}"))
-                    return text;
-
+                if (Dictionaries.DeniedConvertWithoutSlash.Contains($@"\{text}")) return text;
                 return symbol;
             }
             return text;
         }
-        public override string VisitText(TextNode node)
-        {
-            if (node.Text == "+") return "+";
 
-            // The following line can be commented out to disable recognizing commands without backslash.
-            var result = TryConvertPlainTextCommand(node.Text);
+        public override string VisitText(TextNode node) => TryConvertPlainTextCommand(node.Text);
 
-            return result;
-        }
         public override string VisitGroup(GroupNode node)
         {
-            return string.Join("", node.Body.Select(n => n.Accept(this)));
+            return $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
         }
+
         public override string VisitScript(ScriptNode node)
         {
             string baseText = node.Base.Accept(this);
-            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ")
-            {
-                return $"{baseText}°";
-            }
-            return $"{node.Base.Accept(this)}{ToUnicode(node.Script.Accept(this), node.IsSuperscript, node.Script)}";
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ") return $"{baseText}°";
+
+            var scriptContent = node.Script.Accept(this);
+            return $"{baseText}{ToUnicode(scriptContent, node.IsSuperscript, node.Script)}";
         }
+
         public override string VisitCommand(CommandNode node)
         {
             var sb = new StringBuilder();
             switch (node.Command)
             {
-                case @"\frac": sb.Append($"({node.Args[0].Accept(this)})/({node.Args[1].Accept(this)})"); break;
+                case @"\frac": sb.Append($"{node.Args[0].Accept(this)}/{node.Args[1].Accept(this)}"); break;
                 case @"\sqrt": sb.Append($"√({node.Args[0].Accept(this)})"); break;
                 case @"\vec": sb.Append($"{node.Args[0].Accept(this)}\u20D7"); break;
                 case @"\hat": sb.Append($"{node.Args[0].Accept(this)}\u0302"); break;
                 case @"\mathcal": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap)); break;
                 case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
                 case @"\mathbb": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap)); break;
-                case @"\big": case @"\Big": case @"\bigg": case @"\Bigg": sb.Append(""); break;
-                case @"\sum":
-                case @"\int":
-                case @"\prod":
+                case @"\sum": case @"\int": case @"\prod":
                     sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
                     if (node.Subscript != null) sb.Append(ToUnicode(node.Subscript.Accept(this), false, node.Subscript));
                     if (node.Superscript != null) sb.Append(ToUnicode(node.Superscript.Accept(this), true, node.Superscript));
@@ -515,46 +486,23 @@ namespace LatexConverter
             }
             return sb.ToString();
         }
+
         private string ToUnicode(string s, bool? isSuperscript, AstNode originalNode, Dictionary<char, char> map = null)
         {
-            if (isSuperscript.HasValue && map == null)
-            {
-                map = isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
-            }
+            if (isSuperscript.HasValue && map == null) map = isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
 
-            string spaceless_s = s.Replace(" ", "");
-            if (map != null && !string.IsNullOrEmpty(spaceless_s))
+            string stripped_s = Regex.Replace(s, @"[\(\)]", "");
+            if (map != null && !string.IsNullOrEmpty(stripped_s) && stripped_s.All(c => map.ContainsKey(c)))
             {
                 var sb = new StringBuilder();
-                bool allCharsMapped = true;
-                foreach (char c in spaceless_s)
-                {
-                    if (!map.ContainsKey(c))
-                    {
-                        allCharsMapped = false;
-                        break;
-                    }
-                }
-
-                if (allCharsMapped)
-                {
-                    foreach (char c in spaceless_s)
-                    {
-                        sb.Append(map[c]);
-                    }
-                    return sb.ToString();
-                }
+                foreach (char c in stripped_s) sb.Append(map[c]);
+                return sb.ToString();
             }
 
-            // Fallback for when not all characters can be mapped
             if (isSuperscript.HasValue)
             {
                 string op = isSuperscript.Value ? "^" : "_";
-                if (originalNode is GroupNode || (originalNode is TextNode && s.Length > 1 && !s.Contains(" ")))
-                {
-                    return $"{op}({s})";
-                }
-                return $"{op}{s}";
+                return $"{op}({s})";
             }
             return s;
         }
@@ -564,6 +512,7 @@ namespace LatexConverter
     {
         public override string VisitText(TextNode node)
         {
+            if (Regex.IsMatch(node.Text, @"[a-zA-Z0-9]+(-[a-zA-Z0-9]+)+")) return node.Text;
             return node.Text switch
             {
                 "+" => " plus ",
@@ -574,41 +523,43 @@ namespace LatexConverter
                 _ => node.Text
             };
         }
-        public override string VisitGroup(GroupNode node) => string.Concat(node.Body.Select(n => n.Accept(this)));
+
+        public override string VisitGroup(GroupNode node)
+        {
+            return $"{string.Join(" ", node.Body.Select(n => n.Accept(this)))}";
+        }
+
+
         public override string VisitScript(ScriptNode node)
         {
             string baseText = node.Base.Accept(this).Trim();
-            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ")
-            {
-                return $"{baseText} degrees";
-            }
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ") return $"{baseText} degrees";
 
             string scriptText = node.Script.Accept(this).Trim();
-
             if (node.IsSuperscript)
             {
                 if (scriptText == "2") return $"{baseText} squared";
                 if (scriptText == "3") return $"{baseText} cubed";
                 return $"{baseText} to the power of {scriptText}";
             }
-
             return $"{baseText} subscript {scriptText}";
         }
+
         public override string VisitCommand(CommandNode node)
         {
             var sb = new StringBuilder();
             switch (node.Command)
             {
-                case @"\frac": sb.Append($"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}"); break;
-                case @"\sqrt": sb.Append($"the square root of {node.Args[0].Accept(this)}"); break;
-                case @"\vec": sb.Append($"vector {node.Args[0].Accept(this)}"); break;
-                case @"\hat": sb.Append($"{node.Args[0].Accept(this)} hat"); break;
-                case @"\mathcal": sb.Append($"calligraphic {node.Args[0].Accept(this)}"); break;
-                case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
+                case @"\frac":
+                    return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
+                case @"\sqrt": return $"the square root of {node.Args[0].Accept(this)}";
+                case @"\vec": return $"vector {node.Args[0].Accept(this)}";
+                case @"\hat": return $"{node.Args[0].Accept(this)} hat";
+                case @"\mathcal": return $"calligraphic {node.Args[0].Accept(this)}";
+                case @"\text": case @"\mathrm": case @"\textrm": return node.Args[0].Accept(this);
                 case @"\mathbb":
-                    if(node.Args[0].Accept(this) == "R") sb.Append("the set of real numbers");
-                    else sb.Append(node.Args[0].Accept(this));
-                    break;
+                    if(node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R") return "the set of real numbers";
+                    return node.Args[0].Accept(this);
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
@@ -617,13 +568,11 @@ namespace LatexConverter
                     string commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
                     sb.Append($"{commandName} from {sub} to {sup}");
                     break;
-                case @"\big": case @"\Big": case @"\bigg": case @"\Bigg": sb.Append(""); break;
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     sb.Append(Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal));
                     break;
             }
-
             return sb.ToString();
         }
     }
