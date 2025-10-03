@@ -50,6 +50,9 @@ namespace LatexConverter
         public string ConvertHTMLToOpenAIFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
+            if (html_input.Trim() == "<br>" || html_input.Trim() == "<br/>") return "\n";
+            if (html_input.Trim() == "<hr>" || html_input.Trim() == "<hr/>") return " ";
+
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
@@ -74,6 +77,9 @@ namespace LatexConverter
         public string ConvertHTMLToHumanFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
+            if (html_input.Trim() == "<br>" || html_input.Trim() == "<br/>") return "\n";
+            if (html_input.Trim() == "<hr>" || html_input.Trim() == "<hr/>") return " ";
+
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
@@ -117,6 +123,9 @@ namespace LatexConverter
         public string ConvertHTMLToScreenReaderFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
+            if (html_input.Trim() == "<br>" || html_input.Trim() == "<br/>") return "\n";
+            if (html_input.Trim() == "<hr>" || html_input.Trim() == "<hr/>") return " ";
+
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
@@ -660,7 +669,7 @@ namespace LatexConverter
             { @"\iota", "ι" }, { @"\kappa", "κ" }, { @"\varkappa", "ϰ" }, { @"\lambda", "λ" }, { @"\mu", "μ" },
             { @"\nu", "ν" }, { @"\xi", "ξ" }, { @"\omicron", "ο" }, { @"\pi", "π" }, { @"\varpi", "ϖ" },
             { @"\rho", "ρ" }, { @"\varrho", "ϱ" }, { @"\sigma", "σ" }, { @"\varsigma", "ς" }, { @"\tau", "τ" }, { @"\upsilon", "υ" },
-            { @"\phi", "φ" }, { @"\varphi", "φ" }, { @"\chi", "χ" }, { @"\psi", "ψ" }, { @"\omega", "ω" },
+            { @"\phi", "φ" }, { @"\varphi", "\u03D5" }, { @"\chi", "χ" }, { @"\psi", "ψ" }, { @"\omega", "ω" },
             { @"\Gamma", "Γ" }, { @"\Delta", "Δ" }, { @"\Theta", "Θ" }, { @"\Lambda", "Λ" },
             { @"\Xi", "Ξ" }, { @"\Pi", "Π" }, { @"\Sigma", "Σ" }, { @"\Upsilon", "Υ" },
             { @"\Phi", "Φ" }, { @"\Psi", "Ψ" }, { @"\Omega", "Ω" },
