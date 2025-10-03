@@ -94,6 +94,11 @@ public class LaTexConverterTests
     [InlineData(@"sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "sin⁻¹[(λ/(d*π))*cos⁻¹(√(I/I₀))]")]
     [InlineData(@"alpha + beta", "α+β")]
     [InlineData(@"Delta - gamma", "Δ-γ")]
+    [InlineData(@"lambda_1 + lambda_2 = 1", "λ₁+λ₂=1")]
+    [InlineData(@"E = h * (c / lambda)", "E=h*(c/λ)")]
+    [InlineData(@"alpha^2 + beta^2 = gamma^2", "α²+β²=γ²")]
+    [InlineData(@"sqrt(omega_1 / omega_2)", "√(ω₁/ω₂)")]
+    [InlineData(@"sin(theta) * cos(phi)", "sin(θ)*cos(φ)")]
     public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertToHumanFriendlyText(input);
