@@ -22,9 +22,10 @@ namespace LatexConverter
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             var result = Process(processed_input, new HumanFriendlyVisitor());
-            // Post-processing to remove spaces around specific operators
-            result = Regex.Replace(result, @"\s*([·×+=*/\(\)\[\]-])\s*", "$1");
+            // Post-processing to remove spaces around specific operators, but not between a word and a parenthesis
+            result = Regex.Replace(result, @"\s*([·×+=*/\[\]\-])\s*", "$1");
             result = Regex.Replace(result, @"\s*([√])\s*\((.*?)\)", "$1($2)");
+            result = Regex.Replace(result, @"\(\s*(.*?)\s*\)", "($1)");
             return result;
         }
 
@@ -60,7 +61,11 @@ namespace LatexConverter
                 previous = text;
                 text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
             } while (text != previous);
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", "_$1");
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", m => {
+                string content = m.Groups[1].Value;
+                if (content.Length == 1) return $"_{content}";
+                return $"_({content})";
+            });
             text = Regex.Replace(text, "<sup>(.*?)</sup>", "^($1)");
             text = Regex.Replace(text, "&([a-zA-Z]+);", m => m.Groups[1].Value);
             return text.Trim();
@@ -72,11 +77,11 @@ namespace LatexConverter
             var text = html_input;
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
+            text = Regex.Replace(text, @"\s*&deg;\s*", "°");
             text = Regex.Replace(text, @"&([a-zA-Z]+);", m => {
                 string key = m.Value == "&times;" ? @"\times" : $"\\{m.Groups[1].Value}";
-                return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(key, m.Value);
+                return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(key, m.Groups[1].Value);
             });
-            text = Regex.Replace(text, @"\s*&deg;\s*", "°");
             text = Regex.Replace(text, @"<br\s*/?>", "\n");
             string previous;
             do {
@@ -178,7 +183,7 @@ namespace LatexConverter
                 if (char.IsDigit(currentChar))
                 {
                     int start = pos;
-                    while (pos < text.Length && char.IsDigit(text[pos])) pos++;
+                    while (pos < text.Length && (char.IsDigit(text[pos]) || text[pos] == '.')) pos++;
                     tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
                     continue;
                 }
@@ -365,7 +370,23 @@ namespace LatexConverter
 
     public class OpenAIVisitor : BaseVisitor<string>
     {
-        public override string VisitText(TextNode node) => node.Text;
+        public override string VisitText(TextNode node)
+        {
+            var sb = new StringBuilder();
+            foreach (char c in node.Text)
+            {
+                string s_char = c.ToString();
+                if (Dictionaries.ReverseHumanFriendlySymbolMap.TryGetValue(s_char, out var command))
+                {
+                    sb.Append(command);
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
         public override string VisitGroup(GroupNode node)
         {
             var result = string.Join("", node.Body.Select(n => n.Accept(this)));
@@ -383,13 +404,17 @@ namespace LatexConverter
             string scriptText = node.Script.Accept(this);
             string op = node.IsSuperscript ? "^" : "_";
 
-            if (node.Script is GroupNode)
-            {
-                if (scriptText.Length > 1) return $"{baseText}{op}({scriptText})";
-                return $"{baseText}{op}{scriptText}";
+            if (node.IsSuperscript) {
+                return $"{baseText}{op}({scriptText})";
             }
 
-            return $"{baseText}{op}{scriptText}";
+            // It's a subscript
+            if (scriptText.Length == 1)
+            {
+                 return $"{baseText}{op}{scriptText}";
+            }
+
+            return $"{baseText}{op}({scriptText})";
         }
         public override string VisitCommand(CommandNode node)
         {
@@ -426,6 +451,9 @@ namespace LatexConverter
             // This method's call can be commented out to disable the feature.
             if (Dictionaries.HumanFriendlySymbolMap.TryGetValue($@"\{text}", out var symbol))
             {
+                if (Dictionaries.DeniedConvertWithoutSlash.Contains($@"\{text}"))
+                    return text;
+
                 return symbol;
             }
             return text;
@@ -485,42 +513,41 @@ namespace LatexConverter
                 map = isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
             }
 
-            var sb = new StringBuilder();
             string spaceless_s = s.Replace(" ", "");
-            bool allCharsMapped = true;
             if (map != null && !string.IsNullOrEmpty(spaceless_s))
             {
+                var sb = new StringBuilder();
+                bool allCharsMapped = true;
                 foreach (char c in spaceless_s)
                 {
-                    if (map.TryGetValue(c, out char newChar))
-                    {
-                        sb.Append(newChar);
-                    }
-                    else
+                    if (!map.ContainsKey(c))
                     {
                         allCharsMapped = false;
                         break;
                     }
                 }
-            } else {
-                allCharsMapped = false;
+
+                if (allCharsMapped)
+                {
+                    foreach (char c in spaceless_s)
+                    {
+                        sb.Append(map[c]);
+                    }
+                    return sb.ToString();
+                }
             }
 
-            if (allCharsMapped)
+            // Fallback for when not all characters can be mapped
+            if (isSuperscript.HasValue)
             {
-                return sb.ToString();
-            }
-            else
-            {
-                if (isSuperscript.HasValue)
+                string op = isSuperscript.Value ? "^" : "_";
+                if (originalNode is GroupNode || (originalNode is TextNode && s.Length > 1 && !s.Contains(" ")))
                 {
-                    string op = isSuperscript.Value ? "^" : "_";
-                    if (originalNode is not GroupNode && s.Length > 1) return $"{op}({s})";
-                    if (originalNode is GroupNode) return $"{op}({s})";
-                    return $"{op}{s}";
+                    return $"{op}({s})";
                 }
-                return s;
+                return $"{op}{s}";
             }
+            return s;
         }
     }
 
@@ -541,17 +568,21 @@ namespace LatexConverter
         public override string VisitGroup(GroupNode node) => string.Concat(node.Body.Select(n => n.Accept(this)));
         public override string VisitScript(ScriptNode node)
         {
-            string baseText = node.Base.Accept(this);
+            string baseText = node.Base.Accept(this).Trim();
             if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ")
             {
                 return $"{baseText} degrees";
             }
 
-            string scriptText = node.Script.Accept(this);
+            string scriptText = node.Script.Accept(this).Trim();
+
             if (node.IsSuperscript)
             {
+                if (scriptText == "2") return $"{baseText} squared";
+                if (scriptText == "3") return $"{baseText} cubed";
                 return $"{baseText} to the power of {scriptText}";
             }
+
             return $"{baseText} subscript {scriptText}";
         }
         public override string VisitCommand(CommandNode node)
@@ -625,7 +656,7 @@ namespace LatexConverter
         };
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
             { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
-            { @"\epsilon", "ε" }, { @"\varepsilon", "ε" }, { @"\zeta", "ζ" }, { @"\eta", "η" }, { @"\theta", "θ" },
+            { @"\epsilon", "ε" }, { @"\zeta", "ζ" }, { @"\eta", "η" }, { @"\theta", "θ" },
             { @"\iota", "ι" }, { @"\kappa", "κ" }, { @"\varkappa", "ϰ" }, { @"\lambda", "λ" }, { @"\mu", "μ" },
             { @"\nu", "ν" }, { @"\xi", "ξ" }, { @"\omicron", "ο" }, { @"\pi", "π" }, { @"\varpi", "ϖ" },
             { @"\rho", "ρ" }, { @"\varrho", "ϱ" }, { @"\sigma", "σ" }, { @"\varsigma", "ς" }, { @"\tau", "τ" }, { @"\upsilon", "υ" },
@@ -645,6 +676,8 @@ namespace LatexConverter
             { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" },
             { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" }
         };
+        public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.ToDictionary(kp => kp.Value, kp => kp.Key.Substring(1));
+        public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", };
         public static readonly Dictionary<char, char> SupMap = new() {
             { '0', '⁰' }, { '1', '¹' }, { '2', '²' }, { '3', '³' }, { '4', '⁴' }, { '5', '⁵' }, { '6', '⁶' }, { '7', '⁷' }, { '8', '⁸' }, { '9', '⁹' },
             { 'a', 'ᵃ' }, { 'b', 'ᵇ' }, { 'c', 'ᶜ' }, { 'd', 'ᵈ' }, { 'e', 'ᵉ' }, { 'f', 'ᶠ' }, { 'g', 'ᵍ' }, { 'h', 'ʰ' }, { 'i', 'ⁱ' }, { 'j', 'ʲ' },

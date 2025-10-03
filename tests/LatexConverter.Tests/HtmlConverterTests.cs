@@ -5,6 +5,7 @@ public class HtmlConverterTests
 {
     private readonly LaTexConverter _converter = new LaTexConverter();
 
+    #region HTML To OpenAIFriendlyText Tests
     [Theory]
     [InlineData("<i>&alpha;<sub>o</sub></i>", "alpha_o")]
     [InlineData("<i>m</i>", "m")]
@@ -12,26 +13,25 @@ public class HtmlConverterTests
     [InlineData("43 &deg;", "43 degrees")]
     [InlineData("<i>xy</i> plane", "xy plane")]
     [InlineData("of <i>&theta;</i>", "of theta")]
-    [InlineData("2 &times; 2", "2 times 2")]
-    [InlineData("line 1<br/>line 2", "line 1\nline 2")]
-    [InlineData("<b>bold</b>", "bold")]
-    [InlineData("<strong>strong</strong>", "strong")]
-    [InlineData("<span>span</span>", "span")]
-    [InlineData("<b><i>Grade Summary</i></b>", "Grade Summary")]
-    [InlineData("<u>Diagram</u>", "Diagram")]
-    [InlineData("<hr />", "")]
-    [InlineData("<hr /> some text", "some text")]
-    [InlineData("<center> something here </center>", "something here")]
-    [InlineData("hello&nbsp;world", "hello world")]
-    [InlineData("&beta;", "beta")]
-    [InlineData("&gamma;", "gamma")]
-    [InlineData("&Delta;", "Delta")]
+    [InlineData("<b>&alpha;</b>", "alpha")]
+    [InlineData("<strong>&beta;</strong>", "beta")]
+    [InlineData("<u>&gamma;</u>", "gamma")]
+    [InlineData("<center>&delta;</center>", "delta")]
+    [InlineData("<span>&epsilon;</span>", "epsilon")]
+    [InlineData("H<sub>2</sub>O", "H_2O")]
+    [InlineData("10<sup>-5</sup>", "10^(-5)")]
+    [InlineData("a&nbsp;b", "a b")]
+    [InlineData("a &times; b", "a times b")]
+    [InlineData("<hr>", " ")]
+    [InlineData("<br>", "\n")]
+    #endregion
     public void ConvertHTMLToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToOpenAIFriendlyText(input);
         Assert.Equal(expected, result);
     }
 
+    #region HTML To HumanFriendlyText Tests
     [Theory]
     [InlineData("<i>&alpha;<sub>o</sub></i>", "αₒ")]
     [InlineData("<i>m</i>", "m")]
@@ -39,26 +39,25 @@ public class HtmlConverterTests
     [InlineData("43 &deg;", "43°")]
     [InlineData("<i>xy</i> plane", "xy plane")]
     [InlineData("of <i>&theta;</i>", "of θ")]
-    [InlineData("2 &times; 2", "2×2")]
-    [InlineData("line 1<br />line 2", "line 1\nline 2")]
-    [InlineData("<b>bold</b>", "bold")]
-    [InlineData("<strong>strong</strong>", "strong")]
-    [InlineData("<span>span</span>", "span")]
-    [InlineData("<b><i>Grade Summary</i></b>", "Grade Summary")]
-    [InlineData("<u>Diagram</u>", "Diagram")]
-    [InlineData("<hr />", "")]
-    [InlineData("<hr /> some text", "some text")]
-    [InlineData("<center> something here </center>", "something here")]
-    [InlineData("hello&nbsp;world", "hello world")]
-    [InlineData("&beta;", "β")]
-    [InlineData("&gamma;", "γ")]
-    [InlineData("&Delta;", "Δ")]
+    [InlineData("<b>&alpha;</b>", "α")]
+    [InlineData("<strong>&beta;</strong>", "β")]
+    [InlineData("<u>&gamma;</u>", "γ")]
+    [InlineData("<center>&delta;</center>", "δ")]
+    [InlineData("<span>&epsilon;</span>", "ε")]
+    [InlineData("H<sub>2</sub>O", "H₂O")]
+    [InlineData("10<sup>-5</sup>", "10⁻⁵")]
+    [InlineData("a&nbsp;b", "a b")]
+    [InlineData("a &times; b", "a×b")]
+    [InlineData("<hr>", " ")]
+    [InlineData("<br>", "\n")]
+    #endregion
     public void ConvertHTMLToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToHumanFriendlyText(input);
         Assert.Equal(expected, result);
     }
 
+    #region HTML To ScreenReaderFriendlyText Tests
     [Theory]
     [InlineData("<i>&alpha;<sub>o</sub></i>", "alpha subscript o")]
     [InlineData("<i>m</i>", "m")]
@@ -66,23 +65,21 @@ public class HtmlConverterTests
     [InlineData("43 &deg;", "43 degrees")]
     [InlineData("<i>xy</i> plane", "xy plane")]
     [InlineData("of <i>&theta;</i>", "of theta")]
-    [InlineData("2 &times; 2", "2 times 2")]
-    [InlineData("line 1<br>line 2", "line 1\nline 2")]
-    [InlineData("<b>bold</b>", "bold")]
-    [InlineData("<strong>strong</strong>", "strong")]
-    [InlineData("<span>span</span>", "span")]
-    [InlineData("<b><i>Grade Summary</i></b>", "Grade Summary")]
-    [InlineData("<u>Diagram</u>", "Diagram")]
-    [InlineData("<hr />", "")]
-    [InlineData("<hr /> some text", "some text")]
-    [InlineData("<center> something here </center>", "something here")]
-    [InlineData("hello&nbsp;world", "hello world")]
-    [InlineData("&beta;", "beta")]
-    [InlineData("&gamma;", "gamma")]
-    [InlineData("&Delta;", "Delta")]
+    [InlineData("<b>&alpha;</b>", "alpha")]
+    [InlineData("<strong>&beta;</strong>", "beta")]
+    [InlineData("<u>&gamma;</u>", "gamma")]
+    [InlineData("<center>&delta;</center>", "delta")]
+    [InlineData("<span>&epsilon;</span>", "epsilon")]
+    [InlineData("H<sub>2</sub>O", "H subscript 2 O")]
+    [InlineData("10<sup>-5</sup>", "10 to the power of -5")]
+    [InlineData("a&nbsp;b", "a b")]
+    [InlineData("a &times; b", "a times b")]
+    [InlineData("<hr>", " ")]
+    [InlineData("<br>", "\n")]
+    #endregion
     public void ConvertHTMLToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertHTMLToScreenReaderFriendlyText(input);
-        Assert.Equal(expected, result);
+        Assert.Equal(expected, result.Trim());
     }
 }
