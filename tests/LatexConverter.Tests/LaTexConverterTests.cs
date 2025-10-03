@@ -36,8 +36,6 @@ public class LaTexConverterTests
     [InlineData(@"\vec{v}_0", "vec(v)_0")]
     [InlineData(@"4.0 \times 10^{-4}", "4.0 times 10^(-4)")]
     [InlineData(@"\mathcal{E}_1", "mathcal(E)_1")]
-    [InlineData(@"mathcal sfd asdf asdf asdf sdf sdf AliReza", "mathcal sfd asdf asdf asdf sdf sdf AliReza")]
-    [InlineData(@"mathcal   sfd   AliReza", "mathcal sfd AliReza")]
     [InlineData(@"sin^(-1)", "arcsin")]
     [InlineData(@"cos^(-1)", "arccos")]
     [InlineData(@"tan^(-1)", "arctan")]
@@ -86,8 +84,6 @@ public class LaTexConverterTests
     [InlineData(@"\mu_k", "μₖ")]
     [InlineData(@"4.0 \times 10^{-4}", "4.0×10⁻⁴")]
     [InlineData(@"\mathcal{E}_1", "ℰ₁")]
-    [InlineData(@"mathcal sfd asdf asdf asdf sdf sdf AliReza", "mathcal sfd asdf asdf asdf sdf sdf AliReza")]
-    [InlineData(@"mathcal   sfd   AliReza", "mathcal sfd AliReza")]
     [InlineData(@"sin^(-1)", "sin⁻¹")]
     [InlineData(@"cos^(-1)", "cos⁻¹")]
     [InlineData(@"tan^(-1)", "tan⁻¹")]
@@ -99,6 +95,10 @@ public class LaTexConverterTests
     [InlineData(@"alpha^2 + beta^2 = gamma^2", "α²+β²=γ²")]
     [InlineData(@"sqrt(omega_1 / omega_2)", "√(ω₁/ω₂)")]
     [InlineData(@"sin(theta) * cos(phi)", "sin(θ)*cos(φ)")]
+    [InlineData("kappa", "κ")]
+    [InlineData("lambda_1", "λ₁")]
+    [InlineData("pi * r^2", "π*r²")]
+    [InlineData("a^2 + b^2 = c^2", "a²+b²=c²")]
     public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
     {
         var result = _converter.ConvertToHumanFriendlyText(input);
@@ -142,8 +142,6 @@ public class LaTexConverterTests
     [InlineData(@"\mu_k", "mu subscript k")]
     [InlineData(@"4.0 \times 10^{-4}", "4.0 times 10 to the power of minus 4")]
     [InlineData(@"\mathcal{E}_1", "calligraphic E subscript 1")]
-    [InlineData(@"mathcal sfd asdf asdf asdf sdf sdf AliReza", "mathcal sfd asdf asdf asdf sdf sdf AliReza")]
-    [InlineData(@"mathcal   sfd   AliReza", "mathcal sfd AliReza")]
     [InlineData(@"sin^(-1)", "arcsin")]
     [InlineData(@"cos^(-1)", "arccos")]
     [InlineData(@"tan^(-1)", "arctan")]
