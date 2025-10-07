@@ -40,10 +40,10 @@ namespace LatexConverter
             var nodes = parser.Parse();
             var result = string.Join("", nodes.Select(n => n.Accept(visitor)));
             result = Regex.Replace(result, @"\s+", " ").Trim();
-             if (visitor is HumanFriendlyVisitor)
+            if (visitor is HumanFriendlyVisitor)
             {
-                 result = Regex.Replace(result, @"\s*([·×+=\-/\[\]])\s*", "$1");
-                 result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
+                result = Regex.Replace(result, @"\s*([·×+=\-/\[\]])\s*", "$1");
+                result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
             }
             return result;
         }
@@ -112,7 +112,7 @@ namespace LatexConverter
                 {
                     if (map.TryGetValue(c, out char newChar)) sb.Append(newChar);
                     else sb.Append(c);
-                }
+    }
                 return sb.ToString();
             });
             text = Regex.Replace(text, @"\s*([×])\s*", "$1");
@@ -183,7 +183,7 @@ namespace LatexConverter
                 if (char.IsLetter(currentChar))
                 {
                     int start = pos;
-                     while (pos < text.Length && (char.IsLetter(text[pos]) || (text[pos] == '-' && pos > 0 && char.IsLetter(text[pos-1]) && pos+1<text.Length && char.IsLetter(text[pos+1]))))
+                    while (pos < text.Length && (char.IsLetter(text[pos]) || (text[pos] == '-' && pos > 0 && char.IsLetter(text[pos - 1]) && pos + 1 < text.Length && char.IsLetter(text[pos + 1]))))
                     {
                         pos++;
                     }
@@ -204,7 +204,7 @@ namespace LatexConverter
                         pos += 2;
                         continue;
                     }
-                     if (pos + 1 < text.Length && text[pos + 1] == ';')
+                    if (pos + 1 < text.Length && text[pos + 1] == ';')
                     {
                         tokens.Add(new Token(TokenType.Space, " "));
                         pos += 2;
@@ -413,16 +413,26 @@ namespace LatexConverter
                 case @"\sqrt":
                     sb.Append($"sqrt({node.Args[0].Accept(this)})");
                     break;
-                case @"\vec": case @"\hat": case @"\mathcal": case @"\mathbb": case @"\text": case @"\mathrm": case @"\textrm":
-                     var content = node.Args[0].Accept(this);
-                     if (node.Command == @"\text" || node.Command == @"\mathrm" || node.Command == @"\textrm")
-                     {
+                case @"\vec":
+                case @"\hat":
+                case @"\mathcal":
+                case @"\mathbb":
+                case @"\text":
+                case @"\mathrm":
+                case @"\textrm":
+                    var content = node.Args[0].Accept(this);
+                    if (node.Command == @"\text" || node.Command == @"\mathrm" || node.Command == @"\textrm")
+                    {
                         sb.Append(content);
-                     } else {
+                    }
+                    else
+                    {
                         sb.Append($"{node.Command.Substring(1)} {content}");
-                     }
+                    }
                     break;
-                case @"\sum": case @"\int": case @"\prod":
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
                     if (node.Subscript != null) sb.Append($"_({node.Subscript.Accept(this)})");
                     if (node.Superscript != null) sb.Append($"^({node.Superscript.Accept(this)})");
@@ -475,7 +485,9 @@ namespace LatexConverter
                 case @"\mathcal": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap)); break;
                 case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
                 case @"\mathbb": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap)); break;
-                case @"\sum": case @"\int": case @"\prod":
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
                     sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
                     if (node.Subscript != null) sb.Append(ToUnicode(node.Subscript.Accept(this), false, node.Subscript));
                     if (node.Superscript != null) sb.Append(ToUnicode(node.Superscript.Accept(this), true, node.Superscript));
@@ -558,7 +570,7 @@ namespace LatexConverter
                 case @"\mathcal": return $"calligraphic {node.Args[0].Accept(this)}";
                 case @"\text": case @"\mathrm": case @"\textrm": return node.Args[0].Accept(this);
                 case @"\mathbb":
-                    if(node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R") return "the set of real numbers";
+                    if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R") return "the set of real numbers";
                     return node.Args[0].Accept(this);
                 case @"\sum":
                 case @"\int":
