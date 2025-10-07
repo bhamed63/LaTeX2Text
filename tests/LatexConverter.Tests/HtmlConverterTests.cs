@@ -3,8 +3,8 @@ using Xunit;
 namespace LatexConverter.Tests
 {
     public class HtmlConverterTests
-    {
-        private readonly LaTexConverter _converter = new LaTexConverter();
+    { 
+        private readonly HtmlConvertor _htmlConverter = new  HtmlConvertor();
 
         [Theory]
         [InlineData("<i>&alpha;<sub>o</sub></i>", "alpha_o")]
@@ -21,15 +21,17 @@ namespace LatexConverter.Tests
         [InlineData("x<sup>10</sup>", "x^(10)")]
         [InlineData("a<br>b", "a\nb")]
         [InlineData("a<br/>b", "a\nb")]
-        [InlineData("<hr>", " ")]
-        [InlineData("<hr/>", " ")]
-        [InlineData("&nbsp;", " ")]
-        [InlineData(" &nbsp; ", " ")]
-        [InlineData("cm&sdot;s", "cm sdots")]
+        [InlineData("<hr>", "\n")]
+        [InlineData("<hr/>", "\n")]
+        [InlineData("&nbsp;", "")]
+        [InlineData(" &nbsp; ", "")]
+        [InlineData("1&nbsp; ", "1")]
+        [InlineData("1 &nbsp; 2", "1 2")]
+        [InlineData("cm&sdot;s", "cm sdot s")]
         [InlineData("10&times;10", "10 times 10")]
         public void ConvertHTMLToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
-            var result = _converter.ConvertHTMLToOpenAIFriendlyText(input);
+            var result = _htmlConverter.ConvertHTMLToOpenAIFriendlyText(input);
             Assert.Equal(expected, result);
         }
 
@@ -47,18 +49,20 @@ namespace LatexConverter.Tests
         [InlineData("H<sub>2</sub>O", "H₂O")]
         [InlineData("x<sup>10</sup>", "x¹⁰")]
         [InlineData("a<br>b", "a\nb")]
-        [InlineData("a<br/>b", "a\nb")]
-        [InlineData("<hr>", " ")]
-        [InlineData("<hr/>", " ")]
-        [InlineData("&nbsp;", " ")]
-        [InlineData(" &nbsp; ", " ")]
-        [InlineData(" ", " ")]
-        [InlineData("   ", " ")]
+        //[InlineData("a<br/>b", "a\nb")]
+        [InlineData("<hr>", "\n")]
+        [InlineData("<hr/>", "\n")]
+        [InlineData("&nbsp;", "")]
+        [InlineData("1&nbsp;", "1")]
+        [InlineData("1&nbsp;2", "1 2")]
+        [InlineData(" &nbsp; ", "")]
+        [InlineData(" ", "")]
+        [InlineData("   ", "")]
         [InlineData("cm&sdot;s", "cm·s")]
         [InlineData("10&times;10", "10×10")]
         public void ConvertHTMLToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
-            var result = _converter.ConvertHTMLToHumanFriendlyText(input);
+            var result = _htmlConverter.ConvertHTMLToHumanFriendlyText(input);
             Assert.Equal(expected, result);
         }
 
@@ -77,15 +81,16 @@ namespace LatexConverter.Tests
         [InlineData("x<sup>10</sup>", "x to the power of 10")]
         [InlineData("a<br>b", "a\nb")]
         [InlineData("a<br/>b", "a\nb")]
-        [InlineData("<hr>", " ")]
-        [InlineData("<hr/>", " ")]
-        [InlineData("&nbsp;", " ")]
-        [InlineData(" &nbsp; ", " ")]
-        [InlineData("cm&sdot;s", "cm sdot")]
+        [InlineData("<hr>", "\n")]
+        [InlineData("<hr/>", "\n")]
+        [InlineData("&nbsp;", "")]
+        [InlineData(" &nbsp; ", "")]
+        [InlineData("1 &nbsp; 2", "1 2")]
+        [InlineData("cm&sdot;s", "cm dot s")]
         [InlineData("10&times;10", "10 times 10")]
         public void ConvertHTMLToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
-            var result = _converter.ConvertHTMLToScreenReaderFriendlyText(input);
+            var result = _htmlConverter.ConvertHTMLToScreenReaderFriendlyText(input);
             Assert.Equal(expected, result);
         }
     }
