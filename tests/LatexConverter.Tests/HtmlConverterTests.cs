@@ -3,7 +3,7 @@ using Xunit;
 namespace LatexConverter.Tests
 {
     public class HtmlConverterTests
-    { 
+    {
         private readonly HtmlConvertor _htmlConverter = new  HtmlConvertor();
 
         [Theory]
