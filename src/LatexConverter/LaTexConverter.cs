@@ -260,9 +260,10 @@ namespace LatexConverter
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
     }
-    public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript, bool NeedsParentheses) : AstNode
+    public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitScript(this);
+ 
     }
 
     public class Parser
@@ -291,8 +292,8 @@ namespace LatexConverter
                 bool isSuperscript = CurrentToken.Type == TokenType.Superscript;
                 _pos++;
                 var script = ParsePrimary();
-                bool needsParentheses = !(script is TextNode textNode && Regex.IsMatch(textNode.Text, @"^[a-zA-Z0-9]+$"));
-                node = new ScriptNode(node, script, isSuperscript, needsParentheses);
+            
+                node = new ScriptNode(node, script, isSuperscript);
             }
             return node;
         }
@@ -411,7 +412,7 @@ namespace LatexConverter
                 return $"{baseText} degrees";
             }
 
-            if (node.NeedsParentheses)
+            if (node.NeedsParentheses())
             {
                 return $"{baseText}{op}({scriptText})";
             }
