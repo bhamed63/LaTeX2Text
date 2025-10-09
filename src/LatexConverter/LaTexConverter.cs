@@ -423,7 +423,12 @@ namespace LatexConverter
                     sb.Append($"{node.Args[0].Accept(this)}/{node.Args[1].Accept(this)}");
                     break;
                 case @"\sqrt":
-                    sb.Append($"sqrt({node.Args[0].Accept(this)})");
+                    //sb.Append($"sqrt({node.Args[0].Accept(this)})");
+                    var underSQRT = node.Args[0].Accept(this);
+                    if (!underSQRT.StartsWith("(") && !underSQRT.EndsWith(")"))
+                        sb.Append($"sqrt({underSQRT})");
+                    else
+                        sb.Append($"sqrt{underSQRT}");
                     break;
                 case @"\vec":
                 case @"\mathcal":
@@ -438,14 +443,33 @@ namespace LatexConverter
                     break;
                 case @"\sum": case @"\int": case @"\prod":
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
-                    if (node.Subscript != null) sb.Append($"_({node.Subscript.Accept(this)})");
-                    if (node.Superscript != null) sb.Append($"^({node.Superscript.Accept(this)})");
+                    //if (node.Subscript != null) sb.Append($"_({node.Subscript.Accept(this)})");
+                    //if (node.Superscript != null) sb.Append($"^({node.Superscript.Accept(this)})");
+
+                    if (node.Subscript != null)
+                    {
+                        var toBeAppended = node.Subscript.Accept(this);
+                        toBeAppended = addParantesesIfNeeded(toBeAppended);
+                        sb.Append($"_{toBeAppended}");
+                    }
+                    if (node.Superscript != null)
+                    {
+                        var toBeAppended = node.Superscript.Accept(this);
+                        toBeAppended = addParantesesIfNeeded(toBeAppended);
+                        sb.Append($"^{toBeAppended}");
+                    }
                     break;
                 default:
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
                     break;
             }
             return sb.ToString();
+        }
+        private string addParantesesIfNeeded(string toBeAppended)
+        {
+            if (!toBeAppended.StartsWith("(") && !toBeAppended.EndsWith(")"))
+                toBeAppended = $"({toBeAppended})";
+            return toBeAppended;
         }
     }
 
