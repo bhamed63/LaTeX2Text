@@ -434,14 +434,18 @@ namespace LatexConverter
                 case @"\frac":
                     var side1 = node.Args[0].Accept(this);
                     var side2 = node.Args[1].Accept(this);
-                    if (side1.Length > 0)
-                        side1 = $"({side1})";
-                    if (side2.Length > 0)
-                        side2 = $"({side2})";
+                    //if (side1.Length > 1)
+                    //    side1 = $"({side1})";
+                    //if (side2.Length > 1)
+                    //    side2 = $"({side2})";
                     sb.Append($"{side1}/{side2}");
                     break;
                 case @"\sqrt":
-                    sb.Append($"sqrt({node.Args[0].Accept(this)})");
+                    var underSQRT = node.Args[0].Accept(this);
+                    if (!underSQRT.StartsWith("(") && !underSQRT.EndsWith(")"))
+                        sb.Append($"sqrt({underSQRT})");
+                    else
+                        sb.Append($"sqrt{underSQRT}");
                     break;
                 case @"\vec":
                 case @"\mathcal":
