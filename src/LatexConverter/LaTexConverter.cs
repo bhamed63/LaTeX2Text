@@ -387,7 +387,14 @@ namespace LatexConverter
     {
         public override string VisitText(TextNode node) => node.Text;
 
-        public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
+        //public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
+        public override string VisitGroup(GroupNode node)
+        {
+            if (node.Body.Count == 1)
+                return $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
+
+            return $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
+        }
 
         public override string VisitScript(ScriptNode node)
         {
