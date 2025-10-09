@@ -52,7 +52,6 @@ namespace LatexConverter
             return string.Join("\n", processedLines);
         }
 
-
         public string ConvertHTMLToOpenAIFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
@@ -387,15 +386,7 @@ namespace LatexConverter
     {
         public override string VisitText(TextNode node) => node.Text;
 
-        public override string VisitGroup(GroupNode node)
-        {
-            var content = string.Join("", node.Body.Select(n => n.Accept(this)));
-            if (node.Body.Count == 1 && node.Body[0] is TextNode)
-            {
-                return content;
-            }
-            return $"({content})";
-        }
+        public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
 
         public override string VisitScript(ScriptNode node)
         {
@@ -408,9 +399,13 @@ namespace LatexConverter
                 return $"{baseText} degrees";
             }
 
-            if (scriptText.Length > 1 && !Regex.IsMatch(scriptText, @"^[a-zA-Z0-9]+$") && !(scriptText.StartsWith("(") && scriptText.EndsWith(")")))
+            if (scriptText.Length > 1 && !(scriptText.StartsWith("(") && scriptText.EndsWith(")")))
             {
                 return $"{baseText}{op}({scriptText})";
+            }
+             if (node.Script is TextNode textNode && textNode.Text.Length > 1)
+            {
+                 return $"{baseText}{op}({scriptText})";
             }
             return $"{baseText}{op}{scriptText}";
         }
@@ -421,7 +416,7 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
-                    sb.Append($"{node.Args[0].Accept(this)}/{node.Args[1].Accept(this)}");
+                    sb.Append($"({node.Args[0].Accept(this)})/({node.Args[1].Accept(this)})");
                     break;
                 case @"\sqrt":
                     sb.Append($"sqrt({node.Args[0].Accept(this)})");
@@ -514,8 +509,12 @@ namespace LatexConverter
                 return sb.ToString();
             }
 
-            if (isSuperscript.HasValue && s.Length > 1 && !Regex.IsMatch(s, @"^[a-zA-Z0-9]+$") && !(s.StartsWith("(") && s.EndsWith(")")))
+            if (originalNode is GroupNode && isSuperscript.HasValue)
             {
+                 string op = isSuperscript.Value ? "^" : "_";
+                 return $"{op}({s})";
+            }
+            if (originalNode is TextNode tn && tn.Text.Length > 1 && isSuperscript.HasValue) {
                 string op = isSuperscript.Value ? "^" : "_";
                 return $"{op}({s})";
             }
