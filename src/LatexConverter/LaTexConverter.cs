@@ -448,7 +448,7 @@ namespace LatexConverter
                      sb.Append(node.Args[0].Accept(this));
                     break;
                 case @"\hat":
-                    sb.Append($"{node.Args[0].Accept(this)}/{node.Args[1].Accept(this)}");
+                    sb.Append($"hat {node.Args[0].Accept(this)}");
                     break;
                 case @"\sum": case @"\int": case @"\prod":
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
