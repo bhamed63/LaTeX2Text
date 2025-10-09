@@ -551,7 +551,7 @@ namespace LatexConverter
             if (isSuperscript.HasValue)
             {
                 string op = isSuperscript.Value ? "^" : "_";
-                if(needsParentheses && !(s.StartsWith("(") && s.EndsWith(")")))
+                if(needsParentheses && !(s.StartsWith("(") || s.EndsWith(")")))
                 {
                     return $"{op}({s})";
                 }
