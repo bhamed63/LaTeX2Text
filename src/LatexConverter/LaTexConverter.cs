@@ -245,10 +245,12 @@ namespace LatexConverter
     public abstract record AstNode
     {
         public abstract T Accept<T>(IVisitor<T> visitor);
+        public virtual bool NeedsParentheses() => false;
     }
     public record TextNode(string Text) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitText(this);
+        public override bool NeedsParentheses() => !Regex.IsMatch(Text, @"^[a-zA-Z0-9]+$");
     }
     public record CommandNode(string Command, List<AstNode> Args, AstNode Subscript, AstNode Superscript) : AstNode
     {
@@ -390,10 +392,12 @@ namespace LatexConverter
         //public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
         public override string VisitGroup(GroupNode node)
         {
-            if (node.Body.Count == 1)
-                return $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
-
-            return $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
+            var content = string.Join("", node.Body.Select(n => n.Accept(this)));
+            if (node.Body.Count == 1 && node.Body[0] is TextNode)
+            {
+                return content;
+            }
+            return $"({content})";
         }
 
         public override string VisitScript(ScriptNode node)
@@ -444,7 +448,7 @@ namespace LatexConverter
                      sb.Append(node.Args[0].Accept(this));
                     break;
                 case @"\hat":
-                    sb.Append($"hat {node.Args[0].Accept(this)}");
+                    sb.Append($"{node.Args[0].Accept(this)}/{node.Args[1].Accept(this)}");
                     break;
                 case @"\sum": case @"\int": case @"\prod":
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
