@@ -36,8 +36,7 @@ namespace LatexConverter
         {
             text = Regex.Replace(text, @"\\(big|Big|bigg|Bigg)[l|r]?\s*[\(\)]", "");
             var lines = text.Split('\n');
-            var processedLines = lines.Select(line =>
-            {
+            var processedLines = lines.Select(line => {
                 var tokens = Tokenizer.Tokenize(line);
                 var parser = new Parser(tokens);
                 var nodes = parser.Parse();
@@ -64,13 +63,11 @@ namespace LatexConverter
             text = Regex.Replace(text, @"\s*&times;\s*", " times ");
             text = Regex.Replace(text, @"<br\s*/?>", "\n");
             string previous;
-            do
-            {
+            do {
                 previous = text;
                 text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
             } while (text != previous);
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", m =>
-            {
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", m => {
                 string content = m.Groups[1].Value;
                 if (content.Length == 1) return $"_{content}";
                 return $"_({content})";
@@ -89,20 +86,17 @@ namespace LatexConverter
             text = Regex.Replace(text, @"<hr\s*/?>", " ");
             text = text.Replace("&nbsp;", " ");
             text = Regex.Replace(text, @"\s*&deg;\s*", "°");
-            text = Regex.Replace(text, @"&([a-zA-Z]+);", m =>
-            {
+            text = Regex.Replace(text, @"&([a-zA-Z]+);", m => {
                 string key = m.Value == "&times;" ? @"\times" : (m.Value == "&sdot;" ? @"\cdot" : $"\\{m.Groups[1].Value}");
                 return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(key, m.Groups[1].Value);
             });
             text = Regex.Replace(text, @"<br\s*/?>", "\n");
             string previous;
-            do
-            {
+            do {
                 previous = text;
                 text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
             } while (text != previous);
-            text = Regex.Replace(text, "<sup>(.*?)</sup>", m =>
-            {
+            text = Regex.Replace(text, "<sup>(.*?)</sup>", m => {
                 var s = m.Groups[1].Value;
                 var map = Dictionaries.SupMap;
                 var sb = new StringBuilder();
@@ -113,8 +107,7 @@ namespace LatexConverter
                 }
                 return sb.ToString();
             });
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", m =>
-            {
+            text = Regex.Replace(text, "<sub>(.*?)</sub>", m => {
                 var s = m.Groups[1].Value;
                 var map = Dictionaries.SubMap;
                 var sb = new StringBuilder();
@@ -139,8 +132,7 @@ namespace LatexConverter
             text = text.Replace("&nbsp;", " ");
             text = Regex.Replace(text, @"<br\s*/?>", "\n");
             string previous;
-            do
-            {
+            do {
                 previous = text;
                 text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
             } while (text != previous);
@@ -148,8 +140,7 @@ namespace LatexConverter
             text = Regex.Replace(text, @"\s*&times;\s*", " times ");
             text = Regex.Replace(text, "&sdot;", "sdot");
             text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1 ");
-            text = Regex.Replace(text, "<sup>(.*?)</sup>", m =>
-            {
+            text = Regex.Replace(text, "<sup>(.*?)</sup>", m => {
                 string content = m.Groups[1].Value;
                 if (content == "2") return " squared ";
                 if (content == "3") return " cubed ";
@@ -196,7 +187,7 @@ namespace LatexConverter
                 if (char.IsLetter(currentChar))
                 {
                     int start = pos;
-                    while (pos < text.Length && (char.IsLetter(text[pos]) || (text[pos] == '-' && pos > 0 && char.IsLetter(text[pos - 1]) && pos + 1 < text.Length && char.IsLetter(text[pos + 1]))))
+                     while (pos < text.Length && (char.IsLetter(text[pos]) || (text[pos] == '-' && pos > 0 && char.IsLetter(text[pos-1]) && pos+1<text.Length && char.IsLetter(text[pos+1]))))
                     {
                         pos++;
                     }
@@ -217,7 +208,7 @@ namespace LatexConverter
                         pos += 2;
                         continue;
                     }
-                    if (pos + 1 < text.Length && text[pos + 1] == ';')
+                     if (pos + 1 < text.Length && text[pos + 1] == ';')
                     {
                         tokens.Add(new Token(TokenType.Space, " "));
                         pos += 2;
@@ -267,7 +258,7 @@ namespace LatexConverter
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
     }
-    public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript) : AstNode
+    public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript, bool NeedsParentheses) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitScript(this);
     }
@@ -298,7 +289,8 @@ namespace LatexConverter
                 bool isSuperscript = CurrentToken.Type == TokenType.Superscript;
                 _pos++;
                 var script = ParsePrimary();
-                node = new ScriptNode(node, script, isSuperscript);
+                bool needsParentheses = !(script is TextNode textNode && Regex.IsMatch(textNode.Text, @"^[a-zA-Z0-9]+$"));
+                node = new ScriptNode(node, script, isSuperscript, needsParentheses);
             }
             return node;
         }
@@ -395,14 +387,7 @@ namespace LatexConverter
     {
         public override string VisitText(TextNode node) => node.Text;
 
-        //public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
-        public override string VisitGroup(GroupNode node)
-        {
-            if (node.Body.Count == 1)
-                return $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
-
-            return $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
-        }
+        public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
 
         public override string VisitScript(ScriptNode node)
         {
@@ -415,11 +400,7 @@ namespace LatexConverter
                 return $"{baseText} degrees";
             }
 
-            if (scriptText.Length > 1 && !(scriptText.StartsWith("(") && scriptText.EndsWith(")")))
-            {
-                return $"{baseText}{op}({scriptText})";
-            }
-            if (node.Script is TextNode textNode && textNode.Text.Length > 1)
+            if (node.NeedsParentheses)
             {
                 return $"{baseText}{op}({scriptText})";
             }
@@ -432,13 +413,7 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
-                    var side1 = node.Args[0].Accept(this);
-                    var side2 = node.Args[1].Accept(this);
-                    if (side1.Length > 0)
-                        side1 = $"({side1})";
-                    if (side2.Length > 0)
-                        side2 = $"({side2})";
-                    sb.Append($"{side1}/{side2}");
+                    sb.Append($"{node.Args[0].Accept(this)}/{node.Args[1].Accept(this)}");
                     break;
                 case @"\sqrt":
                     sb.Append($"sqrt({node.Args[0].Accept(this)})");
@@ -449,43 +424,21 @@ namespace LatexConverter
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
-                    sb.Append(node.Args[0].Accept(this));
+                     sb.Append(node.Args[0].Accept(this));
                     break;
                 case @"\hat":
                     sb.Append($"hat {node.Args[0].Accept(this)}");
                     break;
-                case @"\sum":
-                case @"\int":
-                case @"\prod":
+                case @"\sum": case @"\int": case @"\prod":
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
-                    //if (node.Subscript != null) sb.Append($"_({node.Subscript.Accept(this)})");
-                    //if (node.Superscript != null) sb.Append($"^({node.Superscript.Accept(this)})");
-
-                    if (node.Subscript != null)
-                    {
-                        var toBeAppended = node.Subscript.Accept(this);
-                        toBeAppended = addParantesesIfNeeded(toBeAppended);
-                        sb.Append($"_{toBeAppended}");
-                    }
-                    if (node.Superscript != null)
-                    {
-                        var toBeAppended = node.Superscript.Accept(this);
-                        toBeAppended = addParantesesIfNeeded(toBeAppended);
-                        sb.Append($"^{toBeAppended}");
-                    }
+                    if (node.Subscript != null) sb.Append($"_({node.Subscript.Accept(this)})");
+                    if (node.Superscript != null) sb.Append($"^({node.Superscript.Accept(this)})");
                     break;
                 default:
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
                     break;
             }
             return sb.ToString();
-        }
-
-        private string addParantesesIfNeeded(string toBeAppended)
-        {
-            if (!toBeAppended.StartsWith("(") && !toBeAppended.EndsWith(")"))
-                toBeAppended = $"({toBeAppended})";
-            return toBeAppended;
         }
     }
 
@@ -529,9 +482,7 @@ namespace LatexConverter
                 case @"\mathcal": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap)); break;
                 case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
                 case @"\mathbb": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap)); break;
-                case @"\sum":
-                case @"\int":
-                case @"\prod":
+                case @"\sum": case @"\int": case @"\prod":
                     sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
                     if (node.Subscript != null) sb.Append(ToUnicode(node.Subscript.Accept(this), false, node.Subscript));
                     if (node.Superscript != null) sb.Append(ToUnicode(node.Superscript.Accept(this), true, node.Superscript));
@@ -555,19 +506,14 @@ namespace LatexConverter
                 return sb.ToString();
             }
 
-            if (originalNode is GroupNode && isSuperscript.HasValue)
-            {
-                string op = isSuperscript.Value ? "^" : "_";
-                return $"{op}({s})";
-            }
-            if (originalNode is TextNode tn && tn.Text.Length > 1 && isSuperscript.HasValue)
-            {
-                string op = isSuperscript.Value ? "^" : "_";
-                return $"{op}({s})";
-            }
+            bool needsParentheses = !(originalNode is TextNode textNode && Regex.IsMatch(textNode.Text, @"^[a-zA-Z0-9]+$"));
             if (isSuperscript.HasValue)
             {
                 string op = isSuperscript.Value ? "^" : "_";
+                if(needsParentheses && !(s.StartsWith("(") && s.EndsWith(")")))
+                {
+                    return $"{op}({s})";
+                }
                 return $"{op}{s}";
             }
             return s;
@@ -624,7 +570,7 @@ namespace LatexConverter
                 case @"\mathcal": return $"calligraphic {node.Args[0].Accept(this)}";
                 case @"\text": case @"\mathrm": case @"\textrm": return node.Args[0].Accept(this);
                 case @"\mathbb":
-                    if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R") return "the set of real numbers";
+                    if(node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R") return "the set of real numbers";
                     return node.Args[0].Accept(this);
                 case @"\sum":
                 case @"\int":
