@@ -263,7 +263,7 @@ namespace LatexConverter
     public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitScript(this);
- 
+
     }
 
     public class Parser
@@ -292,7 +292,7 @@ namespace LatexConverter
                 bool isSuperscript = CurrentToken.Type == TokenType.Superscript;
                 _pos++;
                 var script = ParsePrimary();
-            
+
                 node = new ScriptNode(node, script, isSuperscript);
             }
             return node;
@@ -391,15 +391,7 @@ namespace LatexConverter
         public override string VisitText(TextNode node) => node.Text;
 
         //public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
-        public override string VisitGroup(GroupNode node)
-        {
-            var content = string.Join("", node.Body.Select(n => n.Accept(this)));
-            if (node.Body.Count == 1 && node.Body[0] is TextNode)
-            {
-                return content;
-            }
-            return $"({content})";
-        }
+        public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
 
         public override string VisitScript(ScriptNode node)
         {
