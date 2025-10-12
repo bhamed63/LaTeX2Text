@@ -43,7 +43,7 @@ namespace LatexConverter.Tests
         [InlineData("A small segment of the wire is marked in blue as \"d-x.\"", "A small segment of the wire is marked in blue as \"d-x.\"")]
         [InlineData("An x-y coordinate system is shown in the top right", "An x-y coordinate system is shown in the top right")]
         [InlineData("rod: dE_x = -k * lambda * x * dx / (a^2 + x^2)^(3/2).", "rod: dE_x = -k * lambda * x * dx / (a^2+x^2)^(3/2).")]
-        [InlineData("V(r) = (q / (4 * \\pi * \\epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).", "V(r) = (q / (4 * pi * varepsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).")]
+        [InlineData("V(r) = (q / (4 * \\pi * \\epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).", "V(r) = (q / (4 * pi * epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).")]
         [InlineData("sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "arcsin [ (lambda / (d * pi)) * arccos (sqrt(I/I_0)) ]")]
         [InlineData("the quantity (x/2 squared plus l squared) raised to the 3/2 power", "the quantity (x/2 squared plus l squared) raised to the 3/2 power")]
         [InlineData("y_ob to a", "y_ob to a")]
