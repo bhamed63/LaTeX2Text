@@ -46,7 +46,6 @@ namespace LatexConverter
                 result = Regex.Replace(result, @"[ \t]+", " ").Trim();
                 if (visitor is HumanFriendlyVisitor)
                 {
-                    result = Regex.Replace(result, @"\s*([·×+=\-/\[\]*])\s*", "$1");
                     result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
                 }
                 else if (visitor is ScreenReaderVisitor)
