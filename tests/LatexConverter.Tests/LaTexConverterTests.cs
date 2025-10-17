@@ -157,7 +157,9 @@ namespace LatexConverter.Tests
         [InlineData("An x-y coordinate system is shown in the top right", "An x-y coordinate system is shown in the top right")]
         [InlineData("rod: dE_x = -k * lambda * x * dx / (a^2 + x^2)^(3/2).", "rod: dE subscript x equals minus k times lambda times x times dx divided by (a squared plus x squared) to the power of (3 divided by 2).")]
         [InlineData("V(r) = (q / (4 * \\pi * \\epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).", "V(r) equals (q divided by (4 times pi times epsilon subscript 0 times a subscript 0)) times exp(minus 2 times r divided by a subscript 0) times (1 plus a subscript 0 divided by r).")]
-        [InlineData("sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "arcsin [ (lambda divided by (d times pi)) times arccos (the square root of I divided by I subscript 0 )]")]
+        [InlineData(
+            "sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", 
+            "arcsin [ (lambda divided by (d times pi)) times arccos (the square root of I divided by I subscript 0) ]")]
         [InlineData("the quantity (x/2 squared plus l squared) raised to the 3/2 power", "the quantity (x divided by 2 squared plus l squared) raised to the 3 divided by 2 power")]
         [InlineData("y_ob to a", "y subscript ob to a")]
         [InlineData(@"\mu_k", "mu subscript k")]
