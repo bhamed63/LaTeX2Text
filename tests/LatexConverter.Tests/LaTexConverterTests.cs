@@ -112,6 +112,16 @@ namespace LatexConverter.Tests
         [InlineData("\\sqrt{a^2 + b^2}", "√(a²+b²)")]
         [InlineData("sqrt(a^2 + b^2)", "√(a²+b²)")]
         [InlineData("\\vec{F}_i", "F⃗ᵢ")]
+        [InlineData("bullet", "bullet")]
+        [InlineData(@"\bullet", "•")]
+        [InlineData("in", "in")]
+        [InlineData(@"\in", "∈")]
+        [InlineData("times", "times")]
+        [InlineData(@"\times", "×")]
+        [InlineData("sum", "sum")]
+        [InlineData(@"\sum", "∑")]
+        [InlineData("exists", "exists")]
+        [InlineData(@"\exists", "∃")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
