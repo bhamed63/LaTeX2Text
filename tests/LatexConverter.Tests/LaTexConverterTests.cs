@@ -44,7 +44,8 @@ namespace LatexConverter.Tests
         [InlineData("An x-y coordinate system is shown in the top right", "An x-y coordinate system is shown in the top right")]
         [InlineData("rod: dE_x = -k * lambda * x * dx / (a^2 + x^2)^(3/2).", "rod: dE_x = -k * lambda * x * dx / (a^2 + x^2)^(3/2).")]
         [InlineData("V(r) = (q / (4 * \\pi * \\epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).", "V(r) = (q / (4 * pi * epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).")]
-        [InlineData("sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "arcsin [ (lambda / (d * pi)) * arccos (sqrt(I / I_0)) ]")]
+        [InlineData("sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", 
+            "arcsin [ (lambda / (d * pi)) * arccos (sqrt(I / I_0)) ]")]
         [InlineData("the quantity (x/2 squared plus l squared) raised to the 3/2 power", "the quantity (x/2 squared plus l squared) raised to the 3/2 power")]
         [InlineData("y_ob to a", "y_ob to a")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
@@ -91,7 +92,9 @@ namespace LatexConverter.Tests
         [InlineData("An x-y coordinate system is shown in the top right", "An x-y coordinate system is shown in the top right")]
         [InlineData("rod: dE_x = -k * lambda * x * dx / (a^2 + x^2)^(3/2).", "rod: dEₓ=-k*λ*x*dx/(a²+x²)^(3/2).")]
         [InlineData("V(r) = (q / (4 * \\pi * \\epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).", "V(r)=(q/(4*π*ε₀*a₀))*exp(-2*r/a₀)*(1+a₀/r).")]
-        [InlineData("sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "sin⁻¹[(λ/(d*π))*cos⁻¹(√(I/I₀))]")]
+        [InlineData(
+            "sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", 
+            "sin⁻¹[(λ/(d*π))*cos⁻¹(√(I/I₀))]")]
         [InlineData("the quantity (x/2 squared plus l squared) raised to the 3/2 power", "the quantity (x/2 squared plus l squared) raised to the 3/2 power")]
         [InlineData("y_ob to a", "y_ob to a")]
         [InlineData(@"\mu_k", "μₖ")]
