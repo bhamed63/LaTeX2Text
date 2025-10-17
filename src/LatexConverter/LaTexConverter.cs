@@ -49,6 +49,11 @@ namespace LatexConverter
                     result = Regex.Replace(result, @"\s*([·×+=\-/\[\]*])\s*", "$1");
                     result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
                 }
+                else if (visitor is ScreenReaderVisitor)
+                {
+                    result = Regex.Replace(result, @"\(\s+", "(");
+                    result = Regex.Replace(result, @"\s+\)", ")");
+                }
                 return result;
             });
             return string.Join("\n", processedLines);
@@ -255,29 +260,26 @@ namespace LatexConverter
     public abstract record AstNode
     {
         public abstract T Accept<T>(IVisitor<T> visitor);
-        public virtual bool NeedsParentheses() => true;
+        public virtual bool NeedsParentheses() => false;
     }
     public record TextNode(string Text) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitText(this);
-        public override bool NeedsParentheses() => !Regex.IsMatch(Text, @"^[a-zA-Z0-9]+$") && Text.Length > 1;
+        public override bool NeedsParentheses() => !Regex.IsMatch(Text, @"^[a-zA-Z0-9]+$");
     }
     public record CommandNode(string Command, List<AstNode> Args, AstNode Subscript, AstNode Superscript) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCommand(this);
-        public override bool NeedsParentheses()
-        {
-            return Args.Any() || Subscript != null || Superscript != null;
-        }
     }
     public record GroupNode(List<AstNode> Body) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
-        public override bool NeedsParentheses() => false;
+        public override bool NeedsParentheses() => this.Body.Count > 1;
     }
     public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitScript(this);
+
     }
 
     public class Parser
@@ -423,7 +425,7 @@ namespace LatexConverter
                 return $"{baseText} degrees";
             }
 
-            if (node.Script.NeedsParentheses())
+            if (node.NeedsParentheses())
             {
                 return $"{baseText}{op}({scriptText})";
             }

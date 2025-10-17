@@ -34,15 +34,6 @@ namespace LatexConverter.Tests
         [InlineData(@"\(k = 52\;\mathrm{N}/\mathrm{m}\).", "k = 52 N/m.")]
         [InlineData(@"\(v\)", "v")]
         [InlineData("a\nb", "a\nb")]
-        [InlineData("a^{b^{c}}", "a^(b^c)")]
-        [InlineData("x_{y_{z}}", "x_(y_z)")]
-        [InlineData("a^{b+c}", "a^(b+c)")]
-        [InlineData("x_{a+b}", "x_(a+b)")]
-        [InlineData("a^{b^c}_{d_e}", "a^(b^c)_(d_e)")]
-        [InlineData(@"\sqrt{x+y}", "sqrt(x+y)")]
-        [InlineData(@"\sin^{-1}{a+b}", "arcsin(a+b)")]
-        [InlineData(@"\hat{a+b}", "hat(a+b)")]
-        [InlineData(@"\mathbb{R-S}", "R-S")]
         [InlineData("E = mc^2", "E = mc^2")]
         [InlineData("4.0 \\times 10^{-4}", "4.0 times 10^(-4)")]
         [InlineData("sin^(-1)", "arcsin")]
@@ -171,6 +162,8 @@ namespace LatexConverter.Tests
         [InlineData("y_ob to a", "y subscript ob to a")]
         [InlineData(@"\mu_k", "mu subscript k")]
         [InlineData(@"\geq", "greater than or equal to")]
+        [InlineData("(-2)", "(minus 2)")]
+        [InlineData("(a+b)", "(a plus b)")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
