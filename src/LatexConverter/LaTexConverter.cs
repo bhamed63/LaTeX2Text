@@ -274,7 +274,7 @@ namespace LatexConverter
     public record GroupNode(List<AstNode> Body) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
-        public override bool NeedsParentheses() => this.Body.Count > 1;
+        public override bool NeedsParentheses() => this.Body.Count > 1 || this.Body.Any(b => b is ScriptNode scriptNode && scriptNode.Script is GroupNode);
     }
     public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript) : AstNode
     {
