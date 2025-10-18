@@ -46,7 +46,7 @@ namespace LatexConverter
                 result = Regex.Replace(result, @"[ \t]+", " ").Trim();
                 if (visitor is HumanFriendlyVisitor)
                 {
-                    result = Regex.Replace(result, @"\s*([·×/\[\]*])\s*", "$1");
+                    result = Regex.Replace(result, @"\s*([\[\]])\s*", "$1");
                     result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
                     result = Regex.Replace(result, @"(sin⁻¹|cos⁻¹|tan⁻¹)\s+\(", "$1(");
                 }
@@ -532,7 +532,7 @@ namespace LatexConverter
             var sb = new StringBuilder();
             switch (node.Command)
             {
-                case @"\frac": sb.Append($"{node.Args[0].Accept(this)}/{node.Args[1].Accept(this)}"); break;
+                case @"\frac": sb.Append($"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}"); break;
                 case @"\sqrt": sb.Append($"√({node.Args[0].Accept(this)})"); break;
                 case @"\vec": sb.Append($"{node.Args[0].Accept(this)}\u20D7"); break;
                 case @"\hat": sb.Append($"{node.Args[0].Accept(this)}\u0302"); break;
