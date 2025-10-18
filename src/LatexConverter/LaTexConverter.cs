@@ -48,6 +48,7 @@ namespace LatexConverter
                 {
                     result = Regex.Replace(result, @"\s*([·×+=\-/\[\]*])\s*", "$1");
                     result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
+                    result = Regex.Replace(result, @"(sin⁻¹|cos⁻¹|tan⁻¹)\s+\(", "$1(");
                 }
                 else if (visitor is ScreenReaderVisitor)
                 {
