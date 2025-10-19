@@ -13,7 +13,6 @@ namespace LatexConverter
         {
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             return Process(processed_input, new OpenAIVisitor());
         }
@@ -22,7 +21,6 @@ namespace LatexConverter
         {
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             return Process(processed_input, new HumanFriendlyVisitor());
         }
@@ -31,7 +29,6 @@ namespace LatexConverter
         {
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             return Process(processed_input, new ScreenReaderVisitor());
         }
@@ -176,29 +173,19 @@ namespace LatexConverter
     }
 
     #region Parser
-    public enum TokenType { Command, Text, LBrace, RBrace, Superscript, Subscript, Eof, Space, Matrix }
+    public enum TokenType { Command, Text, LBrace, RBrace, Superscript, Subscript, Eof, Space }
 
     public record Token(TokenType Type, string Value = "");
 
     public static class Tokenizer
     {
         private static readonly Regex CommandRegex = new Regex(@"\\[a-zA-Z]+|\\.", RegexOptions.Compiled);
-        private static readonly Regex MatrixRegex = new Regex(@"\\begin\{pmatrix\}(.*?)\\end\{pmatrix\}", RegexOptions.Singleline | RegexOptions.Compiled);
-
         public static List<Token> Tokenize(string text)
         {
             var tokens = new List<Token>();
             int pos = 0;
             while (pos < text.Length)
             {
-                var matrixMatch = MatrixRegex.Match(text, pos);
-                if (matrixMatch.Success && matrixMatch.Index == pos)
-                {
-                    tokens.Add(new Token(TokenType.Matrix, matrixMatch.Groups[1].Value.Trim()));
-                    pos += matrixMatch.Length;
-                    continue;
-                }
-
                 char currentChar = text[pos];
                 if (currentChar == '\n')
                 {
@@ -296,11 +283,6 @@ namespace LatexConverter
 
     }
 
-    public record MatrixNode(string Content) : AstNode
-    {
-        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitMatrix(this);
-    }
-
     public class Parser
     {
         private readonly List<Token> _tokens;
@@ -337,12 +319,6 @@ namespace LatexConverter
         {
             if (CurrentToken.Type == TokenType.LBrace) return ParseGroup();
             if (CurrentToken.Type == TokenType.Command) return ParseCommand();
-            if (CurrentToken.Type == TokenType.Matrix)
-            {
-                var token = CurrentToken;
-                _pos++;
-                return new MatrixNode(token.Value);
-            }
             if (CurrentToken.Type == TokenType.Text || CurrentToken.Type == TokenType.Space)
             {
                 var token = CurrentToken;
@@ -365,14 +341,14 @@ namespace LatexConverter
             return new GroupNode(nodes);
         }
 
-        private bool IsLimitCommand(string command) => command == @"\sum" || command == @"\int" || command == @"\prod" || command == @"\lim";
+        private bool IsLimitCommand(string command) => command == @"\sum" || command == @"\int" || command == @"\prod";
 
         private int GetArgumentCount(string command)
         {
             return command switch
             {
                 @"\frac" => 2,
-                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" => 1,
+                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" => 1,
                 _ => 0,
             };
         }
@@ -417,7 +393,6 @@ namespace LatexConverter
         T VisitCommand(CommandNode node);
         T VisitGroup(GroupNode node);
         T VisitScript(ScriptNode node);
-        T VisitMatrix(MatrixNode node);
     }
 
     public abstract class BaseVisitor<T> : IVisitor<T>
@@ -426,7 +401,6 @@ namespace LatexConverter
         public abstract T VisitCommand(CommandNode node);
         public abstract T VisitGroup(GroupNode node);
         public abstract T VisitScript(ScriptNode node);
-        public abstract T VisitMatrix(MatrixNode node);
     }
 
     public class OpenAIVisitor : BaseVisitor<string>
@@ -467,6 +441,10 @@ namespace LatexConverter
                 case @"\frac":
                     var side1 = node.Args[0].Accept(this);
                     var side2 = node.Args[1].Accept(this);
+                    //if (side1.Length > 1)
+                    //    side1 = $"({side1})";
+                    //if (side2.Length > 1)
+                    //    side2 = $"({side2})";
                     sb.Append($"{side1}/{side2}");
                     break;
                 case @"\sqrt":
@@ -484,23 +462,16 @@ namespace LatexConverter
                 case @"\textrm":
                     sb.Append(node.Args[0].Accept(this));
                     break;
-                case @"\cos":
-                case @"\sin":
-                case @"\tan":
-                case @"\log":
-                case @"\ln":
-                case @"\exp":
-                case @"\det":
-                    sb.Append($@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})");
-                    break;
                 case @"\hat":
                     sb.Append($"hat {node.Args[0].Accept(this)}");
                     break;
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
-                case @"\lim":
                     sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
+                    //if (node.Subscript != null) sb.Append($"_({node.Subscript.Accept(this)})");
+                    //if (node.Superscript != null) sb.Append($"^({node.Superscript.Accept(this)})");
+
                     if (node.Subscript != null)
                     {
                         var toBeAppended = node.Subscript.Accept(this);
@@ -526,24 +497,12 @@ namespace LatexConverter
                 toBeAppended = $"({toBeAppended})";
             return toBeAppended;
         }
-
-        public override string VisitMatrix(MatrixNode node)
-        {
-            var rows = node.Content.Split(new[] { @"\\" }, StringSplitOptions.RemoveEmptyEntries);
-            var matrix = rows.Select(row =>
-            {
-                var elements = row.Split('&').Select(e => e.Trim());
-                return $"[{string.Join(", ", elements)}]";
-            });
-            return $"matrix[{string.Join(", ", matrix)}]";
-        }
     }
 
     public class HumanFriendlyVisitor : BaseVisitor<string>
     {
         private string TryConvertPlainTextCommand(string text)
         {
-            if (text == "to") return text;
             if (Dictionaries.HumanFriendlySymbolMap.TryGetValue($@"\{text}", out var symbol))
             {
                 if (Dictionaries.DeniedConvertWithoutSlash.Contains($@"\{text}")) return text;
@@ -580,29 +539,12 @@ namespace LatexConverter
                 case @"\mathcal": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap)); break;
                 case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
                 case @"\mathbb": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap)); break;
-                case @"\cos":
-                case @"\sin":
-                case @"\tan":
-                case @"\log":
-                case @"\ln":
-                    sb.Append($@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})");
-                    break;
-                case @"\exp":
-                    sb.Append($"e{ToUnicode(node.Args[0].Accept(this), true, node.Args[0])}");
-                    break;
-                case @"\det":
-                    sb.Append($"det({node.Args[0].Accept(this)})");
-                    break;
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
                     sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
                     if (node.Subscript != null) sb.Append(ToUnicode(node.Subscript.Accept(this), false, node.Subscript));
                     if (node.Superscript != null) sb.Append(ToUnicode(node.Superscript.Accept(this), true, node.Superscript));
-                    break;
-                case @"\lim":
-                    sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
-                    if (node.Subscript != null) sb.Append($"_{{{node.Subscript.Accept(this).Replace(" ", "")}}} ");
                     break;
                 default:
                     sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
@@ -634,16 +576,6 @@ namespace LatexConverter
                 return $"{op}{s}";
             }
             return s;
-        }
-        public override string VisitMatrix(MatrixNode node)
-        {
-            var rows = node.Content.Split(new[] { @"\\" }, StringSplitOptions.RemoveEmptyEntries);
-            var matrix = rows.Select(row =>
-            {
-                var elements = row.Split('&').Select(e => e.Trim());
-                return $"({string.Join(" ", elements)})";
-            });
-            return string.Join("\n", matrix);
         }
     }
 
@@ -696,13 +628,6 @@ namespace LatexConverter
                 case @"\hat": return $"{node.Args[0].Accept(this)} hat";
                 case @"\mathcal": return $"calligraphic {node.Args[0].Accept(this)}";
                 case @"\text": case @"\mathrm": case @"\textrm": return node.Args[0].Accept(this);
-                case @"\sin": return $"sine of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\cos": return $"cosine of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\tan": return $"tangent of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\log": return $"logarithm of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\ln": return $"natural logarithm of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\exp": return $"e to the power of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\det": return $"determinant of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
                 case @"\mathbb":
                     if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R") return "the set of real numbers";
                     return node.Args[0].Accept(this);
@@ -714,32 +639,12 @@ namespace LatexConverter
                     string commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
                     sb.Append($"{commandName} from {sub} to {sup}");
                     break;
-                case @"\lim":
-                    var sub_lim = node.Subscript != null ? node.Subscript.Accept(this) : "";
-                    string commandName_lim = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
-                    sb.Append($"{commandName_lim} as {sub_lim} of");
-                    break;
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     sb.Append(Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal));
                     break;
             }
             return sb.ToString();
-        }
-
-        public override string VisitMatrix(MatrixNode node)
-        {
-            var rows = node.Content.Split(new[] { @"\\" }, StringSplitOptions.RemoveEmptyEntries);
-            var num_rows = rows.Length;
-            var num_cols = rows[0].Split('&').Length;
-
-            var matrix_desc = rows.Select(row =>
-            {
-                var elements = row.Split('&').Select(e => e.Trim());
-                return $"({string.Join(", ", elements)})";
-            });
-
-            return $"a {num_rows}x{num_cols} matrix with rows {string.Join(" and ", matrix_desc)}";
         }
     }
 
@@ -763,10 +668,10 @@ namespace LatexConverter
             { @"\neq", "neq" }, { @"\approx", "approx" },
             { @"\equiv", "equiv" }, { @"\propto", "propto" },
             { @"\infty", "infty" }, { @"\nabla", "nabla" }, { @"\partial", "partial" },
-            { @"\int", "integral" }, { @"\sum", "summation" }, { @"\prod", "product" }, { @"\lim", "limit" },
+            { @"\int", "integral" }, { @"\sum", "summation" }, { @"\prod", "product" },
             { @"\hbar", "hbar" }, { @"\ell", "ell" }, { @"\wp", "wp" },
             { @"\Re", "Re" }, { @"\Im", "Im" },
-            { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "->" },
+            { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" }
         };
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
@@ -775,7 +680,7 @@ namespace LatexConverter
             { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" },
             { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
             { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
-            { @"\Re", "Real part" }, { @"\Im", "Imaginary part" }, { @"\forall", "for all" }, { @"\to", "approaches" },
+            { @"\Re", "Real part" }, { @"\Im", "Imaginary part" }, { @"\forall", "for all" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" }
         };
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
@@ -795,9 +700,9 @@ namespace LatexConverter
             { @"\leq", "≤" }, { @"\geq", "≥" }, { @"\neq", "≠" }, { @"\approx", "≈" },
             { @"\equiv", "≡" }, { @"\propto", "∝" }, { @"\infty", "∞" },
             { @"\nabla", "∇" }, { @"\partial", "∂" },
-            { @"\int", "∫" }, { @"\sum", "∑" }, { @"\prod", "∏" }, { @"\lim", "lim" },
+            { @"\int", "∫" }, { @"\sum", "∑" }, { @"\prod", "∏" },
             { @"\hbar", "ħ" }, { @"\ell", "ℓ" },
-            { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" }, { @"\to", "→" },
+            { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" },
             { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" }
         };
         public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.ToDictionary(kp => kp.Value, kp => kp.Key.Substring(1));
