@@ -52,6 +52,7 @@ namespace LatexConverter
                     result = Regex.Replace(result, @"\s*([\[\]])\s*", "$1");
                     result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
                     result = Regex.Replace(result, @"(sin⁻¹|cos⁻¹|tan⁻¹)\s+\(", "$1(");
+                    result = Regex.Replace(result, @"(¬)\s+([a-zA-Z0-9])", "$1$2");
                 }
                 else if (visitor is ScreenReaderVisitor)
                 {
@@ -371,7 +372,7 @@ namespace LatexConverter
         {
             return command switch
             {
-                @"\frac" => 2,
+                @"\frac" or @"\binom" => 2,
                 @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" => 1,
                 _ => 0,
             };
@@ -472,6 +473,9 @@ namespace LatexConverter
                     //if (side2.Length > 1)
                     //    side2 = $"({side2})";
                     sb.Append($"{side1}/{side2}");
+                    break;
+                case @"\binom":
+                    sb.Append($@"binom({node.Args[0].Accept(this)},{node.Args[1].Accept(this)})");
                     break;
                 case @"\sqrt":
                     var underSQRT = node.Args[0].Accept(this);
@@ -578,6 +582,7 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac": sb.Append($"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}"); break;
+                case @"\binom": sb.Append($"({node.Args[0].Accept(this)} {node.Args[1].Accept(this)})"); break;
                 case @"\sqrt": sb.Append($"√({node.Args[0].Accept(this)})"); break;
                 case @"\vec": sb.Append($"{node.Args[0].Accept(this)}\u20D7"); break;
                 case @"\hat": sb.Append($"{node.Args[0].Accept(this)}\u0302"); break;
@@ -700,6 +705,7 @@ namespace LatexConverter
             {
                 case @"\frac":
                     return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
+                case @"\binom": return $"{node.Args[0].Accept(this)} choose {node.Args[1].Accept(this)}";
                 case @"\sqrt": return $"the square root of {node.Args[0].Accept(this)}";
                 case @"\vec": return $"vector {node.Args[0].Accept(this)}";
                 case @"\hat": return $"{node.Args[0].Accept(this)} hat";
@@ -775,7 +781,9 @@ namespace LatexConverter
             { @"\hbar", "hbar" }, { @"\ell", "ell" }, { @"\wp", "wp" },
             { @"\Re", "Re" }, { @"\Im", "Im" },
             { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "->" },
-            { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" }
+            { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
+            { @"\cup", "cup" }, { @"\cap", "cap" }, { @"\subset", "subset" }, { @"\supset", "supset" },
+            { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" }
         };
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
             { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
@@ -784,7 +792,9 @@ namespace LatexConverter
             { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
             { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
             { @"\Re", "Real part" }, { @"\Im", "Imaginary part" }, { @"\forall", "for all" }, { @"\to", "approaches" },
-            { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" }
+            { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
+            { @"\cup", "union" }, { @"\cap", "intersection" }, { @"\subset", "subset of" }, { @"\supset", "superset of" },
+            { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" }
         };
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
             { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
@@ -806,7 +816,9 @@ namespace LatexConverter
             { @"\int", "∫" }, { @"\sum", "∑" }, { @"\prod", "∏" }, { @"\lim", "lim" },
             { @"\hbar", "ħ" }, { @"\ell", "ℓ" },
             { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" }, { @"\to", "→" },
-            { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" }
+            { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" },
+            { @"\cup", "∪" }, { @"\cap", "∩" }, { @"\subset", "⊂" }, { @"\supset", "⊃" },
+            { @"\neg", "¬" }, { @"\land", "∧" }, { @"\lor", "∨" }
         };
         public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.ToDictionary(kp => kp.Value, kp => kp.Key.Substring(1));
         public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists" };
