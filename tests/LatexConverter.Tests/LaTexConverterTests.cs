@@ -67,6 +67,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\ln(x)", "ln(x)")]
         [InlineData(@"\exp(x)", "exp(x)")]
         [InlineData(@"\det(A)", "det(A)")]
+        [InlineData(@"\binom{n}{k}", "binom(n,k)")]
+        [InlineData(@"\cup", "cup")]
+        [InlineData(@"\cap", "cap")]
+        [InlineData(@"\subset", "subset")]
+        [InlineData(@"\supset", "supset")]
+        [InlineData(@"\neg A", "neg A")]
+        [InlineData(@"A \land B", "A land B")]
+        [InlineData(@"A \lor B", "A lor B")]
+        [InlineData(@"\hbar", "hbar")]
+        [InlineData(@"\ell", "ell")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -157,6 +167,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\ln(x)", "ln(x)")]
         [InlineData(@"\exp(x)", "eˣ")]
         [InlineData(@"\det(A)", "det(A)")]
+        [InlineData(@"\binom{n}{k}", "(n k)")]
+        [InlineData(@"\cup", "∪")]
+        [InlineData(@"\cap", "∩")]
+        [InlineData(@"\subset", "⊂")]
+        [InlineData(@"\supset", "⊃")]
+        [InlineData(@"\neg A", "¬A")]
+        [InlineData(@"A \land B", "A ∧ B")]
+        [InlineData(@"A \lor B", "A ∨ B")]
+        [InlineData(@"\hbar", "ħ")]
+        [InlineData(@"\ell", "ℓ")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -231,6 +251,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\ln(x)", "natural logarithm of x")]
         [InlineData(@"\exp(x)", "e to the power of x")]
         [InlineData(@"\det(A)", "determinant of A")]
+        [InlineData(@"\binom{n}{k}", "n choose k")]
+        [InlineData(@"\cup", "union")]
+        [InlineData(@"\cap", "intersection")]
+        [InlineData(@"\subset", "subset of")]
+        [InlineData(@"\supset", "superset of")]
+        [InlineData(@"\neg A", "not A")]
+        [InlineData(@"A \land B", "A and B")]
+        [InlineData(@"A \lor B", "A or B")]
+        [InlineData(@"\hbar", "h-bar")]
+        [InlineData(@"\ell", "ell")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
