@@ -47,6 +47,16 @@ namespace LatexConverter.Tests
         [InlineData("sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]", "arcsin [ (lambda / (d * pi)) * arccos (sqrt(I / I_0)) ]")]
         [InlineData("the quantity (x/2 squared plus l squared) raised to the 3/2 power", "the quantity (x/2 squared plus l squared) raised to the 3/2 power")]
         [InlineData("y_ob to a", "y_ob to a")]
+        [InlineData(@"\int_a^b f(x) dx", "integral_a^b f(x) dx")]
+        [InlineData(@"\lim_{x \to \infty} f(x)", "limit_(x -> infty) f(x)")]
+        [InlineData(@"\begin{pmatrix} a & b \\ c & d \end{pmatrix}", "matrix[[a, b], [c, d]]")]
+        [InlineData(@"\sin(x)", "sin(x)")]
+        [InlineData(@"\cos(x)", "cos(x)")]
+        [InlineData(@"\tan(x)", "tan(x)")]
+        [InlineData(@"\log(x)", "log(x)")]
+        [InlineData(@"\ln(x)", "ln(x)")]
+        [InlineData(@"\exp(x)", "exp(x)")]
+        [InlineData(@"\det(A)", "det(A)")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -117,6 +127,16 @@ namespace LatexConverter.Tests
         [InlineData("\\sqrt{a^2 + b^2}", "√(a² + b²)")]
         [InlineData("sqrt(a^2 + b^2)", "√(a² + b²)")]
         [InlineData("\\vec{F}_i", "F⃗ᵢ")]
+        [InlineData(@"\int_a^b f(x) dx", "∫ₐᵇ f(x) dx")]
+        [InlineData(@"\lim_{x \to \infty} f(x)", "lim┬(x→∞) f(x)")]
+        [InlineData(@"\begin{pmatrix} a & b \\ c & d \end{pmatrix}", "|a b|\n|c d|")]
+        [InlineData(@"\sin(x)", "sin(x)")]
+        [InlineData(@"\cos(x)", "cos(x)")]
+        [InlineData(@"\tan(x)", "tan(x)")]
+        [InlineData(@"\log(x)", "log(x)")]
+        [InlineData(@"\ln(x)", "ln(x)")]
+        [InlineData(@"\exp(x)", "exp(x)")]
+        [InlineData(@"\det(A)", "det(A)")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -171,6 +191,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\geq", "greater than or equal to")]
         [InlineData("(-2)", "(minus 2)")]
         [InlineData("(a+b)", "(a plus b)")]
+        [InlineData(@"\int_a^b f(x) dx", "integral from a to b f(x) dx")]
+        [InlineData(@"\lim_{x \to \infty} f(x)", "limit as x approaches infinity of f(x)")]
+        [InlineData(@"\begin{pmatrix} a & b \\ c & d \end{pmatrix}", "a 2x2 matrix with rows (a, b) and (c, d)")]
+        [InlineData(@"\sin(x)", "sine of x")]
+        [InlineData(@"\cos(x)", "cosine of x")]
+        [InlineData(@"\tan(x)", "tangent of x")]
+        [InlineData(@"\log(x)", "logarithm of x")]
+        [InlineData(@"\ln(x)", "natural logarithm of x")]
+        [InlineData(@"\exp(x)", "e to the power of x")]
+        [InlineData(@"\det(A)", "determinant of A")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
