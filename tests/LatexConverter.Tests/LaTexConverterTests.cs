@@ -77,6 +77,16 @@ namespace LatexConverter.Tests
         [InlineData(@"A \lor B", "A lor B")]
         [InlineData(@"\hbar", "hbar")]
         [InlineData(@"\ell", "ell")]
+        [InlineData(@"\omega", "omega")]
+        [InlineData(@"\Delta", "Delta")]
+        [InlineData(@"\epsilon", "epsilon")]
+        [InlineData(@"\oint", "oint")]
+        [InlineData(@"\propto", "propto")]
+        [InlineData(@"\approx", "approx")]
+        [InlineData(@"\cdot", "cdot")]
+        [InlineData(@"\implies", "implies")]
+        [InlineData(@"\iff", "iff")]
+        [InlineData(@"\sinh(x)", "sinh(x)")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -177,6 +187,16 @@ namespace LatexConverter.Tests
         [InlineData(@"A \lor B", "A ∨ B")]
         [InlineData(@"\hbar", "ħ")]
         [InlineData(@"\ell", "ℓ")]
+        [InlineData(@"\omega", "ω")]
+        [InlineData(@"\Delta", "Δ")]
+        [InlineData(@"\epsilon", "ε")]
+        [InlineData(@"\oint", "∮")]
+        [InlineData(@"\propto", "∝")]
+        [InlineData(@"\approx", "≈")]
+        [InlineData(@"\cdot", "·")]
+        [InlineData(@"\implies", "⇒")]
+        [InlineData(@"\iff", "⇔")]
+        [InlineData(@"\sinh(x)", "sinh(x)")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -261,6 +281,16 @@ namespace LatexConverter.Tests
         [InlineData(@"A \lor B", "A or B")]
         [InlineData(@"\hbar", "h-bar")]
         [InlineData(@"\ell", "ell")]
+        [InlineData(@"\omega", "omega")]
+        [InlineData(@"\Delta", "Delta")]
+        [InlineData(@"\epsilon", "epsilon")]
+        [InlineData(@"\oint", "contour integral")]
+        [InlineData(@"\propto", "proportional to")]
+        [InlineData(@"\approx", "approximately equal to")]
+        [InlineData(@"\cdot", "dot")]
+        [InlineData(@"\implies", "implies")]
+        [InlineData(@"\iff", "if and only if")]
+        [InlineData(@"\sinh(x)", "hyperbolic sine of x")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
