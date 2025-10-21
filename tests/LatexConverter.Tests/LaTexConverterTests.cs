@@ -104,6 +104,10 @@ namespace LatexConverter.Tests
         [InlineData(@"The lines are \parallel.", "The lines are parallel.")]
         [InlineData(@"This is a \odot operation.", "This is a odot operation.")]
         [InlineData(@"The \Re part and the \Im part.", "The Re part and the Im part.")]
+        [InlineData(@"A \cup B and C \cap D", "A cup B and C cap D")]
+        [InlineData(@"E \subset F and G \supset H", "E subset F and G supset H")]
+        [InlineData(@"\neg I \land J \lor K", "neg I land J lor K")]
+        [InlineData(@"The value of \hbar is constant, as is \ell.", "The value of hbar is constant, as is ell.")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -231,6 +235,10 @@ namespace LatexConverter.Tests
         [InlineData(@"The lines are \parallel.", "The lines are ∥.")]
         [InlineData(@"This is a \odot operation.", "This is a ⊙ operation.")]
         [InlineData(@"The \Re part and the \Im part.", "The ℜ part and the ℑ part.")]
+        [InlineData(@"A \cup B and C \cap D", "A ∪ B and C ∩ D")]
+        [InlineData(@"E \subset F and G \supset H", "E ⊂ F and G ⊃ H")]
+        [InlineData(@"\neg I \land J \lor K", "¬I ∧ J ∨ K")]
+        [InlineData(@"The value of \hbar is constant, as is \ell.", "The value of ħ is constant, as is ℓ.")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -342,6 +350,10 @@ namespace LatexConverter.Tests
         [InlineData(@"The lines are \parallel.", "The lines are parallel to.")]
         [InlineData(@"This is a \odot operation.", "This is a circled dot operation.")]
         [InlineData(@"The \Re part and the \Im part.", "The Real part part and the Imaginary part part.")]
+        [InlineData(@"A \cup B and C \cap D", "A union B and C intersection D")]
+        [InlineData(@"E \subset F and G \supset H", "E subset of F and G superset of H")]
+        [InlineData(@"\neg I \land J \lor K", "not I and J or K")]
+        [InlineData(@"The value of \hbar is constant, as is \ell.", "The value of h-bar is constant, as is ell.")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
