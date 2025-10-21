@@ -11,29 +11,46 @@ namespace LatexConverter
     {
         public string ConvertToOpenAIFriendlyText(string latex_input)
         {
-            if (latex_input == null) return "";
-            var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
-            processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
-            return Process(processed_input, new OpenAIVisitor());
+            var normalized_input = NormalizeStructuralPatterns(latex_input);
+            return Process(normalized_input, new OpenAIVisitor());
         }
 
         public string ConvertToHumanFriendlyText(string latex_input)
         {
-            if (latex_input == null) return "";
-            var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
-            processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
-            return Process(processed_input, new HumanFriendlyVisitor());
+            var normalized_input = NormalizeStructuralPatterns(latex_input);
+            normalized_input = NormalizePlainTextToLatex(normalized_input);
+            return Process(normalized_input, new HumanFriendlyVisitor());
         }
 
         public string ConvertToScreenReaderFriendlyText(string latex_input)
+        {
+            var normalized_input = NormalizeStructuralPatterns(latex_input);
+            return Process(normalized_input, new ScreenReaderVisitor());
+        }
+
+        private string NormalizeStructuralPatterns(string latex_input)
         {
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
             processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
-            return Process(processed_input, new ScreenReaderVisitor());
+            return processed_input;
+        }
+
+        private string NormalizePlainTextToLatex(string latex_input)
+        {
+            if (string.IsNullOrEmpty(latex_input)) return "";
+
+            var plainWords = Dictionaries.HumanFriendlySymbolMap.Keys
+                .Where(command => !Dictionaries.DeniedConvertWithoutSlash.Contains(command))
+                .Select(command => command.Substring(1))
+                .Where(plainWord => !string.IsNullOrEmpty(plainWord) && plainWord.All(char.IsLetter))
+                .OrderByDescending(s => s.Length);
+
+            var pattern = string.Join("|", plainWords);
+            var regex = new Regex($@"(?<![\\a-zA-Z])({pattern})(?![a-zA-Z])");
+
+            return regex.Replace(latex_input, m => "\\" + m.Value);
         }
 
         private string Process(string text, IVisitor<string> visitor)
@@ -448,13 +465,10 @@ namespace LatexConverter
             string scriptText = node.Script.Accept(this);
             string op = node.IsSuperscript ? "^" : "_";
 
-            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ")
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
-                return $"{baseText} degrees";
-            }
-            if (node.IsSuperscript && node.Script is CommandNode cmdNodePrime && cmdNodePrime.Command == @"\prime")
-            {
-                return $"{baseText}'";
+                if (cmdNode.Command == @"\circ") return $"{baseText} degrees";
+                if (cmdNode.Command == @"\prime") return $"{baseText}'";
             }
 
             if (node.NeedsParentheses())
@@ -553,18 +567,7 @@ namespace LatexConverter
 
     public class HumanFriendlyVisitor : BaseVisitor<string>
     {
-        private string TryConvertPlainTextCommand(string text)
-        {
-            if (text == "to") return text;
-            if (Dictionaries.HumanFriendlySymbolMap.TryGetValue($@"\{text}", out var symbol))
-            {
-                if (Dictionaries.DeniedConvertWithoutSlash.Contains($@"\{text}")) return text;
-                return symbol;
-            }
-            return text;
-        }
-
-        public override string VisitText(TextNode node) => TryConvertPlainTextCommand(node.Text);
+        public override string VisitText(TextNode node) => node.Text;
 
         public override string VisitGroup(GroupNode node)
         {
@@ -574,8 +577,11 @@ namespace LatexConverter
         public override string VisitScript(ScriptNode node)
         {
             string baseText = node.Base.Accept(this);
-            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ") return $"{baseText}°";
-            if (node.IsSuperscript && node.Script is CommandNode cmdNodePrime && cmdNodePrime.Command == @"\prime") return $"{baseText}′";
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode)
+            {
+                if (cmdNode.Command == @"\circ") return $"{baseText}°";
+                if (cmdNode.Command == @"\prime") return $"{baseText}′";
+            }
 
             var scriptContent = node.Script.Accept(this);
             return $"{baseText}{ToUnicode(scriptContent, node.IsSuperscript, node.Script)}";
@@ -691,9 +697,11 @@ namespace LatexConverter
         public override string VisitScript(ScriptNode node)
         {
             string baseText = node.Base.Accept(this).Trim();
-            if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ") return $"{baseText} degrees";
-            if (node.IsSuperscript && node.Script is CommandNode cmdNodePrime && cmdNodePrime.Command == @"\prime") return $"{baseText} prime";
-
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode)
+            {
+                if (cmdNode.Command == @"\circ") return $"{baseText} degrees";
+                if (cmdNode.Command == @"\prime") return $"{baseText} prime";
+            }
 
             string scriptText = node.Script.Accept(this).Trim();
             if (node.IsSuperscript)
@@ -794,13 +802,12 @@ namespace LatexConverter
             { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "->" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
             { @"\cup", "cup" }, { @"\cap", "cap" }, { @"\subset", "subset" }, { @"\supset", "supset" },
-            { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" },
-            { @"\clubsuit", "clubsuit" }, { @"\diamondsuit", "diamondsuit" }, { @"\heartsuit", "heartsuit" },
-            { @"\spadesuit", "spadesuit" }, { @"\flat", "flat" }, { @"\natural", "natural" },
-            { @"\sharp", "sharp" }, { @"\angle", "angle" }, { @"\measuredangle", "measuredangle" },
-            { @"\prime", "'" }, { @"\dots", "..." }, { @"\cdots", "..." },
-            { @"\vdots", "..." }, { @"\ddots", "..." }, { @"\blacksquare", "blacksquare" },
-            { @"\triangle", "triangle" }, { @"\triangledown", "triangledown" }
+            { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" }, { @"\prime", "prime" },
+            { @"\blacksquare", "blacksquare" }, { @"\heartsuit", "heartsuit" }, { @"\clubsuit", "clubsuit" },
+            { @"\diamondsuit", "diamondsuit" }, { @"\spadesuit", "spadesuit" }, { @"\natural", "natural" },
+            { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "triangledown" },
+            { @"\angle", "angle" }, { @"\measuredangle", "measuredangle" },
+            { @"\dots", "..." }, { @"\cdots", "..." }, { @"\vdots", "..." }, { @"\ddots", "..." }
         };
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
             { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
@@ -817,13 +824,12 @@ namespace LatexConverter
             { @"\forall", "for all" }, { @"\to", "approaches" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
             { @"\cup", "union" }, { @"\cap", "intersection" }, { @"\subset", "subset of" }, { @"\supset", "superset of" },
-            { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" },
-            { @"\clubsuit", "club suit" }, { @"\diamondsuit", "diamond suit" }, { @"\heartsuit", "heart suit" },
-            { @"\spadesuit", "spade suit" }, { @"\flat", "flat" }, { @"\natural", "natural" },
-            { @"\sharp", "sharp" }, { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
-            { @"\prime", "prime" }, { @"\dots", "dots" }, { @"\cdots", "centered dots" },
-            { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }, { @"\blacksquare", "black square" },
-            { @"\triangle", "triangle" }, { @"\triangledown", "downward triangle" }
+            { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" }, { @"\prime", "prime" },
+            { @"\blacksquare", "black square" }, { @"\heartsuit", "heart suit" }, { @"\clubsuit", "club suit" },
+            { @"\diamondsuit", "diamond suit" }, { @"\spadesuit", "spade suit" }, { @"\natural", "natural" },
+            { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "downward triangle" },
+            { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
+            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }
         };
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
             { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
@@ -852,15 +858,15 @@ namespace LatexConverter
             { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" }, { @"\to", "→" },
             { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" },
             { @"\cup", "∪" }, { @"\cap", "∩" }, { @"\subset", "⊂" }, { @"\supset", "⊃" },
-            { @"\neg", "¬" }, { @"\land", "∧" }, { @"\lor", "∨" },
-            { @"\clubsuit", "♣" }, { @"\diamondsuit", "♦" }, { @"\heartsuit", "♥" }, { @"\spadesuit", "♠" },
-            { @"\flat", "♭" }, { @"\natural", "♮" }, { @"\sharp", "♯" },
-            { @"\angle", "∠" }, { @"\measuredangle", "∡" }, { @"\prime", "′" },
-            { @"\dots", "…" }, { @"\cdots", "⋯" }, { @"\vdots", "⋮" }, { @"\ddots", "⋱" },
-            { @"\blacksquare", "■" }, { @"\triangle", "△" }, { @"\triangledown", "▽" }
+            { @"\neg", "¬" }, { @"\land", "∧" }, { @"\lor", "∨" }, { @"\prime", "′" },
+            { @"\blacksquare", "■" }, { @"\heartsuit", "♥" }, { @"\clubsuit", "♣" },
+            { @"\diamondsuit", "♦" }, { @"\spadesuit", "♠" }, { @"\natural", "♮" },
+            { @"\sharp", "♯" }, { @"\flat", "♭" }, { @"\triangle", "△" }, { @"\triangledown", "▽" },
+            { @"\angle", "∠" }, { @"\measuredangle", "∡" },
+            { @"\dots", "…" }, { @"\cdots", "⋯" }, { @"\vdots", "⋮" }, { @"\ddots", "⋱" }
         };
         public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
-        public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists" };
+        public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists", @"\to" };
         public static readonly Dictionary<char, char> SupMap = new() {
             { '0', '⁰' }, { '1', '¹' }, { '2', '²' }, { '3', '³' }, { '4', '⁴' }, { '5', '⁵' }, { '6', '⁶' }, { '7', '⁷' }, { '8', '⁸' }, { '9', '⁹' },
             { 'a', 'ᵃ' }, { 'b', 'ᵇ' }, { 'c', 'ᶜ' }, { 'd', 'ᵈ' }, { 'e', 'ᵉ' }, { 'f', 'ᶠ' }, { 'g', 'ᵍ' }, { 'h', 'ʰ' }, { 'i', 'ⁱ' }, { 'j', 'ʲ' },
