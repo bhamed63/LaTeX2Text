@@ -84,6 +84,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\iff", "iff")]
         [InlineData(@"\Re", "Re")]
         [InlineData(@"\Im", "Im")]
+        [InlineData(@"\odot", "odot")]
+        [InlineData(@"\approx", "approx")]
+        [InlineData(@"\rightarrow", "rightarrow")]
+        [InlineData(@"\leftarrow", "leftarrow")]
+        [InlineData(@"\uparrow", "uparrow")]
+        [InlineData(@"\downarrow", "downarrow")]
+        [InlineData(@"\Rightarrow", "Rightarrow")]
+        [InlineData(@"\Leftarrow", "Leftarrow")]
+        [InlineData(@"\leftrightarrow", "leftrightarrow")]
+        [InlineData(@"\Leftrightarrow", "Leftrightarrow")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -191,6 +201,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\iff", "⇔")]
         [InlineData(@"\Re", "ℜ")]
         [InlineData(@"\Im", "ℑ")]
+        [InlineData(@"\odot", "⊙")]
+        [InlineData(@"\approx", "≈")]
+        [InlineData(@"\rightarrow", "→")]
+        [InlineData(@"\leftarrow", "←")]
+        [InlineData(@"\uparrow", "↑")]
+        [InlineData(@"\downarrow", "↓")]
+        [InlineData(@"\Rightarrow", "⇒")]
+        [InlineData(@"\Leftarrow", "⇐")]
+        [InlineData(@"\leftrightarrow", "↔")]
+        [InlineData(@"\Leftrightarrow", "⇔")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -282,6 +302,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\iff", "if and only if")]
         [InlineData(@"\Re", "Real part")]
         [InlineData(@"\Im", "Imaginary part")]
+        [InlineData(@"\odot", "circled dot")]
+        [InlineData(@"\approx", "approximately equal to")]
+        [InlineData(@"\rightarrow", "right arrow")]
+        [InlineData(@"\leftarrow", "left arrow")]
+        [InlineData(@"\uparrow", "up arrow")]
+        [InlineData(@"\downarrow", "down arrow")]
+        [InlineData(@"\Rightarrow", "rightwards double arrow")]
+        [InlineData(@"\Leftarrow", "leftwards double arrow")]
+        [InlineData(@"\leftrightarrow", "left right arrow")]
+        [InlineData(@"\Leftrightarrow", "left right double arrow")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
