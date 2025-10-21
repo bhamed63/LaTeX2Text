@@ -13,7 +13,7 @@ namespace LatexConverter
         {
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
+            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det|sinh|cosh|tanh|coth|sec|csc)\((.*?)\)", @"\$1{$2}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             return Process(processed_input, new OpenAIVisitor());
         }
@@ -22,7 +22,7 @@ namespace LatexConverter
         {
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
+            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det|sinh|cosh|tanh|coth|sec|csc)\((.*?)\)", @"\$1{$2}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             return Process(processed_input, new HumanFriendlyVisitor());
         }
@@ -31,7 +31,7 @@ namespace LatexConverter
         {
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
+            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det|sinh|cosh|tanh|coth|sec|csc)\((.*?)\)", @"\$1{$2}");
             processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             return Process(processed_input, new ScreenReaderVisitor());
         }
@@ -373,7 +373,7 @@ namespace LatexConverter
             return command switch
             {
                 @"\frac" or @"\binom" => 2,
-                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" => 1,
+                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" or @"\sinh" or @"\cosh" or @"\tanh" or @"\coth" or @"\sec" or @"\csc" => 1,
                 _ => 0,
             };
         }
@@ -499,6 +499,12 @@ namespace LatexConverter
                 case @"\ln":
                 case @"\exp":
                 case @"\det":
+                case @"\sinh":
+                case @"\cosh":
+                case @"\tanh":
+                case @"\coth":
+                case @"\sec":
+                case @"\csc":
                     sb.Append($@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})");
                     break;
                 case @"\hat":
@@ -594,6 +600,12 @@ namespace LatexConverter
                 case @"\tan":
                 case @"\log":
                 case @"\ln":
+                case @"\sinh":
+                case @"\cosh":
+                case @"\tanh":
+                case @"\coth":
+                case @"\sec":
+                case @"\csc":
                     sb.Append($@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})");
                     break;
                 case @"\exp":
@@ -718,6 +730,12 @@ namespace LatexConverter
                 case @"\ln": return $"natural logarithm of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
                 case @"\exp": return $"e to the power of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
                 case @"\det": return $"determinant of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
+                case @"\sinh": return $"hyperbolic sine of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
+                case @"\cosh": return $"hyperbolic cosine of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
+                case @"\tanh": return $"hyperbolic tangent of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
+                case @"\coth": return $"hyperbolic cotangent of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
+                case @"\sec": return $"secant of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
+                case @"\csc": return $"cosecant of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
                 case @"\mathbb":
                     if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R") return "the set of real numbers";
                     return node.Args[0].Accept(this);
@@ -783,10 +801,14 @@ namespace LatexConverter
             { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "->" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
             { @"\cup", "cup" }, { @"\cap", "cap" }, { @"\subset", "subset" }, { @"\supset", "supset" },
-            { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" }
+            { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" },
+            { @"\sinh", "sinh" }, { @"\cosh", "cosh" }, { @"\tanh", "tanh" }, { @"\coth", "coth" },
+            { @"\sec", "sec" }, { @"\csc", "csc" },
+            { @"\oint", "oint"},
+            { @"\implies", "implies" }, { @"\iff", "iff" }
         };
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
-            { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
+            { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" }, { @"\cdot", "dot" },
             { @"\leq", "less than or equal to" }, { @"\geq", "greater than or equal to" },
             { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" },
             { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
@@ -794,7 +816,11 @@ namespace LatexConverter
             { @"\Re", "Real part" }, { @"\Im", "Imaginary part" }, { @"\forall", "for all" }, { @"\to", "approaches" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
             { @"\cup", "union" }, { @"\cap", "intersection" }, { @"\subset", "subset of" }, { @"\supset", "superset of" },
-            { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" }
+            { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" },
+            { @"\sinh", "hyperbolic sine" }, { @"\cosh", "hyperbolic cosine" }, { @"\tanh", "hyperbolic tangent" }, { @"\coth", "hyperbolic cotangent" },
+            { @"\sec", "secant" }, { @"\csc", "cosecant" },
+            { @"\oint", "contour integral" },
+            { @"\implies", "implies" }, { @"\iff", "if and only if" }
         };
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
             { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
@@ -818,7 +844,11 @@ namespace LatexConverter
             { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" }, { @"\to", "→" },
             { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" },
             { @"\cup", "∪" }, { @"\cap", "∩" }, { @"\subset", "⊂" }, { @"\supset", "⊃" },
-            { @"\neg", "¬" }, { @"\land", "∧" }, { @"\lor", "∨" }
+            { @"\neg", "¬" }, { @"\land", "∧" }, { @"\lor", "∨" },
+            { @"\sinh", "sinh" }, { @"\cosh", "cosh" }, { @"\tanh", "tanh" }, { @"\coth", "coth" },
+            { @"\sec", "sec" }, { @"\csc", "csc" },
+            { @"\oint", "∮" },
+            { @"\implies", "⇒" }, { @"\iff", "⇔" }
         };
         public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.ToDictionary(kp => kp.Value, kp => kp.Key.Substring(1));
         public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists" };
