@@ -452,6 +452,10 @@ namespace LatexConverter
             {
                 return $"{baseText} degrees";
             }
+            if (node.IsSuperscript && node.Script is CommandNode cmdNodePrime && cmdNodePrime.Command == @"\prime")
+            {
+                return $"{baseText}'";
+            }
 
             if (node.NeedsParentheses())
             {
@@ -571,6 +575,7 @@ namespace LatexConverter
         {
             string baseText = node.Base.Accept(this);
             if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ") return $"{baseText}°";
+            if (node.IsSuperscript && node.Script is CommandNode cmdNodePrime && cmdNodePrime.Command == @"\prime") return $"{baseText}′";
 
             var scriptContent = node.Script.Accept(this);
             return $"{baseText}{ToUnicode(scriptContent, node.IsSuperscript, node.Script)}";
@@ -687,6 +692,8 @@ namespace LatexConverter
         {
             string baseText = node.Base.Accept(this).Trim();
             if (node.IsSuperscript && node.Script is CommandNode cmdNode && cmdNode.Command == @"\circ") return $"{baseText} degrees";
+            if (node.IsSuperscript && node.Script is CommandNode cmdNodePrime && cmdNodePrime.Command == @"\prime") return $"{baseText} prime";
+
 
             string scriptText = node.Script.Accept(this).Trim();
             if (node.IsSuperscript)
@@ -787,7 +794,13 @@ namespace LatexConverter
             { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "->" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
             { @"\cup", "cup" }, { @"\cap", "cap" }, { @"\subset", "subset" }, { @"\supset", "supset" },
-            { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" }
+            { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" },
+            { @"\clubsuit", "clubsuit" }, { @"\diamondsuit", "diamondsuit" }, { @"\heartsuit", "heartsuit" },
+            { @"\spadesuit", "spadesuit" }, { @"\flat", "flat" }, { @"\natural", "natural" },
+            { @"\sharp", "sharp" }, { @"\angle", "angle" }, { @"\measuredangle", "measuredangle" },
+            { @"\prime", "'" }, { @"\dots", "..." }, { @"\cdots", "..." },
+            { @"\vdots", "..." }, { @"\ddots", "..." }, { @"\blacksquare", "blacksquare" },
+            { @"\triangle", "triangle" }, { @"\triangledown", "triangledown" }
         };
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
             { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
@@ -804,7 +817,13 @@ namespace LatexConverter
             { @"\forall", "for all" }, { @"\to", "approaches" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
             { @"\cup", "union" }, { @"\cap", "intersection" }, { @"\subset", "subset of" }, { @"\supset", "superset of" },
-            { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" }
+            { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" },
+            { @"\clubsuit", "club suit" }, { @"\diamondsuit", "diamond suit" }, { @"\heartsuit", "heart suit" },
+            { @"\spadesuit", "spade suit" }, { @"\flat", "flat" }, { @"\natural", "natural" },
+            { @"\sharp", "sharp" }, { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
+            { @"\prime", "prime" }, { @"\dots", "dots" }, { @"\cdots", "centered dots" },
+            { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }, { @"\blacksquare", "black square" },
+            { @"\triangle", "triangle" }, { @"\triangledown", "downward triangle" }
         };
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
             { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
@@ -833,7 +852,12 @@ namespace LatexConverter
             { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" }, { @"\to", "→" },
             { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" },
             { @"\cup", "∪" }, { @"\cap", "∩" }, { @"\subset", "⊂" }, { @"\supset", "⊃" },
-            { @"\neg", "¬" }, { @"\land", "∧" }, { @"\lor", "∨" }
+            { @"\neg", "¬" }, { @"\land", "∧" }, { @"\lor", "∨" },
+            { @"\clubsuit", "♣" }, { @"\diamondsuit", "♦" }, { @"\heartsuit", "♥" }, { @"\spadesuit", "♠" },
+            { @"\flat", "♭" }, { @"\natural", "♮" }, { @"\sharp", "♯" },
+            { @"\angle", "∠" }, { @"\measuredangle", "∡" }, { @"\prime", "′" },
+            { @"\dots", "…" }, { @"\cdots", "⋯" }, { @"\vdots", "⋮" }, { @"\ddots", "⋱" },
+            { @"\blacksquare", "■" }, { @"\triangle", "△" }, { @"\triangledown", "▽" }
         };
         public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
         public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists" };
