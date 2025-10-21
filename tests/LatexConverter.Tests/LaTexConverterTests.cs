@@ -94,6 +94,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\Leftarrow", "Leftarrow")]
         [InlineData(@"\leftrightarrow", "leftrightarrow")]
         [InlineData(@"\Leftrightarrow", "Leftrightarrow")]
+        [InlineData(@"The result is \approx 5.", "The result is approx 5.")]
+        [InlineData(@"This \implies that and this \iff this.", "This implies that and this iff this.")]
+        [InlineData(@"Move \rightarrow or \leftarrow.", "Move rightarrow or leftarrow.")]
+        [InlineData(@"An \uparrow and a \downarrow.", "An uparrow and a downarrow.")]
+        [InlineData(@"A \Rightarrow B \Leftarrow C.", "A Rightarrow B Leftarrow C.")]
+        [InlineData(@"A \leftrightarrow B \Leftrightarrow C.", "A leftrightarrow B Leftrightarrow C.")]
+        [InlineData(@"The vector is \perp to the plane.", "The vector is perp to the plane.")]
+        [InlineData(@"The lines are \parallel.", "The lines are parallel.")]
+        [InlineData(@"This is a \odot operation.", "This is a odot operation.")]
+        [InlineData(@"The \Re part and the \Im part.", "The Re part and the Im part.")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -211,6 +221,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\Leftarrow", "⇐")]
         [InlineData(@"\leftrightarrow", "↔")]
         [InlineData(@"\Leftrightarrow", "⇔")]
+        [InlineData(@"The result is \approx 5.", "The result is ≈ 5.")]
+        [InlineData(@"This \implies that and this \iff this.", "This ⇒ that and this ⇔ this.")]
+        [InlineData(@"Move \rightarrow or \leftarrow.", "Move → or ←.")]
+        [InlineData(@"An \uparrow and a \downarrow.", "An ↑ and a ↓.")]
+        [InlineData(@"A \Rightarrow B \Leftarrow C.", "A ⇒ B ⇐ C.")]
+        [InlineData(@"A \leftrightarrow B \Leftrightarrow C.", "A ↔ B ⇔ C.")]
+        [InlineData(@"The vector is \perp to the plane.", "The vector is ⊥ to the plane.")]
+        [InlineData(@"The lines are \parallel.", "The lines are ∥.")]
+        [InlineData(@"This is a \odot operation.", "This is a ⊙ operation.")]
+        [InlineData(@"The \Re part and the \Im part.", "The ℜ part and the ℑ part.")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -312,6 +332,16 @@ namespace LatexConverter.Tests
         [InlineData(@"\Leftarrow", "leftwards double arrow")]
         [InlineData(@"\leftrightarrow", "left right arrow")]
         [InlineData(@"\Leftrightarrow", "left right double arrow")]
+        [InlineData(@"The result is \approx 5.", "The result is approximately equal to 5.")]
+        [InlineData(@"This \implies that and this \iff this.", "This implies that and this if and only if this.")]
+        [InlineData(@"Move \rightarrow or \leftarrow.", "Move right arrow or left arrow.")]
+        [InlineData(@"An \uparrow and a \downarrow.", "An up arrow and a down arrow.")]
+        [InlineData(@"A \Rightarrow B \Leftarrow C.", "A rightwards double arrow B leftwards double arrow C.")]
+        [InlineData(@"A \leftrightarrow B \Leftrightarrow C.", "A left right arrow B left right double arrow C.")]
+        [InlineData(@"The vector is \perp to the plane.", "The vector is perpendicular to to the plane.")]
+        [InlineData(@"The lines are \parallel.", "The lines are parallel to.")]
+        [InlineData(@"This is a \odot operation.", "This is a circled dot operation.")]
+        [InlineData(@"The \Re part and the \Im part.", "The Real part part and the Imaginary part part.")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
