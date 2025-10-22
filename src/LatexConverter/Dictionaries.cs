@@ -4,8 +4,14 @@ using System.Linq;
 
 namespace LatexConverter
 {
+    /// <summary>
+    /// Provides centralized storage for symbol and character mappings used in LaTeX conversion.
+    /// </summary>
     internal static class Dictionaries
     {
+        /// <summary>
+        /// A comprehensive map of LaTeX commands to their plain text representations.
+        /// </summary>
         public static readonly Dictionary<string, string> SymbolMap = new() {
             { @"\alpha", "alpha" }, { @"\beta", "beta" }, { @"\gamma", "gamma" }, { @"\delta", "delta" },
             { @"\epsilon", "epsilon" }, { @"\varepsilon", "varepsilon" }, { @"\zeta", "zeta" }, { @"\eta", "eta" }, { @"\theta", "theta" },
@@ -41,6 +47,9 @@ namespace LatexConverter
             { @"\angle", "angle" }, { @"\measuredangle", "measuredangle" },
             { @"\dots", "..." }, { @"\cdots", "..." }, { @"\vdots", "..." }, { @"\ddots", "..." }
         };
+        /// <summary>
+        /// A map of LaTeX commands to their screen reader-friendly representations.
+        /// </summary>
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
             { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
             { @"\otimes", "tensor product" }, { @"\odot", "circled dot" },
@@ -63,6 +72,9 @@ namespace LatexConverter
             { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
             { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }
         };
+        /// <summary>
+        /// A map of LaTeX commands to their human-friendly Unicode representations.
+        /// </summary>
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
             { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
             { @"\epsilon", "ε" }, { @"\zeta", "ζ" }, { @"\eta", "η" }, { @"\theta", "θ" },
@@ -97,8 +109,17 @@ namespace LatexConverter
             { @"\angle", "∠" }, { @"\measuredangle", "∡" },
             { @"\dots", "…" }, { @"\cdots", "⋯" }, { @"\vdots", "⋮" }, { @"\ddots", "⋱" }
         };
+        /// <summary>
+        /// A map of Unicode symbols to their plain text representations.
+        /// </summary>
         public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
+        /// <summary>
+        /// A list of LaTeX commands that should not be converted from plain text without a leading backslash.
+        /// </summary>
         public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists", @"\to" };
+        /// <summary>
+        /// A map of characters to their superscript Unicode representations.
+        /// </summary>
         public static readonly Dictionary<char, char> SupMap = new() {
             { '0', '⁰' }, { '1', '¹' }, { '2', '²' }, { '3', '³' }, { '4', '⁴' }, { '5', '⁵' }, { '6', '⁶' }, { '7', '⁷' }, { '8', '⁸' }, { '9', '⁹' },
             { 'a', 'ᵃ' }, { 'b', 'ᵇ' }, { 'c', 'ᶜ' }, { 'd', 'ᵈ' }, { 'e', 'ᵉ' }, { 'f', 'ᶠ' }, { 'g', 'ᵍ' }, { 'h', 'ʰ' }, { 'i', 'ⁱ' }, { 'j', 'ʲ' },
@@ -107,16 +128,25 @@ namespace LatexConverter
             { 'A', 'ᴬ' }, { 'B', 'ᴮ' }, { 'C', 'ᶜ' }, { 'D', 'ᴰ' }, { 'E', 'ᴱ' }, { 'G', 'ᴳ' }, { 'H', 'ᴴ' }, { 'I', 'ᴵ' }, { 'J', 'ᴶ' }, { 'K', 'ᴷ' }, { 'L', 'ᴸ' },
             { 'M', 'ᴹ' }, { 'N', 'ᴺ' }, { 'O', 'ᴼ' }, { 'P', 'ᴾ' }, { 'R', 'ᴿ' }, { 'T', 'ᵀ' }, { 'U', 'ᵁ' }, { 'V', 'ⱽ' }, { 'W', 'ᵂ' }, { 'Y', 'ʸ' }, { 'Z', 'ᶻ' }
         };
+        /// <summary>
+        /// A map of characters to their subscript Unicode representations.
+        /// </summary>
         public static readonly Dictionary<char, char> SubMap = new() {
             { '0', '₀' }, { '1', '₁' }, { '2', '₂' }, { '3', '₃' }, { '4', '₄' }, { '5', '₅' }, { '6', '₆' }, { '7', '₇' }, { '8', '₈' }, { '9', '₉' },
             { 'a', 'ₐ' }, { 'e', 'ₑ' }, { 'h', 'ₕ' }, { 'i', 'ᵢ' }, { 'j', 'ⱼ' }, { 'k', 'ₖ' }, { 'l', 'ₗ' }, { 'm', 'ₘ' }, { 'n', 'ₙ' }, { 'o', 'ₒ' },
             { 'p', 'ₚ' }, { 'r', 'ᵣ' }, { 's', 'ₛ' }, { 't', 'ₜ' }, { 'u', 'ᵤ' }, { 'v', 'ᵥ' }, { 'x', 'ₓ' }, { '+', '₊' }, { '-', '₋' }, { '=', '₌' },
             { '(', '₍' }, { ')', '₎' }
         };
+        /// <summary>
+        /// A map of characters to their math blackboard bold Unicode representations.
+        /// </summary>
         public static readonly Dictionary<char, char> MathbbMap = new()
         {
             {'R', 'ℝ'}, {'C', 'ℂ'}, {'N', 'ℕ'}, {'Q', 'ℚ'}, {'Z', 'ℤ'}
         };
+        /// <summary>
+        /// A map of characters to their math calligraphic Unicode representations.
+        /// </summary>
         public static readonly Dictionary<char, char> MathcalMap = new()
         {
             {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'B', 'ℬ'}, {'I', 'ℐ'},

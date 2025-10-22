@@ -7,14 +7,27 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace LatexConverter
 {
+    /// <summary>
+    /// Provides methods for converting LaTeX strings to various text formats.
+    /// </summary>
     public class LaTexConverter
     {
+        /// <summary>
+        /// Converts a LaTeX string to a format suitable for OpenAI.
+        /// </summary>
+        /// <param name="latex_input">The LaTeX string to convert.</param>
+        /// <returns>The OpenAI-friendly text.</returns>
         public string ConvertToOpenAIFriendlyText(string latex_input)
         {
             var normalized_input = NormalizeStructuralPatterns(latex_input);
             return Process(normalized_input, new OpenAIVisitor());
         }
 
+        /// <summary>
+        /// Converts a LaTeX string to a human-readable format with Unicode symbols.
+        /// </summary>
+        /// <param name="latex_input">The LaTeX string to convert.</param>
+        /// <returns>The human-friendly text.</returns>
         public string ConvertToHumanFriendlyText(string latex_input)
         {
             var normalized_input = NormalizeStructuralPatterns(latex_input);
@@ -22,12 +35,22 @@ namespace LatexConverter
             return Process(normalized_input, new HumanFriendlyVisitor());
         }
 
+        /// <summary>
+        /// Converts a LaTeX string to a format suitable for screen readers.
+        /// </summary>
+        /// <param name="latex_input">The LaTeX string to convert.</param>
+        /// <returns>The screen reader-friendly text.</returns>
         public string ConvertToScreenReaderFriendlyText(string latex_input)
         {
             var normalized_input = NormalizeStructuralPatterns(latex_input);
             return Process(normalized_input, new ScreenReaderVisitor());
         }
 
+        /// <summary>
+        /// Normalizes structural patterns in the LaTeX input, such as converting `sqrt(x)` to `\sqrt{x}`.
+        /// </summary>
+        /// <param name="latex_input">The LaTeX string to normalize.</param>
+        /// <returns>The normalized LaTeX string.</returns>
         private string NormalizeStructuralPatterns(string latex_input)
         {
             if (latex_input == null) return "";
@@ -37,6 +60,11 @@ namespace LatexConverter
             return processed_input;
         }
 
+        /// <summary>
+        /// Normalizes plain text words in the LaTeX input to their corresponding LaTeX commands (e.g., "alpha" to "\alpha").
+        /// </summary>
+        /// <param name="latex_input">The LaTeX string to normalize.</param>
+        /// <returns>The normalized LaTeX string.</returns>
         private string NormalizePlainTextToLatex(string latex_input)
         {
             if (string.IsNullOrEmpty(latex_input)) return "";
@@ -53,6 +81,12 @@ namespace LatexConverter
             return regex.Replace(latex_input, m => "\\" + m.Value);
         }
 
+        /// <summary>
+        /// Processes the LaTeX string by tokenizing, parsing, and visiting the AST.
+        /// </summary>
+        /// <param name="text">The LaTeX string to process.</param>
+        /// <param name="visitor">The visitor to use for generating the output.</param>
+        /// <returns>The processed text.</returns>
         private string Process(string text, IVisitor<string> visitor)
         {
             text = Regex.Replace(text, @"\\(big|Big|bigg|Bigg)[l|r]?\s*[\(\)]", "");
@@ -77,6 +111,11 @@ namespace LatexConverter
             return string.Join("\n", processedLines);
         }
 
+        /// <summary>
+        /// Applies post-processing rules for the `HumanFriendlyVisitor`.
+        /// </summary>
+        /// <param name="text">The text to process.</param>
+        /// <returns>The post-processed text.</returns>
         private string ApplyHumanFriendlyPostProcessing(string text)
         {
             text = Regex.Replace(text, @"\s*([\[\]])\s*", "$1");
@@ -86,6 +125,11 @@ namespace LatexConverter
             return text;
         }
 
+        /// <summary>
+        /// Applies post-processing rules for the `ScreenReaderVisitor`.
+        /// </summary>
+        /// <param name="text">The text to process.</param>
+        /// <returns>The post-processed text.</returns>
         private string ApplyScreenReaderPostProcessing(string text)
         {
             text = Regex.Replace(text, @"\(\s+", "(");
@@ -95,15 +139,29 @@ namespace LatexConverter
     }
 
     #region Parser
+    /// <summary>
+    /// Defines the types of tokens that can be produced by the Tokenizer.
+    /// </summary>
     public enum TokenType { Command, Text, LBrace, RBrace, Superscript, Subscript, Eof, Space, Matrix }
 
+    /// <summary>
+    /// Represents a token with a type and an optional value.
+    /// </summary>
     public record Token(TokenType Type, string Value = "");
 
+    /// <summary>
+    /// Converts a LaTeX string into a sequence of tokens.
+    /// </summary>
     public static class Tokenizer
     {
         private static readonly Regex CommandRegex = new Regex(@"\\[a-zA-Z]+|\\.", RegexOptions.Compiled);
         private static readonly Regex MatrixRegex = new Regex(@"\\begin\{pmatrix\}(.*?)\\end\{pmatrix\}", RegexOptions.Singleline | RegexOptions.Compiled);
 
+        /// <summary>
+        /// Tokenizes the input LaTeX string.
+        /// </summary>
+        /// <param name="text">The LaTeX string to tokenize.</param>
+        /// <returns>A list of tokens.</returns>
         public static List<Token> Tokenize(string text)
         {
             var tokens = new List<Token>();
@@ -235,36 +293,57 @@ namespace LatexConverter
         }
     }
 
+    /// <summary>
+    /// Base class for all nodes in the Abstract Syntax Tree (AST).
+    /// </summary>
     public abstract record AstNode
     {
         public abstract T Accept<T>(IVisitor<T> visitor);
         public virtual bool NeedsParentheses() => false;
     }
+    /// <summary>
+    /// Represents a text node in the AST.
+    /// </summary>
     public record TextNode(string Text) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitText(this);
         public override bool NeedsParentheses() => !Regex.IsMatch(Text, @"^[a-zA-Z0-9]+$");
     }
+    /// <summary>
+    /// Represents a command node in the AST.
+    /// </summary>
     public record CommandNode(string Command, List<AstNode> Args, AstNode Subscript, AstNode Superscript) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCommand(this);
     }
+    /// <summary>
+    /// Represents a group of nodes in the AST, typically enclosed in braces.
+    /// </summary>
     public record GroupNode(List<AstNode> Body) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
         public override bool NeedsParentheses() => this.Body.Count > 1 || this.Body.Any(b => b is ScriptNode scriptNode && scriptNode.Script is GroupNode);
     }
+    /// <summary>
+    /// Represents a subscript or superscript node in the AST.
+    /// </summary>
     public record ScriptNode(AstNode Base, AstNode Script, bool IsSuperscript) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitScript(this);
 
     }
 
+    /// <summary>
+    /// Represents a matrix node in the AST.
+    /// </summary>
     public record MatrixNode(string Content) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitMatrix(this);
     }
 
+    /// <summary>
+    /// Parses a sequence of tokens into an Abstract Syntax Tree (AST).
+    /// </summary>
     public class Parser
     {
         private readonly List<Token> _tokens;
@@ -273,6 +352,10 @@ namespace LatexConverter
 
         public Parser(List<Token> tokens) { _tokens = tokens; }
 
+        /// <summary>
+        /// Parses the tokens into a list of AST nodes.
+        /// </summary>
+        /// <returns>A list of AST nodes.</returns>
         public List<AstNode> Parse()
         {
             var nodes = new List<AstNode>();
@@ -383,6 +466,9 @@ namespace LatexConverter
     #endregion
 
     #region Visitors
+    /// <summary>
+    /// Defines the interface for a visitor that traverses the AST.
+    /// </summary>
     public interface IVisitor<T>
     {
         T VisitText(TextNode node);
@@ -392,6 +478,9 @@ namespace LatexConverter
         T VisitMatrix(MatrixNode node);
     }
 
+    /// <summary>
+    /// An abstract base class for visitors.
+    /// </summary>
     public abstract class BaseVisitor<T> : IVisitor<T>
     {
         public abstract T VisitText(TextNode node);
@@ -401,6 +490,9 @@ namespace LatexConverter
         public abstract T VisitMatrix(MatrixNode node);
     }
 
+    /// <summary>
+    /// A visitor that converts the AST to an OpenAI-friendly format.
+    /// </summary>
     public class OpenAIVisitor : BaseVisitor<string>
     {
         public override string VisitText(TextNode node) => node.Text;
@@ -541,6 +633,9 @@ namespace LatexConverter
         }
     }
 
+    /// <summary>
+    /// A visitor that converts the AST to a human-friendly format with Unicode symbols.
+    /// </summary>
     public class HumanFriendlyVisitor : BaseVisitor<string>
     {
         public override string VisitText(TextNode node) => node.Text;
@@ -710,6 +805,9 @@ namespace LatexConverter
         }
     }
 
+    /// <summary>
+    /// A visitor that converts the AST to a screen reader-friendly format.
+    /// </summary>
     public class ScreenReaderVisitor : BaseVisitor<string>
     {
         public override string VisitText(TextNode node)

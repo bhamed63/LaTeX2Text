@@ -6,8 +6,16 @@ using System.Text.RegularExpressions;
 
 namespace LatexConverter
 {
+    /// <summary>
+    /// Provides methods for converting HTML strings to various text formats.
+    /// </summary>
     public class HtmlConvertor
     {
+        /// <summary>
+        /// Converts an HTML string to a format suitable for OpenAI.
+        /// </summary>
+        /// <param name="html_input">The HTML string to convert.</param>
+        /// <returns>The OpenAI-friendly text.</returns>
         public string ConvertHTMLToOpenAIFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
@@ -41,6 +49,11 @@ namespace LatexConverter
             return string.Join("\n", lines);
         }
 
+        /// <summary>
+        /// Converts an HTML string to a human-readable format with Unicode symbols.
+        /// </summary>
+        /// <param name="html_input">The HTML string to convert.</param>
+        /// <returns>The human-friendly text.</returns>
         public string ConvertHTMLToHumanFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
@@ -94,6 +107,11 @@ namespace LatexConverter
             return string.Join("\n", lines);
         }
 
+        /// <summary>
+        /// Converts an HTML string to a format suitable for screen readers.
+        /// </summary>
+        /// <param name="html_input">The HTML string to convert.</param>
+        /// <returns>The screen reader-friendly text.</returns>
         public string ConvertHTMLToScreenReaderFriendlyText(string html_input)
         {
             if (string.IsNullOrEmpty(html_input)) return "";
