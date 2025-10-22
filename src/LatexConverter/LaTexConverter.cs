@@ -66,130 +66,31 @@ namespace LatexConverter
                 result = Regex.Replace(result, @"[ \t]+", " ").Trim();
                 if (visitor is HumanFriendlyVisitor)
                 {
-                    result = Regex.Replace(result, @"\s*([\[\]])\s*", "$1");
-                    result = Regex.Replace(result, @"\s*√\s*\((.*?)\)", "√($1)");
-                    result = Regex.Replace(result, @"(sin⁻¹|cos⁻¹|tan⁻¹)\s+\(", "$1(");
-                    result = Regex.Replace(result, @"(¬)\s+([a-zA-Z0-9])", "$1$2");
+                    result = ApplyHumanFriendlyPostProcessing(result);
                 }
                 else if (visitor is ScreenReaderVisitor)
                 {
-                    result = Regex.Replace(result, @"\(\s+", "(");
-                    result = Regex.Replace(result, @"\s+\)", ")");
+                    result = ApplyScreenReaderPostProcessing(result);
                 }
                 return result;
             });
             return string.Join("\n", processedLines);
         }
 
-        public string ConvertHTMLToOpenAIFriendlyText(string html_input)
+        private string ApplyHumanFriendlyPostProcessing(string text)
         {
-            if (string.IsNullOrEmpty(html_input)) return "";
-            if (string.IsNullOrWhiteSpace(html_input)) return " ";
-            var text = html_input;
-            text = Regex.Replace(text, @"<hr\s*/?>", " ");
-            text = text.Replace("&nbsp;", " ");
-            text = Regex.Replace(text, @"\s*&deg;\s*", " degrees");
-            text = Regex.Replace(text, @"\s*&times;\s*", " times ");
-            text = Regex.Replace(text, @"<br\s*/?>", "\n");
-            string previous;
-            do
-            {
-                previous = text;
-                text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
-            } while (text != previous);
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", m =>
-            {
-                string content = m.Groups[1].Value;
-                if (content.Length == 1) return $"_{content}";
-                return $"_({content})";
-            });
-            text = Regex.Replace(text, "<sup>(.*?)</sup>", "^($1)");
-            text = Regex.Replace(text, "&([a-zA-Z]+?);", "$1");
-            text = Regex.Replace(text, @"\s+", " ").Trim();
+            text = Regex.Replace(text, @"\s*([\[\]])\s*", "$1");
+            text = Regex.Replace(text, @"\s*√\s*\((.*?)\)", "√($1)");
+            text = Regex.Replace(text, @"(sin⁻¹|cos⁻¹|tan⁻¹)\s+\(", "$1(");
+            text = Regex.Replace(text, @"(¬)\s+([a-zA-Z0-9])", "$1$2");
             return text;
         }
 
-        public string ConvertHTMLToHumanFriendlyText(string html_input)
+        private string ApplyScreenReaderPostProcessing(string text)
         {
-            if (string.IsNullOrEmpty(html_input)) return "";
-            if (string.IsNullOrWhiteSpace(html_input)) return " ";
-            var text = html_input;
-            text = Regex.Replace(text, @"<hr\s*/?>", " ");
-            text = text.Replace("&nbsp;", " ");
-            text = Regex.Replace(text, @"\s*&deg;\s*", "°");
-            text = Regex.Replace(text, @"&([a-zA-Z]+);", m =>
-            {
-                string key = m.Value == "&times;" ? @"\times" : (m.Value == "&sdot;" ? @"\cdot" : $"\\{m.Groups[1].Value}");
-                return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(key, m.Groups[1].Value);
-            });
-            text = Regex.Replace(text, @"<br\s*/?>", "\n");
-            string previous;
-            do
-            {
-                previous = text;
-                text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
-            } while (text != previous);
-            text = Regex.Replace(text, "<sup>(.*?)</sup>", m =>
-            {
-                var s = m.Groups[1].Value;
-                var map = Dictionaries.SupMap;
-                var sb = new StringBuilder();
-                foreach (char c in s)
-                {
-                    if (map.TryGetValue(c, out char newChar)) sb.Append(newChar);
-                    else sb.Append(c);
-                }
-                return sb.ToString();
-            });
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", m =>
-            {
-                var s = m.Groups[1].Value;
-                var map = Dictionaries.SubMap;
-                var sb = new StringBuilder();
-                foreach (char c in s)
-                {
-                    if (map.TryGetValue(c, out char newChar)) sb.Append(newChar);
-                    else sb.Append(c);
-                }
-                return sb.ToString();
-            });
-            text = Regex.Replace(text, @"\s*([×])\s*", "$1");
-            text = Regex.Replace(text, @"\s+", " ").Trim();
+            text = Regex.Replace(text, @"\(\s+", "(");
+            text = Regex.Replace(text, @"\s+\)", ")");
             return text;
-        }
-
-        public string ConvertHTMLToScreenReaderFriendlyText(string html_input)
-        {
-            if (string.IsNullOrEmpty(html_input)) return "";
-            if (string.IsNullOrWhiteSpace(html_input)) return " ";
-            var text = html_input;
-            text = Regex.Replace(text, @"<hr\s*/?>", " ");
-            text = text.Replace("&nbsp;", " ");
-            text = Regex.Replace(text, @"<br\s*/?>", "\n");
-            string previous;
-            do
-            {
-                previous = text;
-                text = Regex.Replace(text, @"<(i|b|strong|span|u|center)>(.*?)</\1>", "$2");
-            } while (text != previous);
-            text = Regex.Replace(text, @"\s*&deg;\s*", " degrees ");
-            text = Regex.Replace(text, @"\s*&times;\s*", " times ");
-            text = Regex.Replace(text, "&sdot;", "sdot");
-            text = Regex.Replace(text, "<sub>(.*?)</sub>", " subscript $1 ");
-            text = Regex.Replace(text, "<sup>(.*?)</sup>", m =>
-            {
-                string content = m.Groups[1].Value;
-                if (content == "2") return " squared ";
-                if (content == "3") return " cubed ";
-                return $" to the power of {content} ";
-            });
-            text = Regex.Replace(text, "&([a-zA-Z]+?);", " $1 ");
-            var lines = text.Split('\n');
-            for (int i = 0; i < lines.Length; i++)
-            {
-                lines[i] = Regex.Replace(lines[i], @"\s+", " ").Trim();
-            }
-            return string.Join("\n", lines);
         }
     }
 
@@ -209,83 +110,128 @@ namespace LatexConverter
             int pos = 0;
             while (pos < text.Length)
             {
-                var matrixMatch = MatrixRegex.Match(text, pos);
-                if (matrixMatch.Success && matrixMatch.Index == pos)
+                if (TryTokenizeMatrix(text, ref pos, tokens) ||
+                    TryTokenizeWhitespace(text, ref pos, tokens) ||
+                    TryTokenizeLetter(text, ref pos, tokens) ||
+                    TryTokenizeDigit(text, ref pos, tokens) ||
+                    TryTokenizeCommand(text, ref pos, tokens) ||
+                    TryTokenizeSpecialCharacter(text, ref pos, tokens))
                 {
-                    tokens.Add(new Token(TokenType.Matrix, matrixMatch.Groups[1].Value.Trim()));
-                    pos += matrixMatch.Length;
                     continue;
                 }
+                pos++;
+            }
+            tokens.Add(new Token(TokenType.Eof));
+            return tokens;
+        }
 
-                char currentChar = text[pos];
-                if (currentChar == '\n')
+        private static bool TryTokenizeMatrix(string text, ref int pos, List<Token> tokens)
+        {
+            var matrixMatch = MatrixRegex.Match(text, pos);
+            if (matrixMatch.Success && matrixMatch.Index == pos)
+            {
+                tokens.Add(new Token(TokenType.Matrix, matrixMatch.Groups[1].Value.Trim()));
+                pos += matrixMatch.Length;
+                return true;
+            }
+            return false;
+        }
+
+        private static bool TryTokenizeWhitespace(string text, ref int pos, List<Token> tokens)
+        {
+            char currentChar = text[pos];
+            if (currentChar == '\n')
+            {
+                tokens.Add(new Token(TokenType.Space, "\n"));
+                pos++;
+                return true;
+            }
+            if (char.IsWhiteSpace(currentChar))
+            {
+                tokens.Add(new Token(TokenType.Space, " "));
+                pos++;
+                while (pos < text.Length && char.IsWhiteSpace(text[pos]) && text[pos] != '\n') pos++;
+                return true;
+            }
+            return false;
+        }
+
+        private static bool TryTokenizeLetter(string text, ref int pos, List<Token> tokens)
+        {
+            char currentChar = text[pos];
+            if (char.IsLetter(currentChar))
+            {
+                int start = pos;
+                while (pos < text.Length && (char.IsLetter(text[pos]) || (text[pos] == '-' && pos > 0 && char.IsLetter(text[pos - 1]) && pos + 1 < text.Length && char.IsLetter(text[pos + 1]))))
                 {
-                    tokens.Add(new Token(TokenType.Space, "\n"));
                     pos++;
-                    continue;
                 }
-                if (char.IsWhiteSpace(currentChar))
+                tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
+                return true;
+            }
+            return false;
+        }
+
+        private static bool TryTokenizeDigit(string text, ref int pos, List<Token> tokens)
+        {
+            char currentChar = text[pos];
+            if (char.IsDigit(currentChar))
+            {
+                int start = pos;
+                while (pos < text.Length && (char.IsDigit(text[pos]) || text[pos] == '.')) pos++;
+                tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
+                return true;
+            }
+            return false;
+        }
+
+        private static bool TryTokenizeCommand(string text, ref int pos, List<Token> tokens)
+        {
+            char currentChar = text[pos];
+            if (currentChar == '\\')
+            {
+                if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')'))
+                {
+                    pos += 2;
+                    return true;
+                }
+                if (pos + 1 < text.Length && text[pos + 1] == ';')
                 {
                     tokens.Add(new Token(TokenType.Space, " "));
-                    pos++;
-                    while (pos < text.Length && char.IsWhiteSpace(text[pos]) && text[pos] != '\n') pos++;
-                    continue;
+                    pos += 2;
+                    return true;
                 }
-                if (char.IsLetter(currentChar))
-                {
-                    int start = pos;
-                    while (pos < text.Length && (char.IsLetter(text[pos]) || (text[pos] == '-' && pos > 0 && char.IsLetter(text[pos - 1]) && pos + 1 < text.Length && char.IsLetter(text[pos + 1]))))
-                    {
-                        pos++;
-                    }
-                    tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
-                    continue;
-                }
-                if (char.IsDigit(currentChar))
-                {
-                    int start = pos;
-                    while (pos < text.Length && (char.IsDigit(text[pos]) || text[pos] == '.')) pos++;
-                    tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
-                    continue;
-                }
-                if (currentChar == '\\')
-                {
-                    if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')'))
-                    {
-                        pos += 2;
-                        continue;
-                    }
-                    if (pos + 1 < text.Length && text[pos + 1] == ';')
-                    {
-                        tokens.Add(new Token(TokenType.Space, " "));
-                        pos += 2;
-                        continue;
-                    }
 
-                    var match = CommandRegex.Match(text, pos);
-                    if (match.Success)
-                    {
-                        tokens.Add(new Token(TokenType.Command, match.Value));
-                        pos += match.Length;
-                    }
-                    else
-                    {
-                        tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
-                        pos++;
-                    }
+                var match = CommandRegex.Match(text, pos);
+                if (match.Success)
+                {
+                    tokens.Add(new Token(TokenType.Command, match.Value));
+                    pos += match.Length;
                 }
-                else if (currentChar == '{') { tokens.Add(new Token(TokenType.LBrace)); pos++; }
-                else if (currentChar == '}') { tokens.Add(new Token(TokenType.RBrace)); pos++; }
-                else if (currentChar == '^') { tokens.Add(new Token(TokenType.Superscript)); pos++; }
-                else if (currentChar == '_') { tokens.Add(new Token(TokenType.Subscript)); pos++; }
                 else
                 {
                     tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
                     pos++;
                 }
+                return true;
             }
-            tokens.Add(new Token(TokenType.Eof));
-            return tokens;
+            return false;
+        }
+
+        private static bool TryTokenizeSpecialCharacter(string text, ref int pos, List<Token> tokens)
+        {
+            char currentChar = text[pos];
+            switch (currentChar)
+            {
+                case '{': tokens.Add(new Token(TokenType.LBrace)); pos++; return true;
+                case '}': tokens.Add(new Token(TokenType.RBrace)); pos++; return true;
+                case '^': tokens.Add(new Token(TokenType.Superscript)); pos++; return true;
+                case '_': tokens.Add(new Token(TokenType.Subscript)); pos++; return true;
+                default:
+                    tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
+                    pos++;
+                    return true;
+            }
         }
     }
 
@@ -399,31 +345,39 @@ namespace LatexConverter
         {
             var token = CurrentToken;
             _pos++;
-            var args = new List<AstNode>();
-            AstNode subscript = null;
-            AstNode superscript = null;
 
             if (IsLimitCommand(token.Value))
             {
-                if (CurrentToken.Type == TokenType.Subscript)
-                {
-                    _pos++;
-                    subscript = ParsePrimary();
-                }
-                if (CurrentToken.Type == TokenType.Superscript)
-                {
-                    _pos++;
-                    superscript = ParsePrimary();
-                }
+                return ParseLimitCommand(token);
             }
 
+            var args = new List<AstNode>();
             int numArgs = GetArgumentCount(token.Value);
             for (int i = 0; i < numArgs; i++)
             {
                 args.Add(ParsePrimary());
             }
 
-            return new CommandNode(token.Value, args, subscript, superscript);
+            return new CommandNode(token.Value, args, null, null);
+        }
+
+        private AstNode ParseLimitCommand(Token token)
+        {
+            AstNode subscript = null;
+            AstNode superscript = null;
+
+            if (CurrentToken.Type == TokenType.Subscript)
+            {
+                _pos++;
+                subscript = ParsePrimary();
+            }
+            if (CurrentToken.Type == TokenType.Superscript)
+            {
+                _pos++;
+                superscript = ParsePrimary();
+            }
+
+            return new CommandNode(token.Value, new List<AstNode>(), subscript, superscript);
         }
     }
     #endregion
@@ -480,36 +434,20 @@ namespace LatexConverter
 
         public override string VisitCommand(CommandNode node)
         {
-            var sb = new StringBuilder();
             switch (node.Command)
             {
                 case @"\frac":
-                    var side1 = node.Args[0].Accept(this);
-                    var side2 = node.Args[1].Accept(this);
-                    //if (side1.Length > 1)
-                    //    side1 = $"({side1})";
-                    //if (side2.Length > 1)
-                    //    side2 = $"({side2})";
-                    sb.Append($"{side1}/{side2}");
-                    break;
                 case @"\binom":
-                    sb.Append($@"binom({node.Args[0].Accept(this)},{node.Args[1].Accept(this)})");
-                    break;
+                    return HandleFractionAndBinomial(node);
                 case @"\sqrt":
-                    var underSQRT = node.Args[0].Accept(this);
-                    if (!underSQRT.StartsWith("(") && !underSQRT.EndsWith(")"))
-                        sb.Append($"sqrt({underSQRT})");
-                    else
-                        sb.Append($"sqrt{underSQRT}");
-                    break;
+                    return HandleSqrt(node);
                 case @"\vec":
                 case @"\mathcal":
                 case @"\mathbb":
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
-                    sb.Append(node.Args[0].Accept(this));
-                    break;
+                    return HandleTextFormatting(node);
                 case @"\cos":
                 case @"\sin":
                 case @"\tan":
@@ -517,32 +455,70 @@ namespace LatexConverter
                 case @"\ln":
                 case @"\exp":
                 case @"\det":
-                    sb.Append($@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})");
-                    break;
+                    return HandleMathFunctions(node);
                 case @"\hat":
-                    sb.Append($"hat {node.Args[0].Accept(this)}");
-                    break;
+                    return HandleHat(node);
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
                 case @"\lim":
-                    sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
-                    if (node.Subscript != null)
-                    {
-                        var toBeAppended = node.Subscript.Accept(this);
-                        toBeAppended = addParantesesIfNeeded(toBeAppended);
-                        sb.Append($"_{toBeAppended}");
-                    }
-                    if (node.Superscript != null)
-                    {
-                        var toBeAppended = node.Superscript.Accept(this);
-                        toBeAppended = addParantesesIfNeeded(toBeAppended);
-                        sb.Append($"^{toBeAppended}");
-                    }
-                    break;
+                    return HandleLimitStyleCommands(node);
                 default:
-                    sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
-                    break;
+                    return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
+            }
+        }
+
+        private string HandleFractionAndBinomial(CommandNode node)
+        {
+            if (node.Command == @"\frac")
+            {
+                var side1 = node.Args[0].Accept(this);
+                var side2 = node.Args[1].Accept(this);
+                return $"{side1}/{side2}";
+            }
+            // \binom
+            return $@"binom({node.Args[0].Accept(this)},{node.Args[1].Accept(this)})";
+        }
+
+        private string HandleSqrt(CommandNode node)
+        {
+            var underSQRT = node.Args[0].Accept(this);
+            if (!underSQRT.StartsWith("(") && !underSQRT.EndsWith(")"))
+                return $"sqrt({underSQRT})";
+            else
+                return $"sqrt{underSQRT}";
+        }
+
+        private string HandleTextFormatting(CommandNode node)
+        {
+            return node.Args[0].Accept(this);
+        }
+
+        private string HandleMathFunctions(CommandNode node)
+        {
+            return $@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})";
+        }
+
+        private string HandleHat(CommandNode node)
+        {
+            return $"hat {node.Args[0].Accept(this)}";
+        }
+
+        private string HandleLimitStyleCommands(CommandNode node)
+        {
+            var sb = new StringBuilder();
+            sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
+            if (node.Subscript != null)
+            {
+                var toBeAppended = node.Subscript.Accept(this);
+                toBeAppended = addParantesesIfNeeded(toBeAppended);
+                sb.Append($"_{toBeAppended}");
+            }
+            if (node.Superscript != null)
+            {
+                var toBeAppended = node.Superscript.Accept(this);
+                toBeAppended = addParantesesIfNeeded(toBeAppended);
+                sb.Append($"^{toBeAppended}");
             }
             return sb.ToString();
         }
@@ -589,49 +565,111 @@ namespace LatexConverter
 
         public override string VisitCommand(CommandNode node)
         {
-            var sb = new StringBuilder();
             switch (node.Command)
             {
-                case @"\frac": sb.Append($"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}"); break;
-                case @"\binom": sb.Append($"({node.Args[0].Accept(this)} {node.Args[1].Accept(this)})"); break;
-                case @"\sqrt": sb.Append($"√({node.Args[0].Accept(this)})"); break;
-                case @"\vec": sb.Append($"{node.Args[0].Accept(this)}\u20D7"); break;
-                case @"\hat": sb.Append($"{node.Args[0].Accept(this)}\u0302"); break;
-                case @"\mathcal": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap)); break;
-                case @"\text": case @"\mathrm": case @"\textrm": sb.Append(node.Args[0].Accept(this)); break;
-                case @"\mathbb": sb.Append(ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap)); break;
+                case @"\frac":
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
+                case @"\sqrt":
+                    return HandleSqrt(node);
+                case @"\vec":
+                case @"\hat":
+                    return HandleHatAndVec(node);
+                case @"\mathcal":
+                case @"\mathbb":
+                    return HandleMathcalAndMathbb(node);
+                case @"\text":
+                case @"\mathrm":
+                case @"\textrm":
+                    return HandleTextFormatting(node);
                 case @"\cos":
                 case @"\sin":
                 case @"\tan":
                 case @"\log":
                 case @"\ln":
-                    sb.Append($@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})");
-                    break;
                 case @"\exp":
-                    sb.Append($"e{ToUnicode(node.Args[0].Accept(this), true, node.Args[0])}");
-                    break;
                 case @"\det":
-                    sb.Append($"det({node.Args[0].Accept(this)})");
-                    break;
+                    return HandleMathFunctions(node);
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
-                    sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
-                    if (node.Subscript != null) sb.Append(ToUnicode(node.Subscript.Accept(this), false, node.Subscript));
-                    if (node.Superscript != null) sb.Append(ToUnicode(node.Superscript.Accept(this), true, node.Superscript));
-                    break;
                 case @"\lim":
-                    sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
-                    if (node.Subscript != null)
-                    {
-                        var subscriptText = node.Subscript.Accept(this);
-                        subscriptText = Regex.Replace(subscriptText, @"\s+", "");
-                        sb.Append($"_{{{subscriptText}}}");
-                    }
-                    break;
+                    return HandleLimitStyleCommands(node);
                 default:
-                    sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
-                    break;
+                    return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command);
+            }
+        }
+
+        private string HandleFractionAndBinomial(CommandNode node)
+        {
+            if (node.Command == @"\frac")
+            {
+                return $"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}";
+            }
+            // \binom
+            return $"({node.Args[0].Accept(this)} {node.Args[1].Accept(this)})";
+        }
+
+        private string HandleSqrt(CommandNode node)
+        {
+            return $"√({node.Args[0].Accept(this)})";
+        }
+
+        private string HandleHatAndVec(CommandNode node)
+        {
+            if (node.Command == @"\vec")
+            {
+                return $"{node.Args[0].Accept(this)}\u20D7";
+            }
+            // \hat
+            return $"{node.Args[0].Accept(this)}\u0302";
+        }
+
+        private string HandleMathcalAndMathbb(CommandNode node)
+        {
+            if (node.Command == @"\mathcal")
+            {
+                return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap);
+            }
+            // \mathbb
+            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap);
+        }
+
+        private string HandleTextFormatting(CommandNode node)
+        {
+            return node.Args[0].Accept(this);
+        }
+
+        private string HandleMathFunctions(CommandNode node)
+        {
+            if (node.Command == @"\exp")
+            {
+                return $"e{ToUnicode(node.Args[0].Accept(this), true, node.Args[0])}";
+            }
+            if (node.Command == @"\det")
+            {
+                return $"det({node.Args[0].Accept(this)})";
+            }
+            return $@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})";
+        }
+
+        private string HandleLimitStyleCommands(CommandNode node)
+        {
+            var sb = new StringBuilder();
+            sb.Append(Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command));
+            if (node.Command == @"\lim")
+            {
+                if (node.Subscript != null)
+                {
+                    var subscriptText = node.Subscript.Accept(this);
+                    subscriptText = Regex.Replace(subscriptText, @"\s+", "");
+                    sb.Append($"_{{{subscriptText}}}");
+                }
+            }
+            else
+            {
+                if (node.Subscript != null) sb.Append(ToUnicode(node.Subscript.Accept(this), false, node.Subscript));
+                if (node.Superscript != null) sb.Append(ToUnicode(node.Superscript.Accept(this), true, node.Superscript));
             }
             return sb.ToString();
         }
@@ -715,45 +753,101 @@ namespace LatexConverter
 
         public override string VisitCommand(CommandNode node)
         {
-            var sb = new StringBuilder();
             switch (node.Command)
             {
                 case @"\frac":
-                    return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
-                case @"\binom": return $"{node.Args[0].Accept(this)} choose {node.Args[1].Accept(this)}";
-                case @"\sqrt": return $"the square root of {node.Args[0].Accept(this)}";
-                case @"\vec": return $"vector {node.Args[0].Accept(this)}";
-                case @"\hat": return $"{node.Args[0].Accept(this)} hat";
-                case @"\mathcal": return $"calligraphic {node.Args[0].Accept(this)}";
-                case @"\text": case @"\mathrm": case @"\textrm": return node.Args[0].Accept(this);
-                case @"\sin": return $"sine of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\cos": return $"cosine of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\tan": return $"tangent of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\log": return $"logarithm of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\ln": return $"natural logarithm of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\exp": return $"e to the power of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\det": return $"determinant of {node.Args[0].Accept(this).Replace("(", "").Replace(")", "")}";
-                case @"\mathbb":
-                    if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R") return "the set of real numbers";
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
+                case @"\sqrt":
+                    return $"the square root of {node.Args[0].Accept(this)}";
+                case @"\vec":
+                case @"\hat":
+                case @"\mathcal":
+                    return HandleHatVecAndMathcal(node);
+                case @"\text":
+                case @"\mathrm":
+                case @"\textrm":
                     return node.Args[0].Accept(this);
+                case @"\sin":
+                case @"\cos":
+                case @"\tan":
+                case @"\log":
+                case @"\ln":
+                case @"\exp":
+                case @"\det":
+                    return HandleMathFunctions(node);
+                case @"\mathbb":
+                    return HandleMathbb(node);
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
-                    var sub = node.Subscript != null ? node.Subscript.Accept(this) : "";
-                    var sup = node.Superscript != null ? node.Superscript.Accept(this) : "";
-                    string commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
-                    sb.Append($"{commandName} from {sub} to {sup}");
-                    break;
                 case @"\lim":
-                    var sub_lim = node.Subscript != null ? node.Subscript.Accept(this) : "";
-                    sb.Append($"limit as {sub_lim} of ");
-                    break;
+                    return HandleLimitStyleCommands(node);
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
-                    sb.Append(Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal));
-                    break;
+                    return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
             }
-            return sb.ToString();
+        }
+
+        private string HandleFractionAndBinomial(CommandNode node)
+        {
+            if (node.Command == @"\frac")
+            {
+                return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
+            }
+            // \binom
+            return $"{node.Args[0].Accept(this)} choose {node.Args[1].Accept(this)}";
+        }
+
+        private string HandleHatVecAndMathcal(CommandNode node)
+        {
+            switch (node.Command)
+            {
+                case @"\vec": return $"vector {node.Args[0].Accept(this)}";
+                case @"\hat": return $"{node.Args[0].Accept(this)} hat";
+                case @"\mathcal": return $"calligraphic {node.Args[0].Accept(this)}";
+                default: return "";
+            }
+        }
+
+        private string HandleMathFunctions(CommandNode node)
+        {
+            var commandName = node.Command.Substring(1);
+            var argument = node.Args[0].Accept(this).Replace("(", "").Replace(")", "");
+            switch (commandName)
+            {
+                case "sin": return $"sine of {argument}";
+                case "cos": return $"cosine of {argument}";
+                case "tan": return $"tangent of {argument}";
+                case "log": return $"logarithm of {argument}";
+                case "ln": return $"natural logarithm of {argument}";
+                case "exp": return $"e to the power of {argument}";
+                case "det": return $"determinant of {argument}";
+                default: return "";
+            }
+        }
+
+        private string HandleMathbb(CommandNode node)
+        {
+            if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R")
+            {
+                return "the set of real numbers";
+            }
+            return node.Args[0].Accept(this);
+        }
+
+        private string HandleLimitStyleCommands(CommandNode node)
+        {
+            if (node.Command == @"\lim")
+            {
+                var sub_lim = node.Subscript != null ? node.Subscript.Accept(this) : "";
+                return $"limit as {sub_lim} of ";
+            }
+
+            var sub = node.Subscript != null ? node.Subscript.Accept(this) : "";
+            var sup = node.Superscript != null ? node.Superscript.Accept(this) : "";
+            string commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
+            return $"{commandName} from {sub} to {sup}";
         }
 
         public override string VisitMatrix(MatrixNode node)
@@ -770,126 +864,6 @@ namespace LatexConverter
 
             return $"a {num_rows}x{num_cols} matrix with rows {string.Join(" and ", matrix_desc)}";
         }
-    }
-
-    internal static class Dictionaries
-    {
-        public static readonly Dictionary<string, string> SymbolMap = new() {
-            { @"\alpha", "alpha" }, { @"\beta", "beta" }, { @"\gamma", "gamma" }, { @"\delta", "delta" },
-            { @"\epsilon", "epsilon" }, { @"\varepsilon", "varepsilon" }, { @"\zeta", "zeta" }, { @"\eta", "eta" }, { @"\theta", "theta" },
-            { @"\iota", "iota" }, { @"\kappa", "kappa" }, { @"\varkappa", "varkappa" }, { @"\lambda", "lambda" }, { @"\mu", "mu" },
-            { @"\nu", "nu" }, { @"\xi", "xi" }, { @"\omicron", "omicron" }, { @"\pi", "pi" }, { @"\varpi", "varpi" },
-            { @"\rho", "rho" }, { @"\varrho", "varrho" }, { @"\sigma", "sigma" }, { @"\varsigma", "varsigma" }, { @"\tau", "tau" }, { @"\upsilon", "upsilon" },
-            { @"\phi", "phi" }, { @"\varphi", "varphi" }, { @"\chi", "chi" }, { @"\psi", "psi" }, { @"\omega", "omega" },
-            { @"\Gamma", "Gamma" }, { @"\Delta", "Delta" }, { @"\Theta", "Theta" }, { @"\Lambda", "Lambda" },
-            { @"\Xi", "Xi" }, { @"\Pi", "Pi" }, { @"\Sigma", "Sigma" }, { @"\Upsilon", "Upsilon" },
-            { @"\Phi", "Phi" }, { @"\Psi", "Psi" }, { @"\Omega", "Omega" },
-            { @"\times", "times" }, { @"\div", "div" }, { @"\pm", "pm" },
-            { @"\mp", "mp" }, { @"\cdot", "cdot" }, { @"\circ", "circ" },
-            { @"\bullet", "bullet" }, { @"\oplus", "oplus" }, { @"\ominus", "ominus" },
-            { @"\otimes", "otimes" }, { @"\oslash", "oslash" }, { @"\odot", "odot" },
-            { @"\parallel", "parallel" }, { @"\perp", "perp" },
-            { @"\implies", "implies" }, { @"\iff", "iff" },
-            { @"\rightarrow", "rightarrow" }, { @"\leftarrow", "leftarrow" }, { @"\uparrow", "uparrow" }, { @"\downarrow", "downarrow" },
-            { @"\Rightarrow", "Rightarrow" }, { @"\Leftarrow", "Leftarrow" },
-            { @"\leftrightarrow", "leftrightarrow" }, { @"\Leftrightarrow", "Leftrightarrow" },
-            { @"\leq", "leq" }, { @"\geq", "geq" },
-            { @"\neq", "neq" }, { @"\approx", "approx" }, { @"\equiv", "equiv" }, { @"\propto", "propto" },
-            { @"\infty", "infty" }, { @"\nabla", "nabla" }, { @"\partial", "partial" },
-            { @"\int", "integral" }, { @"\sum", "summation" }, { @"\prod", "product" }, { @"\lim", "limit" },
-            { @"\hbar", "hbar" }, { @"\ell", "ell" }, { @"\wp", "wp" },
-            { @"\Re", "Re" }, { @"\Im", "Im" },
-            { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "->" },
-            { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
-            { @"\cup", "cup" }, { @"\cap", "cap" }, { @"\subset", "subset" }, { @"\supset", "supset" },
-            { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" }, { @"\prime", "prime" },
-            { @"\blacksquare", "blacksquare" }, { @"\heartsuit", "heartsuit" }, { @"\clubsuit", "clubsuit" },
-            { @"\diamondsuit", "diamondsuit" }, { @"\spadesuit", "spadesuit" }, { @"\natural", "natural" },
-            { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "triangledown" },
-            { @"\angle", "angle" }, { @"\measuredangle", "measuredangle" },
-            { @"\dots", "..." }, { @"\cdots", "..." }, { @"\vdots", "..." }, { @"\ddots", "..." }
-        };
-        public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
-            { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
-            { @"\otimes", "tensor product" }, { @"\odot", "circled dot" },
-            { @"\parallel", "parallel to" }, { @"\perp", "perpendicular to" },
-            { @"\implies", "implies" }, { @"\iff", "if and only if" },
-            { @"\rightarrow", "right arrow" }, { @"\leftarrow", "left arrow" }, { @"\uparrow", "up arrow" }, { @"\downarrow", "down arrow" },
-            { @"\Rightarrow", "rightwards double arrow" }, { @"\Leftarrow", "leftwards double arrow" },
-            { @"\leftrightarrow", "left right arrow" }, { @"\Leftrightarrow", "left right double arrow" },
-            { @"\leq", "less than or equal to" }, { @"\geq", "greater than or equal to" },
-            { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" }, { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
-            { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
-            { @"\Re", "Real part" }, { @"\Im", "Imaginary part" },
-            { @"\forall", "for all" }, { @"\to", "approaches" },
-            { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
-            { @"\cup", "union" }, { @"\cap", "intersection" }, { @"\subset", "subset of" }, { @"\supset", "superset of" },
-            { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" }, { @"\prime", "prime" },
-            { @"\blacksquare", "black square" }, { @"\heartsuit", "heart suit" }, { @"\clubsuit", "club suit" },
-            { @"\diamondsuit", "diamond suit" }, { @"\spadesuit", "spade suit" }, { @"\natural", "natural" },
-            { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "downward triangle" },
-            { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
-            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }
-        };
-        public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
-            { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
-            { @"\epsilon", "ε" }, { @"\zeta", "ζ" }, { @"\eta", "η" }, { @"\theta", "θ" },
-            { @"\iota", "ι" }, { @"\kappa", "κ" }, { @"\varkappa", "ϰ" }, { @"\lambda", "λ" }, { @"\mu", "μ" },
-            { @"\nu", "ν" }, { @"\xi", "ξ" }, { @"\omicron", "ο" }, { @"\pi", "π" }, { @"\varpi", "ϖ" },
-            { @"\rho", "ρ" }, { @"\varrho", "ϱ" }, { @"\sigma", "σ" }, { @"\varsigma", "ς" }, { @"\tau", "τ" }, { @"\upsilon", "υ" },
-            { @"\phi", "φ" }, { @"\varphi", "\u03D5" }, { @"\chi", "χ" }, { @"\psi", "ψ" }, { @"\omega", "ω" },
-            { @"\Gamma", "Γ" }, { @"\Delta", "Δ" }, { @"\Theta", "Θ" }, { @"\Lambda", "Λ" },
-            { @"\Xi", "Ξ" }, { @"\Pi", "Π" }, { @"\Sigma", "Σ" }, { @"\Upsilon", "Υ" },
-            { @"\Phi", "Φ" }, { @"\Psi", "Ψ" }, { @"\Omega", "Ω" },
-            { @"\times", "×" }, { @"\div", "÷" }, { @"\pm", "±" },
-            { @"\mp", "∓" }, { @"\cdot", "·" }, { @"\circ", "∘" },
-            { @"\bullet", "•" }, { @"\oplus", "⊕" }, { @"\ominus", "⊖" },
-            { @"\otimes", "⊗" }, { @"\oslash", "⊘" }, { @"\odot", "⊙" },
-            { @"\parallel", "∥" }, { @"\perp", "⊥" },
-            { @"\implies", "⇒" }, { @"\iff", "⇔" },
-            { @"\Re", "ℜ" }, { @"\Im", "ℑ" },
-            { @"\rightarrow", "→" }, { @"\leftarrow", "←" }, { @"\uparrow", "↑" }, { @"\downarrow", "↓" },
-            { @"\Rightarrow", "⇒" }, { @"\Leftarrow", "⇐" },
-            { @"\leftrightarrow", "↔" }, { @"\Leftrightarrow", "⇔" },
-            { @"\leq", "≤" }, { @"\geq", "≥" }, { @"\neq", "≠" }, { @"\approx", "≈" }, { @"\equiv", "≡" }, { @"\propto", "∝" }, { @"\infty", "∞" },
-            { @"\nabla", "∇" }, { @"\partial", "∂" },
-            { @"\int", "∫" }, { @"\sum", "∑" }, { @"\prod", "∏" }, { @"\lim", "lim" },
-            { @"\hbar", "ħ" }, { @"\ell", "ℓ" },
-            { @"\forall", "∀" }, { @"\exists", "∃" }, { @"\in", "∈" }, { @"\to", "→" },
-            { @"\arcsin", "sin⁻¹" }, { @"\arccos", "cos⁻¹" }, { @"\arctan", "tan⁻¹" },
-            { @"\cup", "∪" }, { @"\cap", "∩" }, { @"\subset", "⊂" }, { @"\supset", "⊃" },
-            { @"\neg", "¬" }, { @"\land", "∧" }, { @"\lor", "∨" }, { @"\prime", "′" },
-            { @"\blacksquare", "■" }, { @"\heartsuit", "♥" }, { @"\clubsuit", "♣" },
-            { @"\diamondsuit", "♦" }, { @"\spadesuit", "♠" }, { @"\natural", "♮" },
-            { @"\sharp", "♯" }, { @"\flat", "♭" }, { @"\triangle", "△" }, { @"\triangledown", "▽" },
-            { @"\angle", "∠" }, { @"\measuredangle", "∡" },
-            { @"\dots", "…" }, { @"\cdots", "⋯" }, { @"\vdots", "⋮" }, { @"\ddots", "⋱" }
-        };
-        public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
-        public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists", @"\to" };
-        public static readonly Dictionary<char, char> SupMap = new() {
-            { '0', '⁰' }, { '1', '¹' }, { '2', '²' }, { '3', '³' }, { '4', '⁴' }, { '5', '⁵' }, { '6', '⁶' }, { '7', '⁷' }, { '8', '⁸' }, { '9', '⁹' },
-            { 'a', 'ᵃ' }, { 'b', 'ᵇ' }, { 'c', 'ᶜ' }, { 'd', 'ᵈ' }, { 'e', 'ᵉ' }, { 'f', 'ᶠ' }, { 'g', 'ᵍ' }, { 'h', 'ʰ' }, { 'i', 'ⁱ' }, { 'j', 'ʲ' },
-            { 'k', 'ᵏ' }, { 'l', 'ˡ' }, { 'm', 'ᵐ' }, { 'n', 'ⁿ' }, { 'o', 'ᵒ' }, { 'p', 'ᵖ' }, { 'r', 'ʳ' }, { 's', 'ˢ' }, { 't', 'ᵗ' }, { 'u', 'ᵘ' },
-            { 'v', 'ᵛ' }, { 'w', 'ʷ' }, { 'x', 'ˣ' }, { 'y', 'ʸ' }, { 'z', 'ᶻ' }, { '+', '⁺' }, { '-', '⁻' }, { '=', '⁼' }, { '(', '⁽' }, { ')', '⁾' },
-            { 'A', 'ᴬ' }, { 'B', 'ᴮ' }, { 'C', 'ᶜ' }, { 'D', 'ᴰ' }, { 'E', 'ᴱ' }, { 'G', 'ᴳ' }, { 'H', 'ᴴ' }, { 'I', 'ᴵ' }, { 'J', 'ᴶ' }, { 'K', 'ᴷ' }, { 'L', 'ᴸ' },
-            { 'M', 'ᴹ' }, { 'N', 'ᴺ' }, { 'O', 'ᴼ' }, { 'P', 'ᴾ' }, { 'R', 'ᴿ' }, { 'T', 'ᵀ' }, { 'U', 'ᵁ' }, { 'V', 'ⱽ' }, { 'W', 'ᵂ' }, { 'Y', 'ʸ' }, { 'Z', 'ᶻ' }
-        };
-        public static readonly Dictionary<char, char> SubMap = new() {
-            { '0', '₀' }, { '1', '₁' }, { '2', '₂' }, { '3', '₃' }, { '4', '₄' }, { '5', '₅' }, { '6', '₆' }, { '7', '₇' }, { '8', '₈' }, { '9', '₉' },
-            { 'a', 'ₐ' }, { 'e', 'ₑ' }, { 'h', 'ₕ' }, { 'i', 'ᵢ' }, { 'j', 'ⱼ' }, { 'k', 'ₖ' }, { 'l', 'ₗ' }, { 'm', 'ₘ' }, { 'n', 'ₙ' }, { 'o', 'ₒ' },
-            { 'p', 'ₚ' }, { 'r', 'ᵣ' }, { 's', 'ₛ' }, { 't', 'ₜ' }, { 'u', 'ᵤ' }, { 'v', 'ᵥ' }, { 'x', 'ₓ' }, { '+', '₊' }, { '-', '₋' }, { '=', '₌' },
-            { '(', '₍' }, { ')', '₎' }
-        };
-        public static readonly Dictionary<char, char> MathbbMap = new()
-        {
-            {'R', 'ℝ'}, {'C', 'ℂ'}, {'N', 'ℕ'}, {'Q', 'ℚ'}, {'Z', 'ℤ'}
-        };
-        public static readonly Dictionary<char, char> MathcalMap = new()
-        {
-            {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'B', 'ℬ'}, {'I', 'ℐ'},
-            {'R', 'ℛ'}, {'L', 'ℒ'}, {'M', 'ℳ'}
-        };
     }
     #endregion
 }
