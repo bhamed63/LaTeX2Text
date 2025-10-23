@@ -273,6 +273,8 @@ namespace LatexConverter.Tests
         [InlineData(@"\blacksquare", "■")]
         [InlineData(@"\triangle", "△")]
         [InlineData(@"\triangledown", "▽")]
+        [InlineData("slope until x_2.", "slope until x₂.")]
+        [InlineData("and n_2. A light ray", "and n₂. A light ray")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);

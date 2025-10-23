@@ -236,7 +236,22 @@ namespace LatexConverter
             if (char.IsDigit(currentChar))
             {
                 int start = pos;
-                while (pos < text.Length && (char.IsDigit(text[pos]) || text[pos] == '.')) pos++;
+                while (pos < text.Length && char.IsDigit(text[pos]))
+                {
+                    pos++;
+                }
+                if (pos < text.Length && text[pos] == '.')
+                {
+                    // Check if the character after the dot is a digit
+                    if (pos + 1 < text.Length && char.IsDigit(text[pos + 1]))
+                    {
+                        pos++;
+                        while (pos < text.Length && char.IsDigit(text[pos]))
+                        {
+                            pos++;
+                        }
+                    }
+                }
                 tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
                 return true;
             }
