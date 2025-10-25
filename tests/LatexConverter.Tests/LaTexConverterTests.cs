@@ -126,6 +126,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\triangle", "triangle")]
         [InlineData(@"\triangledown", "triangledown")]
         [InlineData("a\r\nb", "a\r\nb")]
+        [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nalpha\r\nbeta\r\n")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -277,6 +278,7 @@ namespace LatexConverter.Tests
         [InlineData("slope until x_2.", "slope until x₂.")]
         [InlineData("and n_2. A light ray", "and n₂. A light ray")]
         [InlineData("a\r\nb", "a\r\nb")]
+        [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nα\r\nβ\r\n")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -410,6 +412,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\triangle", "triangle")]
         [InlineData(@"\triangledown", "downward triangle")]
         [InlineData("a\r\nb", "a\r\nb")]
+        [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nalpha\r\nbeta\r\n")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
