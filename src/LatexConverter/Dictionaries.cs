@@ -116,12 +116,7 @@ namespace LatexConverter
         /// <summary>
         /// A list of LaTeX commands that should not be converted from plain text without a leading backslash.
         /// </summary>
-        public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() {
-            @"\bullet", @"\in", @"\times", @"\sum", @"\exists", @"\to", @"\angle", @"\triangle", @"\natural", @"\sharp", @"\parallel",
-            @"\prod", @"\flat", 
-            //@"\perp",
-            @"\lim"
-        };
+        public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists", @"\to", @"\angle", @"\triangle", @"\natural", @"\sharp", @"\parallel", @"\prod", @"\flat", @"\lim" };
         /// <summary>
         /// A map of characters to their superscript Unicode representations.
         /// </summary>

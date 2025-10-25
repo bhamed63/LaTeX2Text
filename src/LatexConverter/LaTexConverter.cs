@@ -85,26 +85,45 @@ namespace LatexConverter
         /// <returns>The processed text.</returns>
         private string Process(string text, IVisitor<string> visitor)
         {
-            text = Regex.Replace(text, @"\\(big|Big|bigg|Bigg)[l|r]?\s*[\(\)]", "");
-            var lines = text.Split('\n');
-            var processedLines = lines.Select(line =>
+            if (string.IsNullOrEmpty(text))
             {
-                var tokens = Tokenizer.Tokenize(line);
-                var parser = new Parser(tokens);
-                var nodes = parser.Parse();
-                var result = string.Join("", nodes.Select(n => n.Accept(visitor)));
-                result = Regex.Replace(result, @"[ \t]+", " ").Trim();
-                if (visitor is HumanFriendlyVisitor)
+                return "";
+            }
+            text = Regex.Replace(text, @"\\(big|Big|bigg|Bigg)[l|r]?\s*[\(\)]", "");
+
+            var parts = Regex.Split(text, @"(\r?\n)");
+            var resultBuilder = new StringBuilder();
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                var part = parts[i];
+
+                if (i % 2 == 0)
                 {
-                    result = ApplyHumanFriendlyPostProcessing(result);
+                    if (!string.IsNullOrEmpty(part))
+                    {
+                        var tokens = Tokenizer.Tokenize(part);
+                        var parser = new Parser(tokens);
+                        var nodes = parser.Parse();
+                        var processedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
+                        processedPart = Regex.Replace(processedPart, @"[ \t]+", " ").Trim();
+                        if (visitor is HumanFriendlyVisitor)
+                        {
+                            processedPart = ApplyHumanFriendlyPostProcessing(processedPart);
+                        }
+                        else if (visitor is ScreenReaderVisitor)
+                        {
+                            processedPart = ApplyScreenReaderPostProcessing(processedPart);
+                        }
+                        resultBuilder.Append(processedPart);
+                    }
                 }
-                else if (visitor is ScreenReaderVisitor)
+                else
                 {
-                    result = ApplyScreenReaderPostProcessing(result);
+                    resultBuilder.Append(part);
                 }
-                return result;
-            });
-            return string.Join("\n", processedLines);
+            }
+            return resultBuilder.ToString();
         }
 
         /// <summary>
