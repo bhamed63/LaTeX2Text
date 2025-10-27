@@ -32,7 +32,8 @@ namespace LatexConverter
         {
             var normalized_input = NormalizeStructuralPatterns(latex_input);
             normalized_input = NormalizePlainTextToLatex(normalized_input);
-            return Process(normalized_input, new HumanFriendlyVisitor());
+            var allSubscriptsConvertible = AreAllSubscriptsConvertible(normalized_input);
+            return Process(normalized_input, new HumanFriendlyVisitor(allSubscriptsConvertible));
         }
 
         /// <summary>
@@ -154,6 +155,58 @@ namespace LatexConverter
             text = Regex.Replace(text, @"\(\s+", "(");
             text = Regex.Replace(text, @"\s+\)", ")");
             return text;
+        }
+
+        /// <summary>
+        /// Analyzes the entire LaTeX string to determine if all subscripts can be converted to Unicode.
+        /// </summary>
+        /// <param name="latex_input">The LaTeX string to analyze.</param>
+        /// <returns>True if all subscripts can be converted; otherwise, false.</returns>
+        private bool AreAllSubscriptsConvertible(string latex_input)
+        {
+            if (string.IsNullOrEmpty(latex_input))
+            {
+                return true;
+            }
+
+            var tokens = Tokenizer.Tokenize(latex_input);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+
+            return TraverseAndCheckSubscripts(nodes);
+        }
+
+        /// <summary>
+        /// Recursively traverses the AST to check if all subscripts are convertible.
+        /// </summary>
+        /// <param name="nodes">The list of AST nodes to traverse.</param>
+        /// <returns>True if all subscripts in the given nodes can be converted; otherwise, false.</returns>
+        private bool TraverseAndCheckSubscripts(IEnumerable<AstNode> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                if (node is ScriptNode scriptNode && !scriptNode.IsSuperscript)
+                {
+                    var scriptContent = scriptNode.Script.Accept(new PlainTextVisitor());
+                    if (!scriptContent.All(c => Dictionaries.SubMap.ContainsKey(c)))
+                    {
+                        return false;
+                    }
+                }
+
+                // Recursively check children nodes
+                if (node is GroupNode groupNode)
+                {
+                    if (!TraverseAndCheckSubscripts(groupNode.Body)) return false;
+                }
+                else if (node is CommandNode commandNode)
+                {
+                    if (!TraverseAndCheckSubscripts(commandNode.Args)) return false;
+                    if (commandNode.Subscript != null && !TraverseAndCheckSubscripts(new[] { commandNode.Subscript })) return false;
+                    if (commandNode.Superscript != null && !TraverseAndCheckSubscripts(new[] { commandNode.Superscript })) return false;
+                }
+            }
+            return true;
         }
     }
 
@@ -672,6 +725,12 @@ namespace LatexConverter
     /// </summary>
     public class HumanFriendlyVisitor : BaseVisitor<string>
     {
+        private readonly bool _allSubscriptsAreConvertible;
+
+        public HumanFriendlyVisitor(bool allSubscriptsAreConvertible = true)
+        {
+            _allSubscriptsAreConvertible = allSubscriptsAreConvertible;
+        }
         public override string VisitText(TextNode node) => node.Text;
 
         public override string VisitGroup(GroupNode node)
@@ -689,6 +748,12 @@ namespace LatexConverter
             }
 
             var scriptContent = node.Script.Accept(this);
+
+            if (!node.IsSuperscript && !_allSubscriptsAreConvertible)
+            {
+                return $"{baseText}_{scriptContent}";
+            }
+
             return $"{baseText}{ToUnicode(scriptContent, node.IsSuperscript, node.Script)}";
         }
 
@@ -996,6 +1061,18 @@ namespace LatexConverter
 
             return $"a {num_rows}x{num_cols} matrix with rows {string.Join(" and ", matrix_desc)}";
         }
+    }
+
+    /// <summary>
+    /// A visitor that extracts the plain text from the AST, without any formatting.
+    /// </summary>
+    public class PlainTextVisitor : BaseVisitor<string>
+    {
+        public override string VisitText(TextNode node) => node.Text;
+        public override string VisitGroup(GroupNode node) => string.Concat(node.Body.Select(n => n.Accept(this)));
+        public override string VisitScript(ScriptNode node) => node.Base.Accept(this) + node.Script.Accept(this);
+        public override string VisitCommand(CommandNode node) => string.Concat(node.Args.Select(n => n.Accept(this)));
+        public override string VisitMatrix(MatrixNode node) => node.Content;
     }
     #endregion
 }

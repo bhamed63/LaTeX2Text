@@ -279,6 +279,8 @@ namespace LatexConverter.Tests
         [InlineData("and n_2. A light ray", "and n₂. A light ray")]
         [InlineData("a\r\nb", "a\r\nb")]
         [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nα\r\nβ\r\n")]
+        [InlineData("I am a amin_21 and how are you ali_lg? Are you good?", "I am a amin_21 and how are you ali_lg? Are you good?")]
+        [InlineData("I am a amin_21 and how are you Reza_a? Are you nima_jx good?", "I am a amin₂₁ and how are you Rezaₐ? Are you nimaⱼₓ good?")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
