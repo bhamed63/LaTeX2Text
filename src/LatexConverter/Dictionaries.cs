@@ -152,5 +152,22 @@ namespace LatexConverter
             {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'B', 'ℬ'}, {'I', 'ℐ'},
             {'R', 'ℛ'}, {'L', 'ℒ'}, {'M', 'ℳ'}
         };
+
+        /// <summary>
+        /// A map of characters to their math Fraktur Unicode representations.
+        /// </summary>
+        public static readonly Dictionary<char, char> MathfrakMap = new()
+        {
+            {'C', 'ℭ'}, {'H', 'ℌ'}, {'I', 'ℑ'}, {'R', 'ℜ'}, {'Z', 'ℨ'}
+        };
+
+        /// <summary>
+        /// A map of characters to their math script Unicode representations.
+        /// </summary>
+        public static readonly Dictionary<char, char> MathscrMap = new()
+        {
+            {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'I', 'ℐ'}, {'L', 'ℒ'},
+            {'M', 'ℳ'}, {'R', 'ℛ'}
+        };
     }
 }

@@ -127,6 +127,12 @@ namespace LatexConverter.Tests
         [InlineData(@"\triangledown", "triangledown")]
         [InlineData("a\r\nb", "a\r\nb")]
         [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nalpha\r\nbeta\r\n")]
+        [InlineData(@"\mathbf{F}", "F")]
+        [InlineData(@"\mathit{x}", "x")]
+        [InlineData(@"\mathsf{T}", "T")]
+        [InlineData(@"\mathtt{v}", "v")]
+        [InlineData(@"\mathfrak{g}", "g")]
+        [InlineData(@"\mathscr{L}", "L")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -279,6 +285,12 @@ namespace LatexConverter.Tests
         [InlineData("and n_2. A light ray", "and n₂. A light ray")]
         [InlineData("a\r\nb", "a\r\nb")]
         [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nα\r\nβ\r\n")]
+        [InlineData(@"\mathbf{F}", "F")]
+        [InlineData(@"\mathit{x}", "x")]
+        [InlineData(@"\mathsf{T}", "T")]
+        [InlineData(@"\mathtt{v}", "v")]
+        [InlineData(@"\mathfrak{C}", "ℭ")]
+        [InlineData(@"\mathscr{H}", "ℋ")]
         [InlineData("I am a test_21 and how are you newtest_lg? Are you good?", "I am a test_21 and how are you newtest_lg? Are you good?")]
         [InlineData("I am a test_21 and how are you Test_a? Are you Test_jx good?", "I am a test₂₁ and how are you Testₐ? Are you Testⱼₓ good?")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
@@ -415,6 +427,12 @@ namespace LatexConverter.Tests
         [InlineData(@"\triangledown", "downward triangle")]
         [InlineData("a\r\nb", "a\r\nb")]
         [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nalpha\r\nbeta\r\n")]
+        [InlineData(@"\mathbf{F}", "bf F")]
+        [InlineData(@"\mathit{x}", "it x")]
+        [InlineData(@"\mathsf{T}", "sf T")]
+        [InlineData(@"\mathtt{v}", "tt v")]
+        [InlineData(@"\mathfrak{g}", "frak g")]
+        [InlineData(@"\mathscr{L}", "scr L")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
