@@ -506,7 +506,7 @@ namespace LatexConverter
             return command switch
             {
                 @"\frac" or @"\binom" => 2,
-                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" => 1,
+                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" or @"\mathbf" or @"\mathit" or @"\mathsf" or @"\mathtt" or @"\mathfrak" or @"\mathscr" => 1,
                 _ => 0,
             };
         }
@@ -626,6 +626,12 @@ namespace LatexConverter
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
+                case @"\mathbf":
+                case @"\mathit":
+                case @"\mathsf":
+                case @"\mathtt":
+                case @"\mathfrak":
+                case @"\mathscr":
                     return HandleTextFormatting(node);
                 case @"\cos":
                 case @"\sin":
@@ -775,7 +781,14 @@ namespace LatexConverter
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
+                case @"\mathbf":
+                case @"\mathit":
+                case @"\mathsf":
+                case @"\mathtt":
                     return HandleTextFormatting(node);
+                case @"\mathfrak":
+                case @"\mathscr":
+                    return HandleMathFont(node);
                 case @"\cos":
                 case @"\sin":
                 case @"\tan":
@@ -832,6 +845,16 @@ namespace LatexConverter
         private string HandleTextFormatting(CommandNode node)
         {
             return node.Args[0].Accept(this);
+        }
+
+        private string HandleMathFont(CommandNode node)
+        {
+            if (node.Command == @"\mathfrak")
+            {
+                return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathfrakMap);
+            }
+            // \mathscr
+            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathscrMap);
         }
 
         private string HandleMathFunctions(CommandNode node)
@@ -964,7 +987,13 @@ namespace LatexConverter
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
-                    return node.Args[0].Accept(this);
+                case @"\mathbf":
+                case @"\mathit":
+                case @"\mathsf":
+                case @"\mathtt":
+                case @"\mathfrak":
+                case @"\mathscr":
+                    return HandleStyledText(node);
                 case @"\sin":
                 case @"\cos":
                 case @"\tan":
@@ -1031,6 +1060,17 @@ namespace LatexConverter
                 return "the set of real numbers";
             }
             return node.Args[0].Accept(this);
+        }
+
+        private string HandleStyledText(CommandNode node)
+        {
+            var command = node.Command;
+            if (command == @"\text" || command == @"\mathrm" || command == @"\textrm")
+            {
+                return node.Args[0].Accept(this);
+            }
+            var style = command.Substring(1).Replace("math", "");
+            return $"{style} {node.Args[0].Accept(this)}";
         }
 
         private string HandleLimitStyleCommands(CommandNode node)
