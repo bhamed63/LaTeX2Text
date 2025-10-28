@@ -28,7 +28,8 @@ namespace LatexConverter
         {
             var normalized_input = NormalizeStructuralPatterns(latex_input);
             normalized_input = NormalizePlainTextToLatex(normalized_input);
-            return Process(normalized_input, new HumanFriendlyVisitor());
+            var allSubscriptsConvertible = AreAllSubscriptsConvertible(normalized_input);
+            return Process(normalized_input, new HumanFriendlyVisitor(allSubscriptsConvertible));
         }
 
         /// <summary>
@@ -150,6 +151,58 @@ namespace LatexConverter
             text = Regex.Replace(text, @"\(\s+", "(");
             text = Regex.Replace(text, @"\s+\)", ")");
             return text;
+        }
+
+        /// <summary>
+        /// Analyzes the entire LaTeX string to determine if all subscripts can be converted to Unicode.
+        /// </summary>
+        /// <param name="latex_input">The LaTeX string to analyze.</param>
+        /// <returns>True if all subscripts can be converted; otherwise, false.</returns>
+        private bool AreAllSubscriptsConvertible(string latex_input)
+        {
+            if (string.IsNullOrEmpty(latex_input))
+            {
+                return true;
+            }
+
+            var tokens = Tokenizer.Tokenize(latex_input);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+
+            return TraverseAndCheckSubscripts(nodes);
+        }
+
+        /// <summary>
+        /// Recursively traverses the AST to check if all subscripts are convertible.
+        /// </summary>
+        /// <param name="nodes">The list of AST nodes to traverse.</param>
+        /// <returns>True if all subscripts in the given nodes can be converted; otherwise, false.</returns>
+        private bool TraverseAndCheckSubscripts(IEnumerable<AstNode> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                if (node is ScriptNode scriptNode && !scriptNode.IsSuperscript)
+                {
+                    var scriptContent = scriptNode.Script.Accept(new PlainTextVisitor());
+                    if (!scriptContent.All(c => Dictionaries.SubMap.ContainsKey(c)))
+                    {
+                        return false;
+                    }
+                }
+
+                // Recursively check children nodes
+                if (node is GroupNode groupNode)
+                {
+                    if (!TraverseAndCheckSubscripts(groupNode.Body)) return false;
+                }
+                else if (node is CommandNode commandNode)
+                {
+                    if (!TraverseAndCheckSubscripts(commandNode.Args)) return false;
+                    if (commandNode.Subscript != null && !TraverseAndCheckSubscripts(new[] { commandNode.Subscript })) return false;
+                    if (commandNode.Superscript != null && !TraverseAndCheckSubscripts(new[] { commandNode.Superscript })) return false;
+                }
+            }
+            return true;
         }
     }
 
@@ -449,7 +502,7 @@ namespace LatexConverter
             return command switch
             {
                 @"\frac" or @"\binom" => 2,
-                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" => 1,
+                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" or @"\mathbf" or @"\mathit" or @"\mathsf" or @"\mathtt" or @"\mathfrak" or @"\mathscr" => 1,
                 _ => 0,
             };
         }
@@ -569,6 +622,12 @@ namespace LatexConverter
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
+                case @"\mathbf":
+                case @"\mathit":
+                case @"\mathsf":
+                case @"\mathtt":
+                case @"\mathfrak":
+                case @"\mathscr":
                     return HandleTextFormatting(node);
                 case @"\cos":
                 case @"\sin":
@@ -668,6 +727,12 @@ namespace LatexConverter
     /// </summary>
     public class HumanFriendlyVisitor : BaseVisitor<string>
     {
+        private readonly bool _allSubscriptsAreConvertible;
+
+        public HumanFriendlyVisitor(bool allSubscriptsAreConvertible = true)
+        {
+            _allSubscriptsAreConvertible = allSubscriptsAreConvertible;
+        }
         public override string VisitText(TextNode node) => node.Text;
 
         public override string VisitGroup(GroupNode node)
@@ -685,6 +750,12 @@ namespace LatexConverter
             }
 
             var scriptContent = node.Script.Accept(this);
+
+            if (!node.IsSuperscript && !_allSubscriptsAreConvertible)
+            {
+                return $"{baseText}_{scriptContent}";
+            }
+
             return $"{baseText}{ToUnicode(scriptContent, node.IsSuperscript, node.Script)}";
         }
 
@@ -706,7 +777,14 @@ namespace LatexConverter
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
+                case @"\mathbf":
+                case @"\mathit":
+                case @"\mathsf":
+                case @"\mathtt":
                     return HandleTextFormatting(node);
+                case @"\mathfrak":
+                case @"\mathscr":
+                    return HandleMathFont(node);
                 case @"\cos":
                 case @"\sin":
                 case @"\tan":
@@ -763,6 +841,16 @@ namespace LatexConverter
         private string HandleTextFormatting(CommandNode node)
         {
             return node.Args[0].Accept(this);
+        }
+
+        private string HandleMathFont(CommandNode node)
+        {
+            if (node.Command == @"\mathfrak")
+            {
+                return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathfrakMap);
+            }
+            // \mathscr
+            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathscrMap);
         }
 
         private string HandleMathFunctions(CommandNode node)
@@ -895,7 +983,13 @@ namespace LatexConverter
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
-                    return node.Args[0].Accept(this);
+                case @"\mathbf":
+                case @"\mathit":
+                case @"\mathsf":
+                case @"\mathtt":
+                case @"\mathfrak":
+                case @"\mathscr":
+                    return HandleStyledText(node);
                 case @"\sin":
                 case @"\cos":
                 case @"\tan":
@@ -964,6 +1058,17 @@ namespace LatexConverter
             return node.Args[0].Accept(this);
         }
 
+        private string HandleStyledText(CommandNode node)
+        {
+            var command = node.Command;
+            if (command == @"\text" || command == @"\mathrm" || command == @"\textrm")
+            {
+                return node.Args[0].Accept(this);
+            }
+            var style = command.Substring(1).Replace("math", "");
+            return $"{style} {node.Args[0].Accept(this)}";
+        }
+
         private string HandleLimitStyleCommands(CommandNode node)
         {
             if (node.Command == @"\lim")
@@ -992,6 +1097,18 @@ namespace LatexConverter
 
             return $"a {num_rows}x{num_cols} matrix with rows {string.Join(" and ", matrix_desc)}";
         }
+    }
+
+    /// <summary>
+    /// A visitor that extracts the plain text from the AST, without any formatting.
+    /// </summary>
+    public class PlainTextVisitor : BaseVisitor<string>
+    {
+        public override string VisitText(TextNode node) => node.Text;
+        public override string VisitGroup(GroupNode node) => string.Concat(node.Body.Select(n => n.Accept(this)));
+        public override string VisitScript(ScriptNode node) => node.Base.Accept(this) + node.Script.Accept(this);
+        public override string VisitCommand(CommandNode node) => string.Concat(node.Args.Select(n => n.Accept(this)));
+        public override string VisitMatrix(MatrixNode node) => node.Content;
     }
     #endregion
 }
