@@ -972,14 +972,21 @@ namespace LatexConverter
                 if (cmdNode.Command == @"\prime") return $"{baseText} prime";
             }
 
-            string scriptText = node.Script.Accept(this).Trim();
+            string scriptText = node.Script.Accept(new PlainTextVisitor());
             if (node.IsSuperscript)
             {
-                if (scriptText == "2") return $"{baseText} squared";
-                if (scriptText == "3") return $"{baseText} cubed";
-                return $"{baseText} to the power of {scriptText}";
+                switch (scriptText)
+                {
+                    case "+": return $"{baseText} plus";
+                    case "-": return $"{baseText} minus";
+                    case "*": return $"{baseText} star";
+                    case "′": return $"{baseText} prime";
+                    case "2": return $"{baseText} squared";
+                    case "3": return $"{baseText} cubed";
+                    default: return $"{baseText} to the power of {node.Script.Accept(this).Trim()}";
+                }
             }
-            return $"{baseText} subscript {scriptText}";
+            return $"{baseText} subscript {node.Script.Accept(this).Trim()}";
         }
 
         public override string VisitCommand(CommandNode node)

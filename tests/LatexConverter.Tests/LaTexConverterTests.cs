@@ -295,6 +295,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\mathfrak{C}", "ℭ")]
         [InlineData(@"\mathscr{H}", "ℋ")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
+        [InlineData(@"K^+", "K⁺")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -436,6 +437,9 @@ namespace LatexConverter.Tests
         [InlineData(@"\mathfrak{g}", "frak g")]
         [InlineData(@"\mathscr{L}", "scr L")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
+        [InlineData(@"K^+", "K plus")]
+        [InlineData(@"e^-", "e minus")]
+        [InlineData(@"A^{*}", "A star")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
