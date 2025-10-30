@@ -521,7 +521,7 @@ namespace LatexConverter
             return command switch
             {
                 @"\frac" or @"\binom" => 2,
-                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" or @"\mathbf" or @"\mathit" or @"\mathsf" or @"\mathtt" or @"\mathfrak" or @"\mathscr" => 1,
+                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" or @"\mathbf" or @"\mathit" or @"\mathsf" or @"\mathtt" or @"\mathfrak" or @"\mathscr" or @"\overline" => 1,
                 _ => 0,
             };
         }
@@ -658,6 +658,8 @@ namespace LatexConverter
                     return HandleMathFunctions(node);
                 case @"\hat":
                     return HandleHat(node);
+                case @"\overline":
+                    return $@"overline({node.Args[0].Accept(this)})";
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
@@ -804,6 +806,8 @@ namespace LatexConverter
                 case @"\mathfrak":
                 case @"\mathscr":
                     return HandleMathFont(node);
+                case @"\overline":
+                    return $"{node.Args[0].Accept(this)}\u0305";
                 case @"\cos":
                 case @"\sin":
                 case @"\tan":
@@ -1015,6 +1019,7 @@ namespace LatexConverter
                 case @"\mathtt":
                 case @"\mathfrak":
                 case @"\mathscr":
+                case @"\overline":
                     return HandleStyledText(node);
                 case @"\sin":
                 case @"\cos":
@@ -1090,6 +1095,10 @@ namespace LatexConverter
             if (command == @"\text" || command == @"\mathrm" || command == @"\textrm")
             {
                 return node.Args[0].Accept(this);
+            }
+            if (command == @"\overline")
+            {
+                return $"{node.Args[0].Accept(this)} bar";
             }
             var style = command.Substring(1).Replace("math", "");
             return $"{style} {node.Args[0].Accept(this)}";
