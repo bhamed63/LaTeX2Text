@@ -371,7 +371,22 @@ namespace LatexConverter
                 case '{': tokens.Add(new Token(TokenType.LBrace)); pos++; return true;
                 case '}': tokens.Add(new Token(TokenType.RBrace)); pos++; return true;
                 case '^': tokens.Add(new Token(TokenType.Superscript)); pos++; return true;
-                case '_': tokens.Add(new Token(TokenType.Subscript)); pos++; return true;
+                case '_':
+                    if (pos + 1 < text.Length && text[pos + 1] == '_')
+                    {
+                        int start = pos;
+                        while (pos < text.Length && text[pos] == '_')
+                        {
+                            pos++;
+                        }
+                        tokens.Add(new Token(TokenType.Text, text.Substring(start, pos - start)));
+                    }
+                    else
+                    {
+                        tokens.Add(new Token(TokenType.Subscript));
+                        pos++;
+                    }
+                    return true;
                 default:
                     tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
                     pos++;

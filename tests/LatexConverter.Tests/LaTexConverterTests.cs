@@ -133,6 +133,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\mathtt{v}", "v")]
         [InlineData(@"\mathfrak{g}", "g")]
         [InlineData(@"\mathscr{L}", "L")]
+        [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToOpenAIFriendlyText(input);
@@ -285,14 +286,15 @@ namespace LatexConverter.Tests
         [InlineData("and n_2. A light ray", "and n₂. A light ray")]
         [InlineData("a\r\nb", "a\r\nb")]
         [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nα\r\nβ\r\n")]
+        [InlineData("I am a amin_21 and how are you ali_lg? Are you good?", "I am a amin_21 and how are you ali_lg? Are you good?")]
+        [InlineData("I am a amin_21 and how are you Reza_a? Are you nima_jx good?", "I am a amin₂₁ and how are you Rezaₐ? Are you nimaⱼₓ good?")]
         [InlineData(@"\mathbf{F}", "F")]
         [InlineData(@"\mathit{x}", "x")]
         [InlineData(@"\mathsf{T}", "T")]
         [InlineData(@"\mathtt{v}", "v")]
         [InlineData(@"\mathfrak{C}", "ℭ")]
         [InlineData(@"\mathscr{H}", "ℋ")]
-        [InlineData("I am a test_21 and how are you newtest_lg? Are you good?", "I am a test_21 and how are you newtest_lg? Are you good?")]
-        [InlineData("I am a test_21 and how are you Test_a? Are you Test_jx good?", "I am a test₂₁ and how are you Testₐ? Are you Testⱼₓ good?")]
+        [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
@@ -433,6 +435,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\mathtt{v}", "tt v")]
         [InlineData(@"\mathfrak{g}", "frak g")]
         [InlineData(@"\mathscr{L}", "scr L")]
+        [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
