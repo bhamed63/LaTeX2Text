@@ -540,10 +540,19 @@ namespace LatexConverter
             int numArgs = GetArgumentCount(token.Value);
             for (int i = 0; i < numArgs; i++)
             {
+                SkipSpaces();
                 args.Add(ParsePrimary());
             }
 
             return new CommandNode(token.Value, args, null, null);
+        }
+
+        private void SkipSpaces()
+        {
+            while (CurrentToken.Type == TokenType.Space)
+            {
+                _pos++;
+            }
         }
 
         private AstNode ParseLimitCommand(Token token)
