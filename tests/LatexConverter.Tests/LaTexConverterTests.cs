@@ -306,6 +306,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\sin \theta", "sin(θ)")]
         [InlineData(@"\cos \alpha", "cos(α)")]
         [InlineData(@"\tan \beta", "tan(β)")]
+        [InlineData(@"The vertical component of the vector is labeled as (|v_y| = v \sin \theta). The angle (\theta) is marked between the vector and the horizontal axis.", @"The vertical component of the vector is labeled as (|v_y| = v sin(θ)). The angle (θ) is marked between the vector and the horizontal axis.")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         [InlineData(@"K^+", "K⁺")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
