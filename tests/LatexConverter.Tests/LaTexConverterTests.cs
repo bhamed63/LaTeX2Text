@@ -135,6 +135,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\mathscr{L}", "L")]
         [InlineData(@"\overline{p}", "overline(p)")]
         [InlineData(@"\overline{xyz}", "overline(xyz)")]
+        [InlineData(@"a\,b", "a b")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
@@ -298,6 +299,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\mathscr{H}", "ℋ")]
         [InlineData(@"\overline{p}", "p̅")]
         [InlineData(@"\overline{xyz}", "xyz̅")]
+        [InlineData(@"a\,b", "a b")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         [InlineData(@"K^+", "K⁺")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
@@ -442,6 +444,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\mathscr{L}", "scr L")]
         [InlineData(@"\overline{p}", "p bar")]
         [InlineData(@"\overline{xyz}", "xyz bar")]
+        [InlineData(@"a\,b", "a b")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         [InlineData(@"K^+", "K plus")]
         [InlineData(@"e^-", "e minus")]
