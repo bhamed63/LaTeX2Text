@@ -45,7 +45,8 @@ namespace LatexConverter
             { @"\diamondsuit", "diamondsuit" }, { @"\spadesuit", "spadesuit" }, { @"\natural", "natural" },
             { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "triangledown" },
             { @"\angle", "angle" }, { @"\measuredangle", "measuredangle" },
-            { @"\dots", "..." }, { @"\cdots", "..." }, { @"\vdots", "..." }, { @"\ddots", "..." }
+            { @"\dots", "..." }, { @"\cdots", "..." }, { @"\vdots", "..." }, { @"\ddots", "..." },
+            { @"\,", " " }
         };
         /// <summary>
         /// A map of LaTeX commands to their screen reader-friendly representations.
@@ -107,7 +108,8 @@ namespace LatexConverter
             { @"\diamondsuit", "♦" }, { @"\spadesuit", "♠" }, { @"\natural", "♮" },
             { @"\sharp", "♯" }, { @"\flat", "♭" }, { @"\triangle", "△" }, { @"\triangledown", "▽" },
             { @"\angle", "∠" }, { @"\measuredangle", "∡" },
-            { @"\dots", "…" }, { @"\cdots", "⋯" }, { @"\vdots", "⋮" }, { @"\ddots", "⋱" }
+            { @"\dots", "…" }, { @"\cdots", "⋯" }, { @"\vdots", "⋮" }, { @"\ddots", "⋱" },
+            { @"\,", " " }
         };
         /// <summary>
         /// A map of Unicode symbols to their plain text representations.
