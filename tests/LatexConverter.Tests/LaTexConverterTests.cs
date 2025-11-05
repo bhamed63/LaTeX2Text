@@ -136,6 +136,9 @@ namespace LatexConverter.Tests
         [InlineData(@"\overline{p}", "overline(p)")]
         [InlineData(@"\overline{xyz}", "overline(xyz)")]
         [InlineData(@"a\,b", "a b")]
+        [InlineData(@"\sin \theta", "sin(theta)")]
+        [InlineData(@"\cos \alpha", "cos(alpha)")]
+        [InlineData(@"\tan \beta", "tan(beta)")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         public void ConvertToOpenAIFriendlyText_ConvertsCorrectly(string input, string expected)
         {
@@ -300,6 +303,10 @@ namespace LatexConverter.Tests
         [InlineData(@"\overline{p}", "p̅")]
         [InlineData(@"\overline{xyz}", "xyz̅")]
         [InlineData(@"a\,b", "a b")]
+        [InlineData(@"\sin \theta", "sin(θ)")]
+        [InlineData(@"\cos \alpha", "cos(α)")]
+        [InlineData(@"\tan \beta", "tan(β)")]
+        [InlineData(@"The vertical component of the vector is labeled as (|v_y| = v \sin \theta). The angle (\theta) is marked between the vector and the horizontal axis.", @"The vertical component of the vector is labeled as (|v_y| = v sin(θ)). The angle (θ) is marked between the vector and the horizontal axis.")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         [InlineData(@"K^+", "K⁺")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
@@ -445,6 +452,9 @@ namespace LatexConverter.Tests
         [InlineData(@"\overline{p}", "p bar")]
         [InlineData(@"\overline{xyz}", "xyz bar")]
         [InlineData(@"a\,b", "a b")]
+        [InlineData(@"\sin \theta", "sine of theta")]
+        [InlineData(@"\cos \alpha", "cosine of alpha")]
+        [InlineData(@"\tan \beta", "tangent of beta")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         [InlineData(@"K^+", "K plus")]
         [InlineData(@"e^-", "e minus")]
