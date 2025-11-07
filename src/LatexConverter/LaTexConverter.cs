@@ -48,6 +48,56 @@ namespace LatexConverter
         }
 
         /// <summary>
+        /// Converts a human-friendly string (with Unicode) to a screen-reader-friendly format.
+        /// </summary>
+        /// <param name="human_friendly_text">The human-friendly string to convert.</param>
+        /// <returns>The screen-reader-friendly text.</returns>
+        public string ConvertHumanFriendlyToScreenFriendlyText(string human_friendly_text)
+        {
+            if (string.IsNullOrEmpty(human_friendly_text)) return "";
+
+            var sb = new StringBuilder();
+            foreach (char c in human_friendly_text)
+            {
+                if (Dictionaries.HumanToScreenReaderMap.TryGetValue(c.ToString(), out var screenReaderText))
+                {
+                    sb.Append($" {screenReaderText} ");
+                }
+                else if (Dictionaries.ReverseSupMap.TryGetValue(c, out var sup))
+                {
+                    if (sup == '2') sb.Append(" squared");
+                    else if (sup == '3') sb.Append(" cubed");
+                    else sb.Append($" to the power of {sup}");
+                }
+                else if (Dictionaries.ReverseSubMap.TryGetValue(c, out var sub))
+                {
+                    string subText = sub.ToString();
+                    if (Dictionaries.HumanToScreenReaderMap.TryGetValue(subText, out var screenReaderSubText))
+                    {
+                        subText = screenReaderSubText;
+                    }
+                    sb.Append($" subscript {subText} ");
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            var text = sb.ToString();
+
+            text = Regex.Replace(text, @"sin\(([^)]*)\)", m => $"sine of {m.Groups[1].Value.Trim()}");
+            text = Regex.Replace(text, @"cos\(([^)]*)\)", m => $"cosine of {m.Groups[1].Value.Trim()}");
+            text = Regex.Replace(text, @"tan\(([^)]*)\)", m => $"tangent of {m.Groups[1].Value.Trim()}");
+            text = Regex.Replace(text, @"log\(([^)]*)\)", m => $"logarithm of {m.Groups[1].Value.Trim()}");
+            text = Regex.Replace(text, @"ln\(([^)]*)\)", m => $"natural logarithm of {m.Groups[1].Value.Trim()}");
+
+            text = Regex.Replace(text, @"\s+([.,!?:;|)])", "$1");
+            text = text.Replace(" |", "|").Replace("| ", "|");
+
+            return Regex.Replace(text, @"\s+", " ").Trim();
+        }
+
+        /// <summary>
         /// Normalizes structural patterns in the LaTeX input, such as converting `sqrt(x)` to `\sqrt{x}`.
         /// </summary>
         /// <param name="latex_input">The LaTeX string to normalize.</param>

@@ -464,5 +464,21 @@ namespace LatexConverter.Tests
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
             Assert.Equal(expected, result);
         }
+
+        [Theory]
+        [InlineData("α", "alpha")]
+        [InlineData("sin(θ)", "sine of theta")]
+        [InlineData("cos(α)", "cosine of alpha")]
+        [InlineData("tan(β)", "tangent of beta")]
+        [InlineData("x²", "x squared")]
+        [InlineData("a⁺", "a to the power of +")]
+        [InlineData("H₂O", "H subscript 2 O")]
+        [InlineData("vᵧ", "v subscript gamma")]
+        [InlineData("|vᵧ| = v sin(θ)", "|v subscript gamma| equals v sine of theta")]
+        public void ConvertHumanFriendlyToScreenFriendlyText_ConvertsCorrectly(string input, string expected)
+        {
+            var result = _converter.ConvertHumanFriendlyToScreenFriendlyText(input);
+            Assert.Equal(expected, result);
+        }
     }
 }
