@@ -131,6 +131,16 @@ namespace LatexConverter
                 .GroupBy(kvp => kvp.Value)
                 .ToDictionary(g => g.Key, g => ScreenReaderSymbolMap.GetValueOrDefault(g.First().Key, SymbolMap.GetValueOrDefault(g.First().Key, "")));
             map["="] = "equals";
+            map["/"] = "divided by";
+            map["*"] = "times";
+            map["·"] = "cdot";
+            map["×"] = "times";
+            map["°"] = "degrees";
+            map["√"] = "the square root of";
+            map["ℝ"] = "the set of real numbers";
+            map["ℰ"] = "calligraphic E";
+            map["ℭ"] = "frak C";
+            map["ℋ"] = "scr H";
             return map;
         }
 
