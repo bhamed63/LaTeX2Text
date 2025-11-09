@@ -121,30 +121,6 @@ namespace LatexConverter
         public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists", @"\to", @"\angle", @"\triangle", @"\natural", @"\sharp", @"\parallel", @"\prod", @"\flat", @"\lim" };
 
         /// <summary>
-        /// A map of human-friendly Unicode symbols to their screen reader-friendly text representations.
-        /// </summary>
-        public static readonly Dictionary<string, string> HumanToScreenReaderMap = GetHumanToScreenReaderMap();
-
-        private static Dictionary<string, string> GetHumanToScreenReaderMap()
-        {
-            var map = HumanFriendlySymbolMap
-                .GroupBy(kvp => kvp.Value)
-                .ToDictionary(g => g.Key, g => ScreenReaderSymbolMap.GetValueOrDefault(g.First().Key, SymbolMap.GetValueOrDefault(g.First().Key, "")));
-            map["="] = "equals";
-            map["/"] = "divided by";
-            map["*"] = "times";
-            map["·"] = "cdot";
-            map["×"] = "times";
-            map["°"] = "degrees";
-            map["√"] = "the square root of";
-            map["ℝ"] = "the set of real numbers";
-            map["ℰ"] = "calligraphic E";
-            map["ℭ"] = "frak C";
-            map["ℋ"] = "scr H";
-            return map;
-        }
-
-        /// <summary>
         /// A map of characters to their superscript Unicode representations.
         /// </summary>
         public static readonly Dictionary<char, char> SupMap = new() {
@@ -165,15 +141,6 @@ namespace LatexConverter
             { '(', '₍' }, { ')', '₎' }, { 'γ', 'ᵧ' }
         };
 
-        /// <summary>
-        /// A map of superscript Unicode characters to their base character representations.
-        /// </summary>
-        public static readonly Dictionary<char, char> ReverseSupMap = SupMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-
-        /// <summary>
-        /// A map of subscript Unicode characters to their base character representations.
-        /// </summary>
-        public static readonly Dictionary<char, char> ReverseSubMap = SubMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
         /// <summary>
         /// A map of characters to their math blackboard bold Unicode representations.
         /// </summary>
