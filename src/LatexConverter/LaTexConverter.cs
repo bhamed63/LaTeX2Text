@@ -58,6 +58,19 @@ namespace LatexConverter
         {
             if (string.IsNullOrEmpty(humanFriendlyText)) return "";
 
+            humanFriendlyText = humanFriendlyText.Replace("sin⁻¹", @"\arcsin ");
+            humanFriendlyText = humanFriendlyText.Replace("cos⁻¹", @"\arccos ");
+            humanFriendlyText = humanFriendlyText.Replace("tan⁻¹", @"\arctan ");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"√\((.*?)\)", @"\sqrt{$1}");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"√([^ ])", @"\sqrt{$1}");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"\(([^ ]*?) ([^ ]*?)\)\n\(([^ ]*?) ([^ ]*?)\)", @"\begin{pmatrix} $1 & $2 \\ $3 & $4 \end{pmatrix}");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"\(([^ ]*?) ([^ ]*?)\)", @"\binom{$1}{$2}");
+            humanFriendlyText = humanFriendlyText.Replace("p̅", @"\overline{p}");
+            humanFriendlyText = humanFriendlyText.Replace("xyz̅", @"\overline{xyz}");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"lim_{([^}]*)}", @"\lim_{$1}");
+
+
+
             var sb = new StringBuilder();
             for (int i = 0; i < humanFriendlyText.Length; i++)
             {
@@ -72,24 +85,34 @@ namespace LatexConverter
 
                 if (Dictionaries.ReverseSupMap.ContainsKey(c))
                 {
-                    sb.Append($"^{Dictionaries.ReverseSupMap[c]}");
+                    var content = new StringBuilder();
+                    while (i < humanFriendlyText.Length && Dictionaries.ReverseSupMap.ContainsKey(humanFriendlyText[i]))
+                    {
+                        content.Append(Dictionaries.ReverseSupMap[humanFriendlyText[i]]);
+                        i++;
+                    }
+                    i--;
+                    if (content.Length > 1) sb.Append($"^{{{content}}}"); else sb.Append($"^{content}");
                 }
                 else if (Dictionaries.ReverseSubMap.ContainsKey(c))
                 {
-                    var base_char = Dictionaries.ReverseSubMap[c];
-                    if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(base_char.ToString()))
+                    var content = new StringBuilder();
+                    while (i < humanFriendlyText.Length && Dictionaries.ReverseSubMap.ContainsKey(humanFriendlyText[i]))
                     {
-                        sb.Append($"_\\{Dictionaries.ReverseHumanFriendlySymbolMap[base_char.ToString()]}");
+                        var base_char = Dictionaries.ReverseSubMap[humanFriendlyText[i]];
+                        if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(base_char.ToString()))
+                        {
+                            content.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[base_char.ToString()]}");
+                        }
+                        else { content.Append(base_char); }
+                        i++;
                     }
-                    else
-                    {
-                        sb.Append($"_{base_char}");
-                    }
+                    i--;
+                    if (content.Length > 1 && !content.ToString().Contains("\\")) sb.Append($"_{{{content}}}"); else sb.Append($"_{content}");
                 }
-                else if (c == '°')
-                {
-                    sb.Append(@"\circ ");
-                }
+                else if (c == '⇔') { sb.Append(@"\Leftrightarrow "); }
+                else if (c == '⇒') { sb.Append(@"\Rightarrow "); }
+                else if (c == '°') { sb.Append(@"\circ "); }
                 else if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()) && c != ' ')
                 {
                     sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]} ");
@@ -98,12 +121,10 @@ namespace LatexConverter
                 {
                     sb.Append($"{Dictionaries.ReverseMathFontMap[c]} ");
                 }
-                else
-                {
-                    sb.Append(c);
-                }
+                else { sb.Append(c); }
+
             }
-            return sb.ToString();
+            return Regex.Replace(sb.ToString(), @" ([,.])", "$1");
         }
 
         /// <summary>
