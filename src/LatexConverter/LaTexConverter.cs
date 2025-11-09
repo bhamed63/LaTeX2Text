@@ -54,7 +54,7 @@ namespace LatexConverter
             return Process(normalized_input, new ScreenReaderVisitor());
         }
 
-        private string ConvertHumanToLatex(string humanFriendlyText)
+        public string ConvertHumanToLatex(string humanFriendlyText)
         {
             if (string.IsNullOrEmpty(humanFriendlyText)) return "";
 
@@ -63,17 +63,40 @@ namespace LatexConverter
             {
                 char c = humanFriendlyText[i];
 
-                if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()))
+                if (i + 1 < humanFriendlyText.Length)
                 {
-                    sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]} ");
+                    char next_c = humanFriendlyText[i + 1];
+                    if (next_c == '\u20D7') { sb.Append($"\\vec{{{c}}} "); i++; continue; }
+                    if (next_c == '\u0302') { sb.Append($"\\hat{{{c}}} "); i++; continue; }
                 }
-                else if (Dictionaries.ReverseSupMap.ContainsKey(c))
+
+                if (Dictionaries.ReverseSupMap.ContainsKey(c))
                 {
                     sb.Append($"^{Dictionaries.ReverseSupMap[c]}");
                 }
                 else if (Dictionaries.ReverseSubMap.ContainsKey(c))
                 {
-                    sb.Append($"_{Dictionaries.ReverseSubMap[c]}");
+                    var base_char = Dictionaries.ReverseSubMap[c];
+                    if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(base_char.ToString()))
+                    {
+                        sb.Append($"_\\{Dictionaries.ReverseHumanFriendlySymbolMap[base_char.ToString()]}");
+                    }
+                    else
+                    {
+                        sb.Append($"_{base_char}");
+                    }
+                }
+                else if (c == '°')
+                {
+                    sb.Append(@"\circ ");
+                }
+                else if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()) && c != ' ')
+                {
+                    sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]} ");
+                }
+                else if (Dictionaries.ReverseMathFontMap.ContainsKey(c))
+                {
+                    sb.Append($"{Dictionaries.ReverseMathFontMap[c]} ");
                 }
                 else
                 {

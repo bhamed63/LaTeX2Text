@@ -182,5 +182,13 @@ namespace LatexConverter
             {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'I', 'ℐ'}, {'L', 'ℒ'},
             {'M', 'ℳ'}, {'R', 'ℛ'}
         };
+
+        public static readonly Dictionary<char, string> ReverseMathFontMap = new()
+        {
+            {'ℝ', @"\mathbb{R}"}, {'ℂ', @"\mathbb{C}"}, {'ℕ', @"\mathbb{N}"}, {'ℚ', @"\mathbb{Q}"}, {'ℤ', @"\mathbb{Z}"},
+            {'ℰ', @"\mathcal{E}"}, {'ℱ', @"\mathcal{F}"}, {'ℋ', @"\mathcal{H}"}, {'ℬ', @"\mathcal{B}"}, {'ℐ', @"\mathcal{I}"},
+            {'ℛ', @"\mathcal{R}"}, {'ℒ', @"\mathcal{L}"}, {'ℳ', @"\mathcal{M}"},
+            {'ℭ', @"\mathfrak{C}"}, {'ℌ', @"\mathfrak{H}"}, {'ℑ', @"\mathfrak{I}"}, {'ℜ', @"\mathfrak{R}"}, {'ℨ', @"\mathfrak{Z}"}
+        };
     }
 }
