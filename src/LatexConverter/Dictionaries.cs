@@ -142,6 +142,15 @@ namespace LatexConverter
         };
 
         /// <summary>
+        /// A map of superscript Unicode characters to their base character representations.
+        /// </summary>
+        public static readonly Dictionary<char, char> ReverseSupMap = SupMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+
+        /// <summary>
+        /// A map of subscript Unicode characters to their base character representations.
+        /// </summary>
+        public static readonly Dictionary<char, char> ReverseSubMap = SubMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+        /// <summary>
         /// A map of characters to their math blackboard bold Unicode representations.
         /// </summary>
         public static readonly Dictionary<char, char> MathbbMap = new()

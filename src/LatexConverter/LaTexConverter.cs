@@ -33,6 +33,17 @@ namespace LatexConverter
         }
 
         /// <summary>
+        /// Converts a human-friendly string (with Unicode) to a screen-reader-friendly format.
+        /// </summary>
+        /// <param name="human_friendly_text">The human-friendly string to convert.</param>
+        /// <returns>The screen-reader-friendly text.</returns>
+        public string ConvertHumanFriendlyToScreenFriendlyText(string human_friendly_text)
+        {
+            var latex_equivalent = ConvertHumanToLatex(human_friendly_text);
+            return ConvertToScreenReaderFriendlyText(latex_equivalent);
+        }
+
+        /// <summary>
         /// Converts a LaTeX string to a format suitable for screen readers.
         /// </summary>
         /// <param name="latex_input">The LaTeX string to convert.</param>
@@ -41,6 +52,35 @@ namespace LatexConverter
         {
             var normalized_input = NormalizeStructuralPatterns(latex_input);
             return Process(normalized_input, new ScreenReaderVisitor());
+        }
+
+        private string ConvertHumanToLatex(string humanFriendlyText)
+        {
+            if (string.IsNullOrEmpty(humanFriendlyText)) return "";
+
+            var sb = new StringBuilder();
+            for (int i = 0; i < humanFriendlyText.Length; i++)
+            {
+                char c = humanFriendlyText[i];
+
+                if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()))
+                {
+                    sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]} ");
+                }
+                else if (Dictionaries.ReverseSupMap.ContainsKey(c))
+                {
+                    sb.Append($"^{Dictionaries.ReverseSupMap[c]}");
+                }
+                else if (Dictionaries.ReverseSubMap.ContainsKey(c))
+                {
+                    sb.Append($"_{Dictionaries.ReverseSubMap[c]}");
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
         }
 
         /// <summary>
