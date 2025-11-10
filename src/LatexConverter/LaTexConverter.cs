@@ -264,7 +264,10 @@ namespace LatexConverter
         /// <returns>The post-processed text.</returns>
         private string ApplyScreenReaderPostProcessing(string text)
         {
-            text = Regex.Replace(text, @"(\w+)\((.*?)\)", "$1 of $2");
+            // Convert math functions like f(x) but ignore plural hints like quark(s)
+            text = Regex.Replace(text, @"\b([a-zA-Z])\((.*?)\)", "$1 of $2");
+
+            // Optional: clean up spaces around parentheses
             text = Regex.Replace(text, @"\(\s+", "(");
             text = Regex.Replace(text, @"\s+\)", ")");
             return text;
