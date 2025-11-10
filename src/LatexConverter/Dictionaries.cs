@@ -53,7 +53,7 @@ namespace LatexConverter
         /// </summary>
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
             { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
-            { @"\otimes", "tensor product" }, { @"\odot", "circled dot" },
+            { @"\circ", " degrees " }, { @"\otimes", "tensor product" }, { @"\odot", "circled dot" },
             { @"\parallel", "parallel to" }, { @"\perp", "perpendicular to" },
             { @"\implies", "implies" }, { @"\iff", "if and only if" },
             { @"\rightarrow", "right arrow" }, { @"\leftarrow", "left arrow" }, { @"\uparrow", "up arrow" }, { @"\downarrow", "down arrow" },

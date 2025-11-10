@@ -232,6 +232,7 @@ namespace LatexConverter
         /// <returns>The post-processed text.</returns>
         private string ApplyScreenReaderPostProcessing(string text)
         {
+            text = Regex.Replace(text, @"(\w+)\((.*?)\)", "$1 of $2");
             text = Regex.Replace(text, @"\(\s+", "(");
             text = Regex.Replace(text, @"\s+\)", ")");
             return text;
