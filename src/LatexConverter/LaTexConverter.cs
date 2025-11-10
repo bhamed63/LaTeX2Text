@@ -565,6 +565,7 @@ namespace LatexConverter
     public abstract record AstNode
     {
         public abstract T Accept<T>(IVisitor<T> visitor);
+        public abstract T ExceptionalAccept<T>(IVisitor<T> visitor);
         public virtual bool NeedsParentheses() => false;
     }
     /// <summary>
@@ -573,6 +574,9 @@ namespace LatexConverter
     public record TextNode(string Text) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitText(this);
+
+        public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitText(this);
+
         public override bool NeedsParentheses() => !Regex.IsMatch(Text, @"^[a-zA-Z0-9]+$");
     }
     /// <summary>
@@ -581,6 +585,7 @@ namespace LatexConverter
     public record CommandNode(string Command, List<AstNode> Args, AstNode Subscript, AstNode Superscript) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCommand(this);
+        public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitCommand(this);
     }
     /// <summary>
     /// Represents a group of nodes in the AST, typically enclosed in braces.
@@ -588,6 +593,9 @@ namespace LatexConverter
     public record GroupNode(List<AstNode> Body) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
+
+        public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitGroup(this);
+
         public override bool NeedsParentheses() => this.Body.Count > 1 || this.Body.Any(b => b is ScriptNode scriptNode && scriptNode.Script is GroupNode);
     }
     /// <summary>
@@ -597,6 +605,7 @@ namespace LatexConverter
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitScript(this);
 
+        public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitScript(this);
     }
 
     /// <summary>
@@ -605,6 +614,8 @@ namespace LatexConverter
     public record MatrixNode(string Content) : AstNode
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitMatrix(this);
+
+        public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitMatrix(this);
     }
 
     /// <summary>
@@ -747,10 +758,15 @@ namespace LatexConverter
     public interface IVisitor<T>
     {
         T VisitText(TextNode node);
+        T ExceptionalVisitText(TextNode node);
         T VisitCommand(CommandNode node);
+        T ExceptionalVisitCommand(CommandNode node);
         T VisitGroup(GroupNode node);
+        T ExceptionalVisitGroup(GroupNode node);
         T VisitScript(ScriptNode node);
+        T ExceptionalVisitScript(ScriptNode node);
         T VisitMatrix(MatrixNode node);
+        T ExceptionalVisitMatrix(MatrixNode node);
     }
 
     /// <summary>
@@ -759,10 +775,15 @@ namespace LatexConverter
     public abstract class BaseVisitor<T> : IVisitor<T>
     {
         public abstract T VisitText(TextNode node);
+        public abstract T ExceptionalVisitText(TextNode node);
         public abstract T VisitCommand(CommandNode node);
+        public abstract T ExceptionalVisitCommand(CommandNode node);
         public abstract T VisitGroup(GroupNode node);
+        public abstract T ExceptionalVisitGroup(GroupNode node);
         public abstract T VisitScript(ScriptNode node);
+        public abstract T ExceptionalVisitScript(ScriptNode node);
         public abstract T VisitMatrix(MatrixNode node);
+        public abstract T ExceptionalVisitMatrix(MatrixNode node);
     }
 
     /// <summary>
@@ -771,8 +792,8 @@ namespace LatexConverter
     public class OpenAIVisitor : BaseVisitor<string>
     {
         public override string VisitText(TextNode node) => node.Text;
+        public override string ExceptionalVisitText(TextNode node) => node.Text;
 
-        //public override string VisitGroup(GroupNode node) => $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
         public override string VisitGroup(GroupNode node)
         {
             if (node.NeedsParentheses())
@@ -780,10 +801,36 @@ namespace LatexConverter
             return $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
         }
 
+        public override string ExceptionalVisitGroup(GroupNode node)
+        {
+            if (node.NeedsParentheses())
+                return $"({string.Join("", node.Body.Select(n => n.ExceptionalAccept(this)))})";
+            return $"{string.Join("", node.Body.Select(n => n.ExceptionalAccept(this)))}";
+        }
+
         public override string VisitScript(ScriptNode node)
         {
             string baseText = node.Base.Accept(this);
             string scriptText = node.Script.Accept(this);
+            string op = node.IsSuperscript ? "^" : "_";
+
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode)
+            {
+                if (cmdNode.Command == @"\circ") return $"{baseText} degrees";
+                if (cmdNode.Command == @"\prime") return $"{baseText}'";
+            }
+
+            if (node.NeedsParentheses())
+            {
+                return $"{baseText}{op}({scriptText})";
+            }
+            return $"{baseText}{op}{scriptText}";
+        }
+
+        public override string ExceptionalVisitScript(ScriptNode node)
+        {
+            string baseText = node.Base.ExceptionalAccept(this);
+            string scriptText = node.Script.ExceptionalAccept(this);
             string op = node.IsSuperscript ? "^" : "_";
 
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
@@ -842,6 +889,50 @@ namespace LatexConverter
                     return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
             }
         }
+        public override string ExceptionalVisitCommand(CommandNode node)
+        {
+            switch (node.Command)
+            {
+                case @"\frac":
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
+                case @"\sqrt":
+                    return HandleSqrt(node);
+                case @"\vec":
+                case @"\mathcal":
+                case @"\mathbb":
+                case @"\text":
+                case @"\mathrm":
+                case @"\textrm":
+                case @"\mathbf":
+                case @"\mathit":
+                case @"\mathsf":
+                case @"\mathtt":
+                case @"\mathfrak":
+                case @"\mathscr":
+                    return HandleTextFormatting(node);
+                case @"\cos":
+                case @"\sin":
+                case @"\tan":
+                case @"\log":
+                case @"\ln":
+                case @"\exp":
+                case @"\det":
+                    return HandleMathFunctions(node);
+                case @"\hat":
+                    return HandleHat(node);
+                case @"\overline":
+                    return $@"overline({node.Args[0].Accept(this)})";
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
+                case @"\lim":
+                    return HandleLimitStyleCommands(node);
+                default:
+                    return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
+            }
+        }
+
 
         private string HandleFractionAndBinomial(CommandNode node)
         {
@@ -914,6 +1005,11 @@ namespace LatexConverter
             });
             return $"matrix[{string.Join(", ", matrix)}]";
         }
+
+        public override string ExceptionalVisitMatrix(MatrixNode node)
+        {
+            return VisitMatrix(node);
+        }
     }
 
     /// <summary>
@@ -929,9 +1025,16 @@ namespace LatexConverter
         }
         public override string VisitText(TextNode node) => node.Text;
 
+        public override string ExceptionalVisitText(TextNode node) => node.Text;
+
         public override string VisitGroup(GroupNode node)
         {
             return $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
+        }
+
+        public override string ExceptionalVisitGroup(GroupNode node)
+        {
+            return $"{string.Join("", node.Body.Select(n => n.ExceptionalAccept(this)))}";
         }
 
         public override string VisitScript(ScriptNode node)
@@ -944,6 +1047,25 @@ namespace LatexConverter
             }
 
             var scriptContent = node.Script.Accept(this);
+
+            if (!node.IsSuperscript && !_allSubscriptsAreConvertible)
+            {
+                return $"{baseText}_{scriptContent}";
+            }
+
+            return $"{baseText}{ToUnicode(scriptContent, node.IsSuperscript, node.Script)}";
+        }
+
+        public override string ExceptionalVisitScript(ScriptNode node)
+        {
+            string baseText = node.Base.ExceptionalAccept(this);
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode)
+            {
+                if (cmdNode.Command == @"\circ") return $"{baseText}°";
+                if (cmdNode.Command == @"\prime") return $"{baseText}′";
+            }
+
+            var scriptContent = node.Script.ExceptionalAccept(this);
 
             if (!node.IsSuperscript && !_allSubscriptsAreConvertible)
             {
@@ -997,6 +1119,10 @@ namespace LatexConverter
                 default:
                     return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command);
             }
+        }
+        public override string ExceptionalVisitCommand(CommandNode node)
+        {
+            return VisitCommand(node);
         }
 
         private string HandleFractionAndBinomial(CommandNode node)
@@ -1117,6 +1243,11 @@ namespace LatexConverter
             });
             return string.Join("\n", matrix);
         }
+
+        public override string ExceptionalVisitMatrix(MatrixNode node)
+        {
+            return VisitMatrix(node);
+        }
     }
 
     /// <summary>
@@ -1129,11 +1260,27 @@ namespace LatexConverter
             if (Regex.IsMatch(node.Text, @"[a-zA-Z0-9]+(-[a-zA-Z0-9]+)+")) return node.Text;
             return node.Text switch
             {
-                "-" => "minus",
-                "+" => "plus",
-                "=" => "equals",
-                "*" => "times",
-                "/" => "divided by",
+                "+" => " plus ",
+                "-" => " minus ",
+                "=" => " equals ",
+                "*" => " times ",
+                "/" => " divided by ",
+                "ħ" => " h bar ",
+                _ => node.Text
+            };
+        }
+
+        public override string ExceptionalVisitText(TextNode node)
+        {
+            if (Regex.IsMatch(node.Text, @"[a-zA-Z0-9]+(-[a-zA-Z0-9]+)+")) return node.Text;
+            return node.Text switch
+            {
+                "+" => " plus ",
+                "-" => " minus ",
+                "=" => " equals ",
+                "*" => " times ",
+                "/" => " divided by ",
+                "ħ" => " h bar ",
                 _ => node.Text
             };
         }
@@ -1141,6 +1288,11 @@ namespace LatexConverter
         public override string VisitGroup(GroupNode node)
         {
             return string.Join(" ", node.Body.Select(n => n.Accept(this)));
+        }
+
+        public override string ExceptionalVisitGroup(GroupNode node)
+        {
+            return string.Join(" ", node.Body.Select(n => n.ExceptionalAccept(this)));
         }
 
 
@@ -1170,6 +1322,33 @@ namespace LatexConverter
             return $"{baseText} subscript {node.Script.Accept(this).Trim()}";
         }
 
+        public override string ExceptionalVisitScript(ScriptNode node)
+        {
+            string baseText = node.Base.ExceptionalAccept(this).Trim();
+            if (node.IsSuperscript && node.Script is CommandNode cmdNode)
+            {
+                if (cmdNode.Command == @"\circ") return $"{baseText} degrees";
+                if (cmdNode.Command == @"\prime") return $"{baseText} prime";
+            }
+
+            string scriptText = node.Script.ExceptionalAccept(new PlainTextVisitor());
+            if (node.IsSuperscript)
+            {
+                switch (scriptText)
+                {
+                    case "+": return $"{baseText} plus";
+                    case "-": return $"{baseText} minus";
+                    case "*": return $"{baseText} star";
+                    case "′": return $"{baseText} prime";
+                    case "2": return $"{baseText} squared";
+                    case "3": return $"{baseText} cubed";
+                    case "°": return $"{baseText} degrees";
+                    default: return $"{baseText} to the power of {node.Script.ExceptionalAccept(this).Trim()}";
+                }
+            }
+            return $"{baseText} subscript {node.Script.ExceptionalAccept(this).Trim()} ";
+        }
+
         public override string VisitCommand(CommandNode node)
         {
             switch (node.Command)
@@ -1178,7 +1357,7 @@ namespace LatexConverter
                 case @"\binom":
                     return HandleFractionAndBinomial(node);
                 case @"\sqrt":
-                    return $"the square root of {node.Args[0].Accept(this)}";
+                    return HandleSQRT(node);
                 case @"\vec":
                 case @"\hat":
                 case @"\mathcal":
@@ -1207,12 +1386,80 @@ namespace LatexConverter
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
-                case @"\lim":
                     return HandleLimitStyleCommands(node);
+                case @"\lim":
+                    return HandleLimitCommands(node);
+                case @"\pm": return "plus-minus";
+                case @"\mp": return "minus-plus";
+                case @"\equiv": return "congruent to";
+                case @"\Rightarrow": return "right double arrow";
+                case @"\Leftrightarrow": return "if and only if";
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
             }
+        }
+
+        public override string ExceptionalVisitCommand(CommandNode node)
+        {
+            switch (node.Command)
+            {
+                case @"\frac":
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
+                case @"\sqrt":
+                    return HandleSQRT(node);
+                case @"\vec":
+                case @"\hat":
+                case @"\mathcal":
+                    return HandleHatVecAndMathcal(node);
+                case @"\text":
+                case @"\mathrm":
+                case @"\textrm":
+                case @"\mathbf":
+                case @"\mathit":
+                case @"\mathsf":
+                case @"\mathtt":
+                case @"\mathfrak":
+                case @"\mathscr":
+                case @"\overline":
+                    return HandleStyledText(node);
+                case @"\sin":
+                case @"\cos":
+                case @"\tan":
+                case @"\log":
+                case @"\ln":
+                case @"\exp":
+                case @"\det":
+                    return HandleMathFunctions(node);
+                case @"\mathbb":
+                    return HandleMathbb(node);
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
+                    return HandleLimitStyleCommands(node);
+                case @"\lim":
+                    return HandleLimitCommands(node);
+                //case @"\pm": return "plus-minus";
+                //case @"\mp": return "minus-plus";
+                //case @"\equiv": return "congruent to";
+                //case @"\Rightarrow": return "right double arrow";
+                //case @"\Leftrightarrow": return "if and only if";
+                case @"\pm":
+                case @"\mp":
+                case @"\equiv":
+                case @"\Rightarrow":
+                case @"\Leftrightarrow":
+                default:
+                    string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
+                    string screenReaderSymbolVal = Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
+                    return Dictionaries.ExceptionalScreenReaderSymbolMap.GetValueOrDefault(node.Command, screenReaderSymbolVal);
+            }
+        }
+
+        private string HandleSQRT(CommandNode node)
+        {
+            return $"the square root of {node.Args[0].Accept(this)}";
         }
 
         private string HandleFractionAndBinomial(CommandNode node)
@@ -1277,28 +1524,18 @@ namespace LatexConverter
             return $"{style} {node.Args[0].Accept(this)}";
         }
 
+        private string HandleLimitCommands(CommandNode node)
+        {
+            var sub_lim = node.Subscript != null ? node.Subscript.ExceptionalAccept(this) : "";
+            return $"limit as {sub_lim} of";
+        }
+
         private string HandleLimitStyleCommands(CommandNode node)
         {
-            var commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
-            var sb = new StringBuilder();
-
-            if (node.Command == @"\lim")
-            {
-                sb.Append($"limit as {node.Subscript.Accept(this)} of");
-            }
-            else
-            {
-                sb.Append(commandName);
-                if (node.Subscript != null)
-                {
-                    sb.Append($" from {node.Subscript.Accept(this)}");
-                }
-                if (node.Superscript != null)
-                {
-                    sb.Append($" to {node.Superscript.Accept(this)}");
-                }
-            }
-            return sb.ToString();
+            var sub = node.Subscript != null ? node.Subscript.Accept(this) : "";
+            var sup = node.Superscript != null ? node.Superscript.Accept(this) : "";
+            string commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
+            return $"{commandName} from {sub} to {sup}";
         }
 
         public override string VisitMatrix(MatrixNode node)
@@ -1315,6 +1552,11 @@ namespace LatexConverter
 
             return $"a {num_rows}x{num_cols} matrix with rows {string.Join(" and ", matrix_desc)}";
         }
+
+        public override string ExceptionalVisitMatrix(MatrixNode node)
+        {
+            return VisitMatrix(node);
+        }
     }
 
     /// <summary>
@@ -1323,10 +1565,24 @@ namespace LatexConverter
     public class PlainTextVisitor : BaseVisitor<string>
     {
         public override string VisitText(TextNode node) => node.Text;
+
+        public override string ExceptionalVisitText(TextNode node) => node.Text;
+
         public override string VisitGroup(GroupNode node) => string.Concat(node.Body.Select(n => n.Accept(this)));
+
+        public override string ExceptionalVisitGroup(GroupNode node) => string.Concat(node.Body.Select(n => n.ExceptionalAccept(this)));
+
         public override string VisitScript(ScriptNode node) => node.Base.Accept(this) + node.Script.Accept(this);
+
+        public override string ExceptionalVisitScript(ScriptNode node) => node.Base.ExceptionalAccept(this) + node.Script.ExceptionalAccept(this);
+
         public override string VisitCommand(CommandNode node) => string.Concat(node.Args.Select(n => n.Accept(this)));
+
+        public override string ExceptionalVisitCommand(CommandNode node) => string.Concat(node.Args.Select(n => n.ExceptionalAccept(this)));
+
         public override string VisitMatrix(MatrixNode node) => node.Content;
+
+        public override string ExceptionalVisitMatrix(MatrixNode node) => node.Content;
     }
     #endregion
 }

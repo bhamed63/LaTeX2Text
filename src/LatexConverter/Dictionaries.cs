@@ -69,8 +69,8 @@ namespace LatexConverter
             { @"\Rightarrow", "rightwards double arrow" }, { @"\Leftarrow", "leftwards double arrow" },
             { @"\leftrightarrow", "left right arrow" }, { @"\Leftrightarrow", "left right double arrow" },
             { @"\leq", "less than or equal to" }, { @"\geq", "greater than or equal to" },
-            { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" }, { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
-            { @"\infty", "infinity" }, { @"\nabla", "nabla" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
+            { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" }, { @"\equiv", "congruent to" }, { @"\propto", "proportional to" },
+            { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h bar" }, { @"\wp", "Weierstrass p" },
             { @"\Re", "Real part" }, { @"\Im", "Imaginary part" },
             { @"\forall", "for all" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "approaches" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
@@ -80,7 +80,14 @@ namespace LatexConverter
             { @"\diamondsuit", "diamond suit" }, { @"\spadesuit", "spade suit" }, { @"\natural", "natural" },
             { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "downward triangle" },
             { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
-            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }
+            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" },
+            { @"\exists", "there exists" }
+        };
+        /// <summary>
+        /// A map of LaTeX commands to their screen reader-friendly representations.
+        /// </summary>
+        public static readonly Dictionary<string, string> ExceptionalScreenReaderSymbolMap = new() {
+            { @"\rightarrow", "approaches" }
         };
         /// <summary>
         /// A map of LaTeX commands to their human-friendly Unicode representations.
