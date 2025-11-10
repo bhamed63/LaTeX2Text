@@ -1127,11 +1127,11 @@ namespace LatexConverter
                 case @"\prod":
                 case @"\lim":
                     return HandleLimitStyleCommands(node);
-                case @"\pm": return "plus or minus";
-                case @"\mp": return "minus or plus";
-                case @"\equiv": return "equivalent to";
-                case @"\Rightarrow": return "rightwards double arrow";
-                case @"\Leftrightarrow": return "left right double arrow";
+                case @"\pm": return "plus-minus";
+                case @"\mp": return "minus-plus";
+                case @"\equiv": return "congruent to";
+                case @"\Rightarrow": return "right double arrow";
+                case @"\Leftrightarrow": return "if and only if";
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);

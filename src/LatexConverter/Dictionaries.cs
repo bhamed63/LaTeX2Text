@@ -57,10 +57,10 @@ namespace LatexConverter
             { @"\parallel", "parallel to" }, { @"\perp", "perpendicular to" },
             { @"\implies", "implies" }, { @"\iff", "if and only if" },
             { @"\rightarrow", "right arrow" }, { @"\leftarrow", "left arrow" }, { @"\uparrow", "up arrow" }, { @"\downarrow", "down arrow" },
-            { @"\Rightarrow", "rightwards double arrow" }, { @"\Leftarrow", "leftwards double arrow" },
-            { @"\leftrightarrow", "left right arrow" }, { @"\Leftrightarrow", "left right double arrow" },
+            { @"\Rightarrow", "right double arrow" }, { @"\Leftarrow", "left double arrow" },
+            { @"\leftrightarrow", "left right arrow" }, { @"\Leftrightarrow", "if and only if" },
             { @"\leq", "less than or equal to" }, { @"\geq", "greater than or equal to" },
-            { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" }, { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
+            { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" }, { @"\equiv", "congruent to" }, { @"\propto", "proportional to" },
             { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
             { @"\Re", "Real part" }, { @"\Im", "Imaginary part" },
             { @"\forall", "for all" }, { @"\to", "approaches" },
@@ -71,7 +71,8 @@ namespace LatexConverter
             { @"\diamondsuit", "diamond suit" }, { @"\spadesuit", "spade suit" }, { @"\natural", "natural" },
             { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "downward triangle" },
             { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
-            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }
+            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }, 
+            { @"\exists", "there exists" }
         };
         /// <summary>
         /// A map of LaTeX commands to their human-friendly Unicode representations.
