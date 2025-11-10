@@ -1085,7 +1085,7 @@ namespace LatexConverter
                     default: return $"{baseText} to the power of {node.Script.Accept(this).Trim()}";
                 }
             }
-            return $"{baseText} subscript {node.Script.Accept(this).Trim()}";
+            return $"{baseText} subscript {node.Script.Accept(this).Trim()} ";
         }
 
         public override string VisitCommand(CommandNode node)
@@ -1127,9 +1127,9 @@ namespace LatexConverter
                 case @"\prod":
                 case @"\lim":
                     return HandleLimitStyleCommands(node);
-                case @"\pm": return "plus-minus";
+                case @"\pm": return "plus or minus";
                 case @"\mp": return "minus or plus";
-                case @"\equiv": return "congruent to";
+                case @"\equiv": return "equivalent to";
                 case @"\Rightarrow": return "rightwards double arrow";
                 case @"\Leftrightarrow": return "left right double arrow";
                 default:
