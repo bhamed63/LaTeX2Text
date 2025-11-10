@@ -78,7 +78,7 @@ namespace LatexConverter
 
                 if (c == '∫')
                 {
-                    sb.Append(@"\int ");
+                    sb.Append(@"\int");
                     i++;
 
 
