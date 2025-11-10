@@ -1050,7 +1050,7 @@ namespace LatexConverter
                 "=" => " equals ",
                 "*" => " times ",
                 "/" => " divided by ",
-                "ħ" => "h bar",
+                "ħ" => "h-bar",
                 _ => node.Text
             };
         }
@@ -1082,7 +1082,7 @@ namespace LatexConverter
                     case "2": return $"{baseText} squared";
                     case "3": return $"{baseText} cubed";
                     case "°": return $"{baseText} degrees";
-                    default: return $"{baseText} superscript {node.Script.Accept(this).Trim()}";
+                    default: return $"{baseText} to the power of {node.Script.Accept(this).Trim()}";
                 }
             }
             return $"{baseText} subscript {node.Script.Accept(this).Trim()}";
@@ -1127,11 +1127,11 @@ namespace LatexConverter
                 case @"\prod":
                 case @"\lim":
                     return HandleLimitStyleCommands(node);
-                case @"\pm": return "plus or minus";
+                case @"\pm": return "plus-minus";
                 case @"\mp": return "minus or plus";
                 case @"\equiv": return "congruent to";
-                case @"\Rightarrow": return "implies";
-                case @"\Leftrightarrow": return "if and only if";
+                case @"\Rightarrow": return "rightwards double arrow";
+                case @"\Leftrightarrow": return "left right double arrow";
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -1170,7 +1170,7 @@ namespace LatexConverter
                 case "tan": return $"tangent of {argument}";
                 case "log": return $"logarithm of {argument}";
                 case "ln": return $"natural logarithm of {argument}";
-                case "exp": return $"e superscript {argument}";
+                case "exp": return $"e to the power of {argument}";
                 case "det": return $"determinant of {argument}";
                 default: return "";
             }
