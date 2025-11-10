@@ -71,8 +71,14 @@ namespace LatexConverter
             { @"\diamondsuit", "diamond suit" }, { @"\spadesuit", "spade suit" }, { @"\natural", "natural" },
             { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "downward triangle" },
             { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
-            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }, 
+            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" },
             { @"\exists", "there exists" }
+        };
+        /// <summary>
+        /// A map of LaTeX commands to their screen reader-friendly representations.
+        /// </summary>
+        public static readonly Dictionary<string, string> ExceptionalScreenReaderSymbolMap = new() {
+            { @"\rightarrow", "approaches" }
         };
         /// <summary>
         /// A map of LaTeX commands to their human-friendly Unicode representations.
