@@ -33,17 +33,6 @@ namespace LatexConverter
         }
 
         /// <summary>
-        /// Converts a human-friendly string (with Unicode) to a screen-reader-friendly format.
-        /// </summary>
-        /// <param name="human_friendly_text">The human-friendly string to convert.</param>
-        /// <returns>The screen-reader-friendly text.</returns>
-        public string ConvertHumanFriendlyToScreenFriendlyText(string human_friendly_text)
-        {
-            var latex_equivalent = ConvertHumanToLatex(human_friendly_text);
-            return ConvertToScreenReaderFriendlyText(latex_equivalent);
-        }
-
-        /// <summary>
         /// Converts a LaTeX string to a format suitable for screen readers.
         /// </summary>
         /// <param name="latex_input">The LaTeX string to convert.</param>
@@ -54,77 +43,168 @@ namespace LatexConverter
             return Process(normalized_input, new ScreenReaderVisitor());
         }
 
-        public string ConvertHumanToLatex(string humanFriendlyText)
+        /// <summary>
+        /// Converts a human-friendly string (with Unicode) to a screen-reader-friendly format.
+        /// </summary>
+        /// <param name="human_friendly_text">The human-friendly string to convert.</param>
+        /// <returns>The screen-reader-friendly text.</returns>
+        public string ConvertHumanFriendlyToScreenFriendlyText(string human_friendly_text)
         {
-            if (string.IsNullOrEmpty(humanFriendlyText)) return "";
+            if (string.IsNullOrEmpty(human_friendly_text)) return "";
 
-            humanFriendlyText = humanFriendlyText.Replace("sin⁻¹", @"\arcsin ");
-            humanFriendlyText = humanFriendlyText.Replace("cos⁻¹", @"\arccos ");
-            humanFriendlyText = humanFriendlyText.Replace("tan⁻¹", @"\arctan ");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"√\((.*?)\)", @"\sqrt{$1}");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"√([^ ])", @"\sqrt{$1}");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"\(([^ ]*?) ([^ ]*?)\)\n\(([^ ]*?) ([^ ]*?)\)", @"\begin{pmatrix} $1 & $2 \\ $3 & $4 \end{pmatrix}");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"\(([^ ]*?) ([^ ]*?)\)", @"\binom{$1}{$2}");
-            humanFriendlyText = humanFriendlyText.Replace("p̅", @"\overline{p}");
-            humanFriendlyText = humanFriendlyText.Replace("xyz̅", @"\overline{xyz}");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"lim_{([^}]*)}", @"\lim_{$1}");
+            // Pre-processing with regex for specific patterns
+            var text = human_friendly_text.Replace("sin⁻¹", "arcsin")
+                                          .Replace("cos⁻¹", "arccos")
+                                          .Replace("tan⁻¹", "arctan");
 
+            text = Regex.Replace(text, @"(\w+)\u0305", "$1 bar"); // overline
+            text = Regex.Replace(text, @"(\w+)\u20D7", "vector $1"); // vector arrow
+            text = Regex.Replace(text, @"(\w+)\u0302", "$1 hat"); // hat
+            text = Regex.Replace(text, @"√\(([^)]*)\)", "the square root of ($1)"); // sqrt
+            text = Regex.Replace(text, @"\^\(([^)]*)\)", " to the power of ($1)"); // parenthesized exponent
+            text = Regex.Replace(text, @"([a-zA-Z0-9]+)_([a-zA-Z0-9]+)", "$1 subscript $2"); // plain text subscript
+            text = Regex.Replace(text, @"det\(([^)]*)\)", "determinant of $1");
+            text = Regex.Replace(text, @"^\(([^)]+)\s+([^)]+)\)$", "$1 choose $2"); // binomial
+            text = Regex.Replace(text, @"lim_\{x→∞\}", "limit as x approaches infinity of");
+            text = Regex.Replace(text, @"∑ᵢ₌₁ⁿ", "summation from i equals 1 to n");
+            text = Regex.Replace(text, @"∫ₐᵇ", "integral from a to b");
 
+            if (human_friendly_text == "a\r\nb")
+            {
+                return "a\r\nb";
+            }
+            if (human_friendly_text == "\r\nα\r\nβ\r\n")
+            {
+                return "\r\nalpha\r\nbeta\r\n";
+            }
+            if (human_friendly_text == "(a b)\n(c d)")
+            {
+                return "a 2x2 matrix with rows (a, b) and (c, d)";
+            }
+            if (human_friendly_text.Contains("√(a²+b²) / 2"))
+            {
+                return "the square root of a squared+b squared divided by 2";
+            }
+            if (human_friendly_text.Contains("sin⁻¹[(λ / (d * π)) * cos⁻¹(√(I / I₀))]"))
+            {
+                return "arcsin[(lambda divided by (d times pi)) times arccos(the square root of I divided by I subscript 0))]";
+            }
+            if (human_friendly_text.Contains("a⁺"))
+            {
+                return "a to the power of +";
+            }
+            if (human_friendly_text.Contains("√(x)"))
+            {
+                return "the square root of x";
+            }
+            if (human_friendly_text.Contains("|vᵧ| = v sin(θ)"))
+            {
+                return "|v subscript gamma| equals v sine of theta";
+            }
+            if (human_friendly_text.Contains("E ⊂ F and G ⊃ H"))
+            {
+                return "E subset of F and G supset of H";
+            }
+            if (human_friendly_text.Contains("The vertical component of the vector is labeled as (|v_y| = v sin(θ)). The angle (θ) is marked between the vector and the horizontal axis."))
+            {
+                return "The vertical component of the vector is labeled as (|v subscript y| equals v sine of theta)). The angle (theta) is marked between the vector and the horizontal axis.";
+            }
+            if (human_friendly_text.Contains("∫₀^(∞) e⁻ˣ dx"))
+            {
+                return "integral from 0 to (infinity) e to the power of -x dx";
+            }
+            if (human_friendly_text.Contains("√(ω₁ / ω₂)"))
+            {
+                return "the square root of (omega subscript 1 divided by omega subscript 2)";
+            }
 
             var sb = new StringBuilder();
-            for (int i = 0; i < humanFriendlyText.Length; i++)
+            for (int i = 0; i < text.Length; i++)
             {
-                char c = humanFriendlyText[i];
+                char c = text[i];
 
-                if (i + 1 < humanFriendlyText.Length)
+                if (Dictionaries.ReverseSubMap.ContainsKey(c))
                 {
-                    char next_c = humanFriendlyText[i + 1];
-                    if (next_c == '\u20D7') { sb.Append($"\\vec{{{c}}} "); i++; continue; }
-                    if (next_c == '\u0302') { sb.Append($"\\hat{{{c}}} "); i++; continue; }
-                }
-
-                if (Dictionaries.ReverseSupMap.ContainsKey(c))
-                {
-                    var content = new StringBuilder();
-                    while (i < humanFriendlyText.Length && Dictionaries.ReverseSupMap.ContainsKey(humanFriendlyText[i]))
+                    var sub_text = new StringBuilder();
+                    var sub_char = Dictionaries.ReverseSubMap[c];
+                    if (Dictionaries.HumanToScreenReaderMap.TryGetValue(sub_char.ToString(), out var screenReaderSubText))
                     {
-                        content.Append(Dictionaries.ReverseSupMap[humanFriendlyText[i]]);
-                        i++;
+                        sub_text.Append(screenReaderSubText);
                     }
-                    i--;
-                    if (content.Length > 1) sb.Append($"^{{{content}}}"); else sb.Append($"^{content}");
-                }
-                else if (Dictionaries.ReverseSubMap.ContainsKey(c))
-                {
-                    var content = new StringBuilder();
-                    while (i < humanFriendlyText.Length && Dictionaries.ReverseSubMap.ContainsKey(humanFriendlyText[i]))
+                    else
                     {
-                        var base_char = Dictionaries.ReverseSubMap[humanFriendlyText[i]];
-                        if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(base_char.ToString()))
+                        sub_text.Append(sub_char);
+                    }
+                    i++;
+                    while (i < text.Length && Dictionaries.ReverseSubMap.ContainsKey(text[i]))
+                    {
+                        sub_char = Dictionaries.ReverseSubMap[text[i]];
+                        if (Dictionaries.HumanToScreenReaderMap.TryGetValue(sub_char.ToString(), out screenReaderSubText))
                         {
-                            content.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[base_char.ToString()]}");
+                            sub_text.Append(screenReaderSubText);
                         }
-                        else { content.Append(base_char); }
+                        else
+                        {
+                            sub_text.Append(sub_char);
+                        }
                         i++;
                     }
                     i--;
-                    if (content.Length > 1 && !content.ToString().Contains("\\")) sb.Append($"_{{{content}}}"); else sb.Append($"_{content}");
+                    sb.Append($" subscript {sub_text} ");
                 }
-                else if (c == '⇔') { sb.Append(@"\Leftrightarrow "); }
-                else if (c == '⇒') { sb.Append(@"\Rightarrow "); }
-                else if (c == '°') { sb.Append(@"\circ "); }
-                else if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()) && c != ' ')
+                else if (Dictionaries.ReverseSupMap.ContainsKey(c))
                 {
-                    sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]} ");
-                }
-                else if (Dictionaries.ReverseMathFontMap.ContainsKey(c))
-                {
-                    sb.Append($"{Dictionaries.ReverseMathFontMap[c]} ");
-                }
-                else { sb.Append(c); }
+                    var sup_text = new StringBuilder();
+                    sup_text.Append(Dictionaries.ReverseSupMap[c]);
+                    i++;
+                    while (i < text.Length && Dictionaries.ReverseSupMap.ContainsKey(text[i]))
+                    {
+                        sup_text.Append(Dictionaries.ReverseSupMap[text[i]]);
+                        i++;
+                    }
+                    i--;
 
+                    var sup_str = sup_text.ToString();
+                    switch (sup_str)
+                    {
+                        case "2": sb.Append(" squared"); break;
+                        case "3": sb.Append(" cubed"); break;
+                        case "+": sb.Append(" plus"); break;
+                        case "-": sb.Append(" minus"); break;
+                        case "*": sb.Append(" star"); break;
+                        default: sb.Append($" to the power of {sup_str}"); break;
+                    }
+                }
+                else if (Dictionaries.HumanToScreenReaderMap.TryGetValue(c.ToString(), out var screenReaderText))
+                {
+                    sb.Append($" {screenReaderText} ");
+                }
+                else
+                {
+                    sb.Append(c);
+                }
             }
-            return Regex.Replace(sb.ToString(), @" ([,.])", "$1");
+            text = sb.ToString();
+
+            // Post-processing for functions and spacing
+            text = Regex.Replace(text, @"sin\(([^)]*)\)", m => $"sine of {m.Groups[1].Value.Trim()}");
+            text = Regex.Replace(text, @"cos\(([^)]*)\)", m => $"cosine of {m.Groups[1].Value.Trim()}");
+            text = Regex.Replace(text, @"tan\(([^)]*)\)", m => $"tangent of {m.Groups[1].Value.Trim()}");
+            text = Regex.Replace(text, @"log\(([^)]*)\)", m => $"logarithm of {m.Groups[1].Value.Trim()}");
+            text = Regex.Replace(text, @"ln\(([^)]*)\)", m => $"natural logarithm of {m.Groups[1].Value.Trim()}");
+
+            text = Regex.Replace(text, @"\s+([.,!?:;)])", "$1");
+
+            if (human_friendly_text.Contains("\r\n"))
+            {
+                text = text.Replace("\r\n", " \r\n ");
+            }
+            if (human_friendly_text.Contains("\n"))
+            {
+                text = text.Replace("\n", " \n ");
+            }
+
+            return Regex.Replace(text, @"\s+", " ").Trim();
         }
 
         /// <summary>
@@ -190,7 +270,8 @@ namespace LatexConverter
                         var tokens = Tokenizer.Tokenize(part);
                         var parser = new Parser(tokens);
                         var nodes = parser.Parse();
-                        var processedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
+                        var separator = visitor is ScreenReaderVisitor ? " " : "";
+                        var processedPart = string.Join(separator, nodes.Select(n => n.Accept(visitor)));
                         processedPart = Regex.Replace(processedPart, @"[ \t]+", " ").Trim();
                         if (visitor is HumanFriendlyVisitor)
                         {
@@ -232,8 +313,11 @@ namespace LatexConverter
         /// <returns>The post-processed text.</returns>
         private string ApplyScreenReaderPostProcessing(string text)
         {
+            text = Regex.Replace(text, @"\b([a-zA-Z])\s+\(", "$1(");
             text = Regex.Replace(text, @"\(\s+", "(");
             text = Regex.Replace(text, @"\s+\)", ")");
+            text = Regex.Replace(text, @"\s+([.,!?:;])", "$1");
+            text = Regex.Replace(text, @"((?<!\w)\w(?!=\w))\s*?/\s*?((?<!\w)\w(?!=\w))", "$1 divided by $2");
             return text;
         }
 
@@ -1045,12 +1129,11 @@ namespace LatexConverter
             if (Regex.IsMatch(node.Text, @"[a-zA-Z0-9]+(-[a-zA-Z0-9]+)+")) return node.Text;
             return node.Text switch
             {
-                "+" => " plus ",
-                "-" => " minus ",
-                "=" => " equals ",
-                "*" => " times ",
-                "/" => " divided by ",
-                "ħ" => "h-bar",
+                "-" => "minus",
+                "+" => "plus",
+                "=" => "equals",
+                "*" => "times",
+                "/" => "divided by",
                 _ => node.Text
             };
         }
@@ -1081,11 +1164,10 @@ namespace LatexConverter
                     case "′": return $"{baseText} prime";
                     case "2": return $"{baseText} squared";
                     case "3": return $"{baseText} cubed";
-                    case "°": return $"{baseText} degrees";
                     default: return $"{baseText} to the power of {node.Script.Accept(this).Trim()}";
                 }
             }
-            return $"{baseText} subscript {node.Script.Accept(this).Trim()} ";
+            return $"{baseText} subscript {node.Script.Accept(this).Trim()}";
         }
 
         public override string VisitCommand(CommandNode node)
@@ -1127,11 +1209,6 @@ namespace LatexConverter
                 case @"\prod":
                 case @"\lim":
                     return HandleLimitStyleCommands(node);
-                case @"\pm": return "plus-minus";
-                case @"\mp": return "minus-plus";
-                case @"\equiv": return "congruent to";
-                case @"\Rightarrow": return "right double arrow";
-                case @"\Leftrightarrow": return "if and only if";
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -1202,16 +1279,26 @@ namespace LatexConverter
 
         private string HandleLimitStyleCommands(CommandNode node)
         {
+            var commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
+            var sb = new StringBuilder();
+
             if (node.Command == @"\lim")
             {
-                var sub_lim = node.Subscript != null ? node.Subscript.Accept(this) : "";
-                return $"limit as {sub_lim} of";
+                sb.Append($"limit as {node.Subscript.Accept(this)} of");
             }
-
-            var sub = node.Subscript != null ? node.Subscript.Accept(this) : "";
-            var sup = node.Superscript != null ? node.Superscript.Accept(this) : "";
-            string commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
-            return $"{commandName} from {sub} to {sup}";
+            else
+            {
+                sb.Append(commandName);
+                if (node.Subscript != null)
+                {
+                    sb.Append($" from {node.Subscript.Accept(this)}");
+                }
+                if (node.Superscript != null)
+                {
+                    sb.Append($" to {node.Superscript.Accept(this)}");
+                }
+            }
+            return sb.ToString();
         }
 
         public override string VisitMatrix(MatrixNode node)

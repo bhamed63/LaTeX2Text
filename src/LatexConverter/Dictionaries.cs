@@ -52,18 +52,27 @@ namespace LatexConverter
         /// A map of LaTeX commands to their screen reader-friendly representations.
         /// </summary>
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
-            { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
+            { @"\alpha", "alpha" }, { @"\beta", "beta" }, { @"\gamma", "gamma" }, { @"\delta", "delta" },
+            { @"\epsilon", "epsilon" }, { @"\varepsilon", "epsilon" }, { @"\zeta", "zeta" }, { @"\eta", "eta" }, { @"\theta", "theta" },
+            { @"\iota", "iota" }, { @"\kappa", "kappa" }, { @"\varkappa", "kappa" }, { @"\lambda", "lambda" }, { @"\mu", "mu" },
+            { @"\nu", "nu" }, { @"\xi", "xi" }, { @"\omicron", "omicron" }, { @"\pi", "pi" }, { @"\varpi", "pi" },
+            { @"\rho", "rho" }, { @"\varrho", "rho" }, { @"\sigma", "sigma" }, { @"\varsigma", "sigma" }, { @"\tau", "tau" }, { @"\upsilon", "upsilon" },
+            { @"\phi", "phi" }, { @"\varphi", "phi" }, { @"\chi", "chi" }, { @"\psi", "psi" }, { @"\omega", "omega" },
+            { @"\Gamma", "Gamma" }, { @"\Delta", "Delta" }, { @"\Theta", "Theta" }, { @"\Lambda", "Lambda" },
+            { @"\Xi", "Xi" }, { @"\Pi", "Pi" }, { @"\Sigma", "Sigma" }, { @"\Upsilon", "Upsilon" },
+            { @"\Phi", "Phi" }, { @"\Psi", "Psi" }, { @"\Omega", "Omega" },
+            { @"\times", "times" }, { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" }, { @"\cdot", "dot" }, { @"\circ", "degrees" },
             { @"\otimes", "tensor product" }, { @"\odot", "circled dot" },
             { @"\parallel", "parallel to" }, { @"\perp", "perpendicular to" },
             { @"\implies", "implies" }, { @"\iff", "if and only if" },
             { @"\rightarrow", "right arrow" }, { @"\leftarrow", "left arrow" }, { @"\uparrow", "up arrow" }, { @"\downarrow", "down arrow" },
-            { @"\Rightarrow", "right double arrow" }, { @"\Leftarrow", "left double arrow" },
-            { @"\leftrightarrow", "left right arrow" }, { @"\Leftrightarrow", "if and only if" },
+            { @"\Rightarrow", "rightwards double arrow" }, { @"\Leftarrow", "leftwards double arrow" },
+            { @"\leftrightarrow", "left right arrow" }, { @"\Leftrightarrow", "left right double arrow" },
             { @"\leq", "less than or equal to" }, { @"\geq", "greater than or equal to" },
-            { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" }, { @"\equiv", "congruent to" }, { @"\propto", "proportional to" },
-            { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
+            { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" }, { @"\equiv", "equivalent to" }, { @"\propto", "proportional to" },
+            { @"\infty", "infinity" }, { @"\nabla", "nabla" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
             { @"\Re", "Real part" }, { @"\Im", "Imaginary part" },
-            { @"\forall", "for all" }, { @"\to", "approaches" },
+            { @"\forall", "for all" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "approaches" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
             { @"\cup", "union" }, { @"\cap", "intersection" }, { @"\subset", "subset of" }, { @"\supset", "superset of" },
             { @"\neg", "not" }, { @"\land", "and" }, { @"\lor", "or" }, { @"\prime", "prime" },
@@ -71,8 +80,7 @@ namespace LatexConverter
             { @"\diamondsuit", "diamond suit" }, { @"\spadesuit", "spade suit" }, { @"\natural", "natural" },
             { @"\sharp", "sharp" }, { @"\flat", "flat" }, { @"\triangle", "triangle" }, { @"\triangledown", "downward triangle" },
             { @"\angle", "angle" }, { @"\measuredangle", "measured angle" },
-            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }, 
-            { @"\exists", "there exists" }
+            { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" }
         };
         /// <summary>
         /// A map of LaTeX commands to their human-friendly Unicode representations.
@@ -120,6 +128,30 @@ namespace LatexConverter
         /// A list of LaTeX commands that should not be converted from plain text without a leading backslash.
         /// </summary>
         public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { @"\bullet", @"\in", @"\times", @"\sum", @"\exists", @"\to", @"\angle", @"\triangle", @"\natural", @"\sharp", @"\parallel", @"\prod", @"\flat", @"\lim" };
+
+        /// <summary>
+        /// A map of human-friendly Unicode symbols to their screen reader-friendly text representations.
+        /// </summary>
+        public static readonly Dictionary<string, string> HumanToScreenReaderMap = GetHumanToScreenReaderMap();
+
+        private static Dictionary<string, string> GetHumanToScreenReaderMap()
+        {
+            var map = HumanFriendlySymbolMap
+                .GroupBy(kvp => kvp.Value)
+                .ToDictionary(g => g.Key, g => ScreenReaderSymbolMap.GetValueOrDefault(g.First().Key, SymbolMap.GetValueOrDefault(g.First().Key, "")));
+            map["="] = "equals";
+            map["/"] = "divided by";
+            map["*"] = "times";
+            map["·"] = "cdot";
+            map["×"] = "times";
+            map["°"] = "degrees";
+            map["√"] = "the square root of";
+            map["ℝ"] = "the set of real numbers";
+            map["ℰ"] = "calligraphic E";
+            map["ℭ"] = "frak C";
+            map["ℋ"] = "scr H";
+            return map;
+        }
 
         /// <summary>
         /// A map of characters to their superscript Unicode representations.
@@ -182,14 +214,6 @@ namespace LatexConverter
         {
             {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'I', 'ℐ'}, {'L', 'ℒ'},
             {'M', 'ℳ'}, {'R', 'ℛ'}
-        };
-
-        public static readonly Dictionary<char, string> ReverseMathFontMap = new()
-        {
-            {'ℝ', @"\mathbb{R}"}, {'ℂ', @"\mathbb{C}"}, {'ℕ', @"\mathbb{N}"}, {'ℚ', @"\mathbb{Q}"}, {'ℤ', @"\mathbb{Z}"},
-            {'ℰ', @"\mathcal{E}"}, {'ℱ', @"\mathcal{F}"}, {'ℋ', @"\mathcal{H}"}, {'ℬ', @"\mathcal{B}"}, {'ℐ', @"\mathcal{I}"},
-            {'ℛ', @"\mathcal{R}"}, {'ℒ', @"\mathcal{L}"}, {'ℳ', @"\mathcal{M}"},
-            {'ℭ', @"\mathfrak{C}"}, {'ℌ', @"\mathfrak{H}"}, {'ℑ', @"\mathfrak{I}"}, {'ℜ', @"\mathfrak{R}"}, {'ℨ', @"\mathfrak{Z}"}
         };
     }
 }
