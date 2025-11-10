@@ -76,6 +76,38 @@ namespace LatexConverter
             {
                 char c = humanFriendlyText[i];
 
+                if (c == '∫')
+                {
+                    sb.Append(@"\int ");
+                    i++;
+
+
+                    var sub_content = new StringBuilder();
+                    while (i < humanFriendlyText.Length && Dictionaries.ReverseSubMap.ContainsKey(humanFriendlyText[i]))
+                    {
+                        sub_content.Append(Dictionaries.ReverseSubMap[humanFriendlyText[i]]);
+                        i++;
+                    }
+                    if (sub_content.Length > 0)
+                    {
+                        if (sub_content.Length > 1) sb.Append($"_{{{sub_content}}}"); else sb.Append($"_{sub_content}");
+                    }
+
+
+                    var sup_content = new StringBuilder();
+                    while (i < humanFriendlyText.Length && Dictionaries.ReverseSupMap.ContainsKey(humanFriendlyText[i]))
+                    {
+                        sup_content.Append(Dictionaries.ReverseSupMap[humanFriendlyText[i]]);
+                        i++;
+                    }
+                    if (sup_content.Length > 0)
+                    {
+                        if (sup_content.Length > 1) sb.Append($"^{{{sup_content}}}"); else sb.Append($"^{sup_content}");
+                    }
+                    i--;
+                    continue;
+                }
+
                 if (i + 1 < humanFriendlyText.Length)
                 {
                     char next_c = humanFriendlyText[i + 1];
@@ -232,14 +264,7 @@ namespace LatexConverter
         /// <returns>The post-processed text.</returns>
         private string ApplyScreenReaderPostProcessing(string text)
         {
-            //text = Regex.Replace(text, @"(\w+)\((.*?)\)", "$1 of $2");
-            //text = Regex.Replace(text, @"\(\s+", "(");
-            //text = Regex.Replace(text, @"\s+\)", ")");
-
-            // Convert math functions like f(x) but ignore plural hints like quark(s)
-            text = Regex.Replace(text, @"\b([a-zA-Z])\((.*?)\)", "$1 of $2");
-
-            // Optional: clean up spaces around parentheses
+            text = Regex.Replace(text, @"(\w+)\((.*?)\)", "$1 of $2");
             text = Regex.Replace(text, @"\(\s+", "(");
             text = Regex.Replace(text, @"\s+\)", ")");
             return text;

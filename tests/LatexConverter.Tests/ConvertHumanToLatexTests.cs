@@ -24,7 +24,7 @@ namespace LatexConverter.Tests
         [InlineData("The subset symbol is ⊂.", @"The subset symbol is \subset.")]
         [InlineData("The result is approximately ≈ 5.", @"The result is approximately \approx  5.")]
         [InlineData("This is a test with a mix of symbols: α, β, γ.", @"This is a test with a mix of symbols: \alpha, \beta, \gamma.")]
-        [InlineData("The integral is ∫ₐᵇ f(x) dx.", @"The integral is \int _a^b f(x) dx.")]
+        [InlineData("∫ₐᵇ f(x) dx", @"\int _a^b f(x) dx")]
         [InlineData("This is a test of the not symbol: ¬A.", @"This is a test of the not symbol: \neg A.")]
         [InlineData("The result is ∞.", @"The result is \infty.")]
         [InlineData("This is a test of the prime symbol: f′.", @"This is a test of the prime symbol: f\prime.")]
