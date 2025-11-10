@@ -61,7 +61,7 @@ namespace LatexConverter
             { @"\leftrightarrow", "left right arrow" }, { @"\Leftrightarrow", "if and only if" },
             { @"\leq", "less than or equal to" }, { @"\geq", "greater than or equal to" },
             { @"\neq", "not equal to" }, { @"\approx", "approximately equal to" }, { @"\equiv", "congruent to" }, { @"\propto", "proportional to" },
-            { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h-bar" }, { @"\wp", "Weierstrass p" },
+            { @"\infty", "infinity" }, { @"\partial", "partial derivative" }, { @"\hbar", "h bar" }, { @"\wp", "Weierstrass p" },
             { @"\Re", "Real part" }, { @"\Im", "Imaginary part" },
             { @"\forall", "for all" }, { @"\to", "approaches" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },

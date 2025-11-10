@@ -1050,7 +1050,7 @@ namespace LatexConverter
                 "=" => " equals ",
                 "*" => " times ",
                 "/" => " divided by ",
-                "ħ" => "h-bar",
+                "ħ" => " h bar ",
                 _ => node.Text
             };
         }
