@@ -225,7 +225,7 @@ namespace LatexConverter
             var plainWords = Dictionaries.HumanFriendlySymbolMap.Keys
                 .Where(command => !Dictionaries.DeniedConvertWithoutSlash.Contains(command))
                 .Select(command => command.Substring(1))
-                .Where(plainWord => !string.IsNullOrEmpty(plainWord) && plainWord.All(char.IsLetter))
+                .Where(plainWord => !string.IsNullOrEmpty(plainWord) && plainWord.All(char.IsLetter) && !new[] { "sin", "cos", "tan", "log", "ln", "exp", "det" }.Contains(plainWord))
                 .OrderByDescending(s => s.Length);
 
             var pattern = string.Join("|", plainWords);
@@ -1380,11 +1380,6 @@ namespace LatexConverter
                     return HandleLimitStyleCommands(node);
                 case @"\lim":
                     return HandleLimitCommands(node);
-                case @"\pm": return "plus-minus";
-                case @"\mp": return "minus-plus";
-                case @"\equiv": return "congruent to";
-                case @"\Rightarrow": return "right double arrow";
-                case @"\Leftrightarrow": return "if and only if";
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -1431,16 +1426,6 @@ namespace LatexConverter
                     return HandleLimitStyleCommands(node);
                 case @"\lim":
                     return HandleLimitCommands(node);
-                //case @"\pm": return "plus-minus";
-                //case @"\mp": return "minus-plus";
-                //case @"\equiv": return "congruent to";
-                //case @"\Rightarrow": return "right double arrow";
-                //case @"\Leftrightarrow": return "if and only if";
-                case @"\pm":
-                case @"\mp":
-                case @"\equiv":
-                case @"\Rightarrow":
-                case @"\Leftrightarrow":
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     string screenReaderSymbolVal = Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -1451,56 +1436,50 @@ namespace LatexConverter
         private string HandleSQRT(CommandNode node)
         {
             var content = node.Args[0].Accept(this);
+            var sqrtText = Dictionaries.ScreenReaderSymbolMap[@"\sqrt"];
             if (node.Args[0] is GroupNode)
             {
-                return $"the square root of ({content})";
+                return $"{sqrtText} ({content})";
             }
-            return $"the square root of {content}";
+            return $"{sqrtText} {content}";
         }
 
         private string HandleFractionAndBinomial(CommandNode node)
         {
             if (node.Command == @"\frac")
             {
-                return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
+                var fracText = Dictionaries.ScreenReaderSymbolMap[@"\frac"];
+                return $"{fracText} {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
             }
             // \binom
-            return $"{node.Args[0].Accept(this)} choose {node.Args[1].Accept(this)}";
+            var binomText = Dictionaries.ScreenReaderSymbolMap[@"\binom"];
+            return $"{node.Args[0].Accept(this)} {binomText} {node.Args[1].Accept(this)}";
         }
 
         private string HandleHatVecAndMathcal(CommandNode node)
         {
+            var commandText = Dictionaries.ScreenReaderSymbolMap[node.Command];
             switch (node.Command)
             {
-                case @"\vec": return $"vector {node.Args[0].Accept(this)}";
-                case @"\hat": return $"{node.Args[0].Accept(this)} hat";
-                case @"\mathcal": return $"calligraphic {node.Args[0].Accept(this)}";
+                case @"\vec": return $"{commandText} {node.Args[0].Accept(this)}";
+                case @"\hat": return $"{node.Args[0].Accept(this)} {commandText}";
+                case @"\mathcal": return $"{commandText} {node.Args[0].Accept(this)}";
                 default: return "";
             }
         }
 
         private string HandleMathFunctions(CommandNode node)
         {
-            var commandName = node.Command.Substring(1);
+            var commandName = Dictionaries.ScreenReaderSymbolMap[node.Command];
             var argument = node.Args[0].Accept(this).Replace("(", "").Replace(")", "");
-            switch (commandName)
-            {
-                case "sin": return $"sine of {argument}";
-                case "cos": return $"cosine of {argument}";
-                case "tan": return $"tangent of {argument}";
-                case "log": return $"logarithm of {argument}";
-                case "ln": return $"natural logarithm of {argument}";
-                case "exp": return $"e to the power of {argument}";
-                case "det": return $"determinant of {argument}";
-                default: return "";
-            }
+            return $"{commandName} {argument}";
         }
 
         private string HandleMathbb(CommandNode node)
         {
             if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R")
             {
-                return "the set of real numbers";
+                return Dictionaries.ScreenReaderSymbolMap[@"\mathbb"];
             }
             return node.Args[0].Accept(this);
         }
@@ -1514,7 +1493,8 @@ namespace LatexConverter
             }
             if (command == @"\overline")
             {
-                return $"{node.Args[0].Accept(this)} bar";
+                var overlineText = Dictionaries.ScreenReaderSymbolMap[@"\overline"];
+                return $"{node.Args[0].Accept(this)} {overlineText}";
             }
             var style = command.Substring(1).Replace("math", "");
             return $"{style} {node.Args[0].Accept(this)}";
@@ -1523,7 +1503,8 @@ namespace LatexConverter
         private string HandleLimitCommands(CommandNode node)
         {
             var sub_lim = node.Subscript != null ? node.Subscript.ExceptionalAccept(this) : "";
-            return $"limit as {sub_lim} of";
+            var limText = Dictionaries.ScreenReaderSymbolMap[@"\lim"];
+            return $"{limText} {sub_lim} of";
         }
 
         private string HandleLimitStyleCommands(CommandNode node)

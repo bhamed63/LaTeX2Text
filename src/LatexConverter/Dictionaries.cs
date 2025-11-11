@@ -101,10 +101,13 @@ namespace LatexConverter
             { @"\leq", "leq" }, { @"\geq", "geq" },
             { @"\neq", "neq" }, { @"\approx", "approx" }, { @"\equiv", "equiv" }, { @"\propto", "propto" },
             { @"\infty", "infty" }, { @"\nabla", "nabla" }, { @"\partial", "partial" },
-            { @"\int", "integral" }, { @"\sum", "summation" }, { @"\prod", "product" }, { @"\lim", "limit" },
+            { @"\int", "integral" }, { @"\sum", "summation" }, { @"\prod", "product" }, { @"\lim", "limit" }, { @"\sqrt", "sqrt" }, { @"\frac", "fraction with numerator" }, { @"\binom", "binom" },
             { @"\hbar", "hbar" }, { @"\ell", "ell" }, { @"\wp", "wp" },
             { @"\Re", "Re" }, { @"\Im", "Im" },
             { @"\forall", "forall" }, { @"\exists", "exists" }, { @"\in", "in" }, { @"\to", "->" },
+            { @"\vec", "vector" }, { @"\hat", "hat" }, { @"\mathcal", "calligraphic" }, { @"\mathbb", "the set of real numbers" },
+            { @"\overline", "bar" }, { @"\sin", "sine of" }, { @"\cos", "cosine of" }, { @"\tan", "tangent of" },
+            { @"\log", "logarithm of" }, { @"\ln", "natural logarithm of" }, { @"\exp", "e to the power of" }, { @"\det", "determinant of" },
             { @"\arcsin", "arcsin" }, { @"\arccos", "arccos" }, { @"\arctan", "arctan" },
             { @"\cup", "cup" }, { @"\cap", "cap" }, { @"\subset", "subset" }, { @"\supset", "supset" },
             { @"\neg", "neg" }, { @"\land", "land" }, { @"\lor", "lor" }, { @"\prime", "prime" },
@@ -116,9 +119,12 @@ namespace LatexConverter
             { @"\,", " " }
         };
         private static readonly Dictionary<string, string> OldScreenReaderSymbolMap = new() {
-            { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
+            { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" }, { @"\sqrt", "the square root of" }, { @"\frac", "fraction with numerator" }, { @"\binom", "choose" }, { @"\lim", "limit as" },
             { @"\circ", " degrees " }, { @"\otimes", "tensor product" }, { @"\odot", "circled dot" },
             { @"\parallel", "parallel to" }, { @"\perp", "perpendicular to" },
+            { @"\vec", "vector" }, { @"\hat", "hat" }, { @"\mathcal", "calligraphic" }, { @"\mathbb", "the set of real numbers" },
+            { @"\overline", "bar" }, { @"\sin", "sine of" }, { @"\cos", "cosine of" }, { @"\tan", "tangent of" },
+            { @"\log", "logarithm of" }, { @"\ln", "natural logarithm of" }, { @"\exp", "e to the power of" }, { @"\det", "determinant of" },
             { @"\implies", "implies" }, { @"\iff", "if and only if" },
             { @"\rightarrow", "right arrow" }, { @"\leftarrow", "left arrow" }, { @"\uparrow", "up arrow" }, { @"\downarrow", "down arrow" },
             { @"\Rightarrow", "right double arrow" }, { @"\Leftarrow", "left double arrow" },
