@@ -4,15 +4,82 @@ using System.Linq;
 
 namespace LatexConverter
 {
+    public class SymbolDefinition
+    {
+        public string? PlainText { get; set; }
+        public string? ScreenReader { get; set; }
+        public string? ExceptionalScreenReader { get; set; }
+        public string? HumanFriendly { get; set; }
+    }
+
     /// <summary>
     /// Provides centralized storage for symbol and character mappings used in LaTeX conversion.
     /// </summary>
     internal static class Dictionaries
     {
+        private static readonly Dictionary<string, SymbolDefinition> SymbolLibrary;
+
+        static Dictionaries()
+        {
+            var library = new Dictionary<string, SymbolDefinition>();
+
+            var allKeys = OldSymbolMap.Keys
+                .Union(OldScreenReaderSymbolMap.Keys)
+                .Union(OldExceptionalScreenReaderSymbolMap.Keys)
+                .Union(OldHumanFriendlySymbolMap.Keys)
+                .Distinct();
+
+            foreach (var key in allKeys)
+            {
+                OldSymbolMap.TryGetValue(key, out var plainText);
+                OldScreenReaderSymbolMap.TryGetValue(key, out var screenReader);
+                OldExceptionalScreenReaderSymbolMap.TryGetValue(key, out var exceptionalScreenReader);
+                OldHumanFriendlySymbolMap.TryGetValue(key, out var humanFriendly);
+
+                library[key] = new SymbolDefinition
+                {
+                    PlainText = plainText ?? OldSymbolMap.GetValueOrDefault(key),
+                    ScreenReader = screenReader ?? OldSymbolMap.GetValueOrDefault(key),
+                    ExceptionalScreenReader = exceptionalScreenReader,
+                    HumanFriendly = humanFriendly ?? OldSymbolMap.GetValueOrDefault(key),
+                };
+            }
+            SymbolLibrary = library;
+
+            SymbolMap = SymbolLibrary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.PlainText!);
+            ScreenReaderSymbolMap = SymbolLibrary
+                .Where(kvp => kvp.Value.ScreenReader != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ScreenReader!);
+            ExceptionalScreenReaderSymbolMap = SymbolLibrary
+                .Where(kvp => kvp.Value.ExceptionalScreenReader != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ExceptionalScreenReader!);
+            HumanFriendlySymbolMap = SymbolLibrary
+                .Where(kvp => kvp.Value.HumanFriendly != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
+            ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
+        }
+
+
         /// <summary>
         /// A comprehensive map of LaTeX commands to their plain text representations.
         /// </summary>
-        public static readonly Dictionary<string, string> SymbolMap = new() {
+        public static readonly Dictionary<string, string> SymbolMap;
+
+        /// <summary>
+        /// A map of LaTeX commands to their screen reader-friendly representations.
+        /// </summary>
+        public static readonly Dictionary<string, string> ScreenReaderSymbolMap;
+
+        /// <summary>
+        /// A map of LaTeX commands to their screen reader-friendly representations.
+        /// </summary>
+        public static readonly Dictionary<string, string> ExceptionalScreenReaderSymbolMap;
+        /// <summary>
+        /// A map of LaTeX commands to their human-friendly Unicode representations.
+        /// </summary>
+        public static readonly Dictionary<string, string> HumanFriendlySymbolMap;
+
+        private static readonly Dictionary<string, string> OldSymbolMap = new() {
             { @"\alpha", "alpha" }, { @"\beta", "beta" }, { @"\gamma", "gamma" }, { @"\delta", "delta" },
             { @"\epsilon", "epsilon" }, { @"\varepsilon", "varepsilon" }, { @"\zeta", "zeta" }, { @"\eta", "eta" }, { @"\theta", "theta" },
             { @"\iota", "iota" }, { @"\kappa", "kappa" }, { @"\varkappa", "varkappa" }, { @"\lambda", "lambda" }, { @"\mu", "mu" },
@@ -48,10 +115,7 @@ namespace LatexConverter
             { @"\dots", "..." }, { @"\cdots", "..." }, { @"\vdots", "..." }, { @"\ddots", "..." },
             { @"\,", " " }
         };
-        /// <summary>
-        /// A map of LaTeX commands to their screen reader-friendly representations.
-        /// </summary>
-        public static readonly Dictionary<string, string> ScreenReaderSymbolMap = new() {
+        private static readonly Dictionary<string, string> OldScreenReaderSymbolMap = new() {
             { @"\div", "divided by" }, { @"\pm", "plus-minus" }, { @"\mp", "minus-plus" },
             { @"\circ", " degrees " }, { @"\otimes", "tensor product" }, { @"\odot", "circled dot" },
             { @"\parallel", "parallel to" }, { @"\perp", "perpendicular to" },
@@ -74,16 +138,10 @@ namespace LatexConverter
             { @"\dots", "dots" }, { @"\cdots", "centered dots" }, { @"\vdots", "vertical dots" }, { @"\ddots", "diagonal dots" },
             { @"\exists", "there exists" }
         };
-        /// <summary>
-        /// A map of LaTeX commands to their screen reader-friendly representations.
-        /// </summary>
-        public static readonly Dictionary<string, string> ExceptionalScreenReaderSymbolMap = new() {
+        private static readonly Dictionary<string, string> OldExceptionalScreenReaderSymbolMap = new() {
             { @"\rightarrow", "approaches" }
         };
-        /// <summary>
-        /// A map of LaTeX commands to their human-friendly Unicode representations.
-        /// </summary>
-        public static readonly Dictionary<string, string> HumanFriendlySymbolMap = new() {
+        private static readonly Dictionary<string, string> OldHumanFriendlySymbolMap = new() {
             { @"\alpha", "α" }, { @"\beta", "β" }, { @"\gamma", "γ" }, { @"\delta", "δ" },
             { @"\epsilon", "ε" }, { @"\zeta", "ζ" }, { @"\eta", "η" }, { @"\theta", "θ" },
             { @"\iota", "ι" }, { @"\kappa", "κ" }, { @"\varkappa", "ϰ" }, { @"\lambda", "λ" }, { @"\mu", "μ" },
@@ -118,10 +176,11 @@ namespace LatexConverter
             { @"\dots", "…" }, { @"\cdots", "⋯" }, { @"\vdots", "⋮" }, { @"\ddots", "⋱" },
             { @"\,", " " }
         };
+
         /// <summary>
         /// A map of Unicode symbols to their plain text representations.
         /// </summary>
-        public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
+        public static readonly Dictionary<string, string> ReverseHumanFriendlySymbolMap;
         /// <summary>
         /// A list of LaTeX commands that should not be converted from plain text without a leading backslash.
         /// </summary>
