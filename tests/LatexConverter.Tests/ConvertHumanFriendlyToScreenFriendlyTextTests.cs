@@ -22,8 +22,8 @@ namespace LatexConverter.Tests
         [InlineData("a ± b", "a plus-minus b")]
         [InlineData("a ∓ b", "a minus-plus b")]
         [InlineData("a ≡ b", "a congruent to b")]
-        [InlineData("∫ₐᵇ f(x) dx", "integral from a to b of f of x dx")]
-        [InlineData("lim_{x→∞} f(x)", "limit as x approaches infinity of f of x")]
+        [InlineData("∫ₐᵇ f(x) dx", "integral from a to b f(x) dx")]
+        [InlineData("lim_{x→∞} f(x)", "limit as x approaches infinity of f(x)")]
         [InlineData("eˣ", "e to the power of x")]
         [InlineData("(n k)", "n choose k")]
         [InlineData("∪", "union")]
@@ -43,6 +43,15 @@ namespace LatexConverter.Tests
         [InlineData("≈", "approximately equal to")]
         [InlineData("→", "right arrow")]
         [InlineData("←", "left arrow")]
+        [InlineData("ℰ₁", "calligraphic E subscript 1")]
+        [InlineData("v⃗₀", "vector v subscript 0")]
+        [InlineData("∑ᵢ₌₁ⁿ i²", "summation from i equals 1 to n i squared")]
+        [InlineData("λ₁", "lambda subscript 1")]
+        [InlineData("λ₁ + λ₂ = 1", "lambda subscript 1 plus lambda subscript 2 equals 1")]
+        [InlineData("√(ω₁ / ω₂)", "the square root of (omega subscript 1 divided by omega subscript 2)")]
+        [InlineData("α² + β² = γ²", "alpha squared plus beta squared equals gamma squared")]
+        [InlineData("F⃗ᵢ", "vector F subscript i")]
+        [InlineData("This is the sum: ∑ᵢ₌₁ⁿ i.", "This is the sum: summation from i equals 1 to n i.")]
         public void ConvertHumanFriendlyToScreenFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertHumanFriendlyToScreenFriendlyText(input);

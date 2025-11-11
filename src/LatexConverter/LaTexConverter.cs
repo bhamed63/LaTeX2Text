@@ -304,7 +304,8 @@ namespace LatexConverter
         /// <returns>The post-processed text.</returns>
         private string ApplyScreenReaderPostProcessing(string text)
         {
-            text = Regex.Replace(text, @"(\w+)\((.*?)\)", "$1 of $2");
+            //text = Regex.Replace(text, @"(\w+)\((.*?)\)", "$1 of $2");
+            //text = Regex.Replace(text, @"(integral from \w+ to \w+)( f of x)", "$1 of$2");
             text = Regex.Replace(text, @"\(\s+", "(");
             text = Regex.Replace(text, @"\s+\)", ")");
             return text;
@@ -1449,7 +1450,12 @@ namespace LatexConverter
 
         private string HandleSQRT(CommandNode node)
         {
-            return $"the square root of {node.Args[0].Accept(this)}";
+            var content = node.Args[0].Accept(this);
+            if (node.Args[0] is GroupNode)
+            {
+                return $"the square root of ({content})";
+            }
+            return $"the square root of {content}";
         }
 
         private string HandleFractionAndBinomial(CommandNode node)
