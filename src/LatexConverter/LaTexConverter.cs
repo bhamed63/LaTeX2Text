@@ -764,6 +764,17 @@ namespace LatexConverter
     /// </summary>
     public abstract class BaseVisitor<T> : IVisitor<T>
     {
+        protected string ProcessTemplateCommand(CommandNode node, string template)
+        {
+            var result = template;
+            for (int i = 0; i < node.Args.Count; i++)
+            {
+                var argResult = node.Args[i].Accept(this);
+                result = result.Replace($"{{{i}}}", argResult?.ToString() ?? "");
+            }
+            return result;
+        }
+
         public abstract T VisitText(TextNode node);
         public abstract T ExceptionalVisitText(TextNode node);
         public abstract T VisitCommand(CommandNode node);
@@ -1070,10 +1081,10 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
+                case @"\sqrt":
+                    return ProcessTemplateCommand(node, Dictionaries.HumanFriendlySymbolMap[node.Command]);
                 case @"\binom":
                     return HandleFractionAndBinomial(node);
-                case @"\sqrt":
-                    return HandleSqrt(node);
                 case @"\vec":
                 case @"\hat":
                     return HandleHatAndVec(node);
@@ -1117,17 +1128,8 @@ namespace LatexConverter
 
         private string HandleFractionAndBinomial(CommandNode node)
         {
-            if (node.Command == @"\frac")
-            {
-                return $"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}";
-            }
             // \binom
             return $"({node.Args[0].Accept(this)} {node.Args[1].Accept(this)})";
-        }
-
-        private string HandleSqrt(CommandNode node)
-        {
-            return $"√({node.Args[0].Accept(this)})";
         }
 
         private string HandleHatAndVec(CommandNode node)
@@ -1345,10 +1347,10 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
+                case @"\sqrt":
+                    return ProcessTemplateCommand(node, Dictionaries.ScreenReaderSymbolMap[node.Command]);
                 case @"\binom":
                     return HandleFractionAndBinomial(node);
-                case @"\sqrt":
-                    return HandleSQRT(node);
                 case @"\vec":
                 case @"\hat":
                 case @"\mathcal":
@@ -1391,10 +1393,10 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
+                case @"\sqrt":
+                    return ProcessTemplateCommand(node, Dictionaries.ScreenReaderSymbolMap[node.Command]);
                 case @"\binom":
                     return HandleFractionAndBinomial(node);
-                case @"\sqrt":
-                    return HandleSQRT(node);
                 case @"\vec":
                 case @"\hat":
                 case @"\mathcal":
@@ -1433,24 +1435,8 @@ namespace LatexConverter
             }
         }
 
-        private string HandleSQRT(CommandNode node)
-        {
-            var content = node.Args[0].Accept(this);
-            var sqrtText = Dictionaries.ScreenReaderSymbolMap[@"\sqrt"];
-            if (node.Args[0] is GroupNode)
-            {
-                return $"{sqrtText} ({content})";
-            }
-            return $"{sqrtText} {content}";
-        }
-
         private string HandleFractionAndBinomial(CommandNode node)
         {
-            if (node.Command == @"\frac")
-            {
-                var fracText = Dictionaries.ScreenReaderSymbolMap[@"\frac"];
-                return $"{fracText} {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
-            }
             // \binom
             var binomText = Dictionaries.ScreenReaderSymbolMap[@"\binom"];
             return $"{node.Args[0].Accept(this)} {binomText} {node.Args[1].Accept(this)}";
