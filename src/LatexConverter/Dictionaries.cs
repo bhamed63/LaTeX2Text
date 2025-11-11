@@ -14,6 +14,7 @@ namespace LatexConverter
     }
 
     public record FontCharacter(char BaseChar, string FontCommand, char UnicodeChar);
+    public record ScriptCharacter(char BaseChar, char? Superscript, char? Subscript);
 
     /// <summary>
     /// Provides centralized storage for symbol and character mappings used in LaTeX conversion.
@@ -28,6 +29,21 @@ namespace LatexConverter
             new('C', @"\mathfrak", 'ℭ'), new('H', @"\mathfrak", 'ℌ'), new('I', @"\mathfrak", 'ℑ'), new('R', @"\mathfrak", 'ℜ'), new('Z', @"\mathfrak", 'ℨ'),
             new('E', @"\mathscr", 'ℰ'), new('F', @"\mathscr", 'ℱ'), new('H', @"\mathscr", 'ℋ'), new('I', @"\mathscr", 'ℐ'), new('L', @"\mathscr", 'ℒ'),
             new('M', @"\mathscr", 'ℳ'), new('R', @"\mathscr", 'ℛ')
+        };
+        private static readonly List<ScriptCharacter> ScriptLibrary = new()
+        {
+            new('0', '⁰', '₀'), new('1', '¹', '₁'), new('2', '²', '₂'), new('3', '³', '₃'), new('4', '⁴', '₄'),
+            new('5', '⁵', '₅'), new('6', '⁶', '₆'), new('7', '⁷', '₇'), new('8', '⁸', '₈'), new('9', '⁹', '₉'),
+            new('a', 'ᵃ', 'ₐ'), new('b', 'ᵇ', null), new('c', 'ᶜ', null), new('d', 'ᵈ', null), new('e', 'ᵉ', 'ₑ'),
+            new('f', 'ᶠ', null), new('g', 'ᵍ', null), new('h', 'ʰ', 'ₕ'), new('i', 'ⁱ', 'ᵢ'), new('j', 'ʲ', 'ⱼ'),
+            new('k', 'ᵏ', 'ₖ'), new('l', 'ˡ', 'ₗ'), new('m', 'ᵐ', 'ₘ'), new('n', 'ⁿ', 'ₙ'), new('o', 'ᵒ', 'ₒ'),
+            new('p', 'ᵖ', 'ₚ'), new('r', 'ʳ', 'ᵣ'), new('s', 'ˢ', 'ₛ'), new('t', 'ᵗ', 'ₜ'), new('u', 'ᵘ', 'ᵤ'),
+            new('v', 'ᵛ', 'ᵥ'), new('w', 'ʷ', null), new('x', 'ˣ', 'ₓ'), new('y', 'ʸ', null), new('z', 'ᶻ', null),
+            new('+', '⁺', '₊'), new('-', '⁻', '₋'), new('=', '⁼', '₌'), new('(', '⁽', '₍'), new(')', '⁾', '₎'),
+            new('A', 'ᴬ', null), new('B', 'ᴮ', null), new('D', 'ᴰ', null), new('E', 'ᴱ', null), new('G', 'ᴳ', null),
+            new('H', 'ᴴ', null), new('I', 'ᴵ', null), new('J', 'ᴶ', null), new('K', 'ᴷ', null), new('L', 'ᴸ', null),
+            new('M', 'ᴹ', null), new('N', 'ᴺ', null), new('O', 'ᴼ', null), new('P', 'ᴾ', null), new('R', 'ᴿ', null),
+            new('T', 'ᵀ', null), new('U', 'ᵁ', null), new('V', 'ⱽ', null), new('W', 'ᵂ', null), new('γ', null, 'ᵧ')
         };
         private static readonly Dictionary<string, SymbolDefinition> SymbolLibrary = new()
         {
@@ -196,6 +212,22 @@ namespace LatexConverter
             ReverseMathFontMap = FontLibrary
                 .GroupBy(fc => fc.UnicodeChar)
                 .ToDictionary(g => g.Key, g => $"{g.First().FontCommand}{{{g.First().BaseChar}}}");
+
+            SupMap = ScriptLibrary
+                .Where(sc => sc.Superscript.HasValue)
+                .ToDictionary(sc => sc.BaseChar, sc => sc.Superscript!.Value);
+
+            SubMap = ScriptLibrary
+                .Where(sc => sc.Subscript.HasValue)
+                .ToDictionary(sc => sc.BaseChar, sc => sc.Subscript!.Value);
+
+            ReverseSupMap = ScriptLibrary
+                .Where(sc => sc.Superscript.HasValue)
+                .ToDictionary(sc => sc.Superscript!.Value, sc => sc.BaseChar);
+
+            ReverseSubMap = ScriptLibrary
+                .Where(sc => sc.Subscript.HasValue)
+                .ToDictionary(sc => sc.Subscript!.Value, sc => sc.BaseChar);
         }
 
 
@@ -231,33 +263,21 @@ namespace LatexConverter
         /// <summary>
         /// A map of characters to their superscript Unicode representations.
         /// </summary>
-        public static readonly Dictionary<char, char> SupMap = new() {
-            { '0', '⁰' }, { '1', '¹' }, { '2', '²' }, { '3', '³' }, { '4', '⁴' }, { '5', '⁵' }, { '6', '⁶' }, { '7', '⁷' }, { '8', '⁸' }, { '9', '⁹' },
-            { 'a', 'ᵃ' }, { 'b', 'ᵇ' }, { 'c', 'ᶜ' }, { 'd', 'ᵈ' }, { 'e', 'ᵉ' }, { 'f', 'ᶠ' }, { 'g', 'ᵍ' }, { 'h', 'ʰ' }, { 'i', 'ⁱ' }, { 'j', 'ʲ' },
-            { 'k', 'ᵏ' }, { 'l', 'ˡ' }, { 'm', 'ᵐ' }, { 'n', 'ⁿ' }, { 'o', 'ᵒ' }, { 'p', 'ᵖ' }, { 'r', 'ʳ' }, { 's', 'ˢ' }, { 't', 'ᵗ' }, { 'u', 'ᵘ' },
-            { 'v', 'ᵛ' }, { 'w', 'ʷ' }, { 'x', 'ˣ' }, { 'y', 'ʸ' }, { 'z', 'ᶻ' }, { '+', '⁺' }, { '-', '⁻' }, { '=', '⁼' }, { '(', '⁽' }, { ')', '⁾' },
-            { 'A', 'ᴬ' }, { 'B', 'ᴮ' }, { 'D', 'ᴰ' }, { 'E', 'ᴱ' }, { 'G', 'ᴳ' }, { 'H', 'ᴴ' }, { 'I', 'ᴵ' }, { 'J', 'ᴶ' }, { 'K', 'ᴷ' }, { 'L', 'ᴸ' },
-            { 'M', 'ᴹ' }, { 'N', 'ᴺ' }, { 'O', 'ᴼ' }, { 'P', 'ᴾ' }, { 'R', 'ᴿ' }, { 'T', 'ᵀ' }, { 'U', 'ᵁ' }, { 'V', 'ⱽ' }, { 'W', 'ᵂ' }
-        };
+        public static readonly Dictionary<char, char> SupMap;
         /// <summary>
         /// A map of characters to their subscript Unicode representations.
         /// </summary>
-        public static readonly Dictionary<char, char> SubMap = new() {
-            { '0', '₀' }, { '1', '₁' }, { '2', '₂' }, { '3', '₃' }, { '4', '₄' }, { '5', '₅' }, { '6', '₆' }, { '7', '₇' }, { '8', '₈' }, { '9', '₉' },
-            { 'a', 'ₐ' }, { 'e', 'ₑ' }, { 'h', 'ₕ' }, { 'i', 'ᵢ' }, { 'j', 'ⱼ' }, { 'k', 'ₖ' }, { 'l', 'ₗ' }, { 'm', 'ₘ' }, { 'n', 'ₙ' }, { 'o', 'ₒ' },
-            { 'p', 'ₚ' }, { 'r', 'ᵣ' }, { 's', 'ₛ' }, { 't', 'ₜ' }, { 'u', 'ᵤ' }, { 'v', 'ᵥ' }, { 'x', 'ₓ' }, { '+', '₊' }, { '-', '₋' }, { '=', '₌' },
-            { '(', '₍' }, { ')', '₎' }, { 'γ', 'ᵧ' }
-        };
+        public static readonly Dictionary<char, char> SubMap;
 
         /// <summary>
         /// A map of superscript Unicode characters to their base character representations.
         /// </summary>
-        public static readonly Dictionary<char, char> ReverseSupMap = SupMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+        public static readonly Dictionary<char, char> ReverseSupMap;
 
         /// <summary>
         /// A map of subscript Unicode characters to their base character representations.
         /// </summary>
-        public static readonly Dictionary<char, char> ReverseSubMap = SubMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+        public static readonly Dictionary<char, char> ReverseSubMap;
         /// <summary>
         /// A map of characters to their math blackboard bold Unicode representations.
         /// </summary>
