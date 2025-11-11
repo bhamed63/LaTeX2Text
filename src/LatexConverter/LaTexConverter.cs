@@ -111,8 +111,32 @@ namespace LatexConverter
                 if (i + 1 < humanFriendlyText.Length)
                 {
                     char next_c = humanFriendlyText[i + 1];
-                    if (next_c == '\u20D7') { sb.Append($"\\vec{{{c}}} "); i++; continue; }
-                    if (next_c == '\u0302') { sb.Append($"\\hat{{{c}}} "); i++; continue; }
+                    if (next_c == '\u20D7') { // vec
+                        sb.Append($"\\vec{{{c}}}");
+                        i++; // consume combining char
+                        if (i + 1 < humanFriendlyText.Length) {
+                            char next_next_c = humanFriendlyText[i + 1];
+                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c)) {
+                                sb.Append(" ");
+                            }
+                        } else {
+                            sb.Append(" ");
+                        }
+                        continue;
+                    }
+                    if (next_c == '\u0302') { // hat
+                        sb.Append($"\\hat{{{c}}}");
+                        i++; // consume combining char
+                        if (i + 1 < humanFriendlyText.Length) {
+                            char next_next_c = humanFriendlyText[i + 1];
+                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c)) {
+                                sb.Append(" ");
+                            }
+                        } else {
+                            sb.Append(" ");
+                        }
+                        continue;
+                    }
                 }
 
                 if (Dictionaries.ReverseSupMap.ContainsKey(c))
@@ -147,11 +171,27 @@ namespace LatexConverter
                 else if (c == '°') { sb.Append(@"\circ "); }
                 else if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()) && c != ' ')
                 {
-                    sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]} ");
+                    sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]}");
+                    if (i + 1 < humanFriendlyText.Length) {
+                        char next_c = humanFriendlyText[i + 1];
+                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c)) {
+                            sb.Append(" ");
+                        }
+                    } else {
+                        sb.Append(" ");
+                    }
                 }
                 else if (Dictionaries.ReverseMathFontMap.ContainsKey(c))
                 {
-                    sb.Append($"{Dictionaries.ReverseMathFontMap[c]} ");
+                    sb.Append($"{Dictionaries.ReverseMathFontMap[c]}");
+                    if (i + 1 < humanFriendlyText.Length) {
+                        char next_c = humanFriendlyText[i + 1];
+                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c)) {
+                            sb.Append(" ");
+                        }
+                    } else {
+                        sb.Append(" ");
+                    }
                 }
                 else { sb.Append(c); }
 
@@ -264,10 +304,7 @@ namespace LatexConverter
         /// <returns>The post-processed text.</returns>
         private string ApplyScreenReaderPostProcessing(string text)
         {
-            // Convert math functions like f(x) but ignore plural hints like quark(s)
-            text = Regex.Replace(text, @"\b([a-zA-Z])\((.*?)\)", "$1 of $2");
-
-            // Optional: clean up spaces around parentheses
+            text = Regex.Replace(text, @"(\w+)\((.*?)\)", "$1 of $2");
             text = Regex.Replace(text, @"\(\s+", "(");
             text = Regex.Replace(text, @"\s+\)", ")");
             return text;
