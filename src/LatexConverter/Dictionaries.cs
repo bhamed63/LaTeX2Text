@@ -13,11 +13,22 @@ namespace LatexConverter
         public string? HumanFriendly { get; set; }
     }
 
+    public record FontCharacter(char BaseChar, string FontCommand, char UnicodeChar);
+
     /// <summary>
     /// Provides centralized storage for symbol and character mappings used in LaTeX conversion.
     /// </summary>
     internal static class Dictionaries
     {
+        private static readonly List<FontCharacter> FontLibrary = new()
+        {
+            new('R', @"\mathbb", 'ℝ'), new('C', @"\mathbb", 'ℂ'), new('N', @"\mathbb", 'ℕ'), new('Q', @"\mathbb", 'ℚ'), new('Z', @"\mathbb", 'ℤ'),
+            new('E', @"\mathcal", 'ℰ'), new('F', @"\mathcal", 'ℱ'), new('H', @"\mathcal", 'ℋ'), new('B', @"\mathcal", 'ℬ'), new('I', @"\mathcal", 'ℐ'),
+            new('R', @"\mathcal", 'ℛ'), new('L', @"\mathcal", 'ℒ'), new('M', @"\mathcal", 'ℳ'),
+            new('C', @"\mathfrak", 'ℭ'), new('H', @"\mathfrak", 'ℌ'), new('I', @"\mathfrak", 'ℑ'), new('R', @"\mathfrak", 'ℜ'), new('Z', @"\mathfrak", 'ℨ'),
+            new('E', @"\mathscr", 'ℰ'), new('F', @"\mathscr", 'ℱ'), new('H', @"\mathscr", 'ℋ'), new('I', @"\mathscr", 'ℐ'), new('L', @"\mathscr", 'ℒ'),
+            new('M', @"\mathscr", 'ℳ'), new('R', @"\mathscr", 'ℛ')
+        };
         private static readonly Dictionary<string, SymbolDefinition> SymbolLibrary = new()
         {
             { @"\alpha", new SymbolDefinition { PlainText = "alpha", ScreenReader = "alpha", HumanFriendly = "α" } },
@@ -165,6 +176,26 @@ namespace LatexConverter
                 .Where(kvp => kvp.Value.HumanFriendly != null)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
             ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
+
+            MathbbMap = FontLibrary
+                .Where(fc => fc.FontCommand == @"\mathbb")
+                .ToDictionary(fc => fc.BaseChar, fc => fc.UnicodeChar);
+
+            MathcalMap = FontLibrary
+                .Where(fc => fc.FontCommand == @"\mathcal")
+                .ToDictionary(fc => fc.BaseChar, fc => fc.UnicodeChar);
+
+            MathfrakMap = FontLibrary
+                .Where(fc => fc.FontCommand == @"\mathfrak")
+                .ToDictionary(fc => fc.BaseChar, fc => fc.UnicodeChar);
+
+            MathscrMap = FontLibrary
+                .Where(fc => fc.FontCommand == @"\mathscr")
+                .ToDictionary(fc => fc.BaseChar, fc => fc.UnicodeChar);
+
+            ReverseMathFontMap = FontLibrary
+                .GroupBy(fc => fc.UnicodeChar)
+                .ToDictionary(g => g.Key, g => $"{g.First().FontCommand}{{{g.First().BaseChar}}}");
         }
 
 
@@ -230,42 +261,22 @@ namespace LatexConverter
         /// <summary>
         /// A map of characters to their math blackboard bold Unicode representations.
         /// </summary>
-        public static readonly Dictionary<char, char> MathbbMap = new()
-        {
-            {'R', 'ℝ'}, {'C', 'ℂ'}, {'N', 'ℕ'}, {'Q', 'ℚ'}, {'Z', 'ℤ'}
-        };
+        public static readonly Dictionary<char, char> MathbbMap;
         /// <summary>
         /// A map of characters to their math calligraphic Unicode representations.
         /// </summary>
-        public static readonly Dictionary<char, char> MathcalMap = new()
-        {
-            {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'B', 'ℬ'}, {'I', 'ℐ'},
-            {'R', 'ℛ'}, {'L', 'ℒ'}, {'M', 'ℳ'}
-        };
+        public static readonly Dictionary<char, char> MathcalMap;
 
         /// <summary>
         /// A map of characters to their math Fraktur Unicode representations.
         /// </summary>
-        public static readonly Dictionary<char, char> MathfrakMap = new()
-        {
-            {'C', 'ℭ'}, {'H', 'ℌ'}, {'I', 'ℑ'}, {'R', 'ℜ'}, {'Z', 'ℨ'}
-        };
+        public static readonly Dictionary<char, char> MathfrakMap;
 
         /// <summary>
         /// A map of characters to their math script Unicode representations.
         /// </summary>
-        public static readonly Dictionary<char, char> MathscrMap = new()
-        {
-            {'E', 'ℰ'}, {'F', 'ℱ'}, {'H', 'ℋ'}, {'I', 'ℐ'}, {'L', 'ℒ'},
-            {'M', 'ℳ'}, {'R', 'ℛ'}
-        };
+        public static readonly Dictionary<char, char> MathscrMap;
 
-        public static readonly Dictionary<char, string> ReverseMathFontMap = new()
-        {
-            {'ℝ', @"\mathbb{R}"}, {'ℂ', @"\mathbb{C}"}, {'ℕ', @"\mathbb{N}"}, {'ℚ', @"\mathbb{Q}"}, {'ℤ', @"\mathbb{Z}"},
-            {'ℰ', @"\mathcal{E}"}, {'ℱ', @"\mathcal{F}"}, {'ℋ', @"\mathcal{H}"}, {'ℬ', @"\mathcal{B}"}, {'ℐ', @"\mathcal{I}"},
-            {'ℛ', @"\mathcal{R}"}, {'ℒ', @"\mathcal{L}"}, {'ℳ', @"\mathcal{M}"},
-            {'ℭ', @"\mathfrak{C}"}, {'ℌ', @"\mathfrak{H}"}, {'ℑ', @"\mathfrak{I}"}, {'ℜ', @"\mathfrak{R}"}, {'ℨ', @"\mathfrak{Z}"}
-        };
+        public static readonly Dictionary<char, string> ReverseMathFontMap;
     }
 }
