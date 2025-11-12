@@ -111,38 +111,28 @@ namespace LatexConverter
                 if (i + 1 < humanFriendlyText.Length)
                 {
                     char next_c = humanFriendlyText[i + 1];
-                    if (next_c == '\u20D7')
-                    { // vec
+                    if (next_c == '\u20D7') { // vec
                         sb.Append($"\\vec{{{c}}}");
                         i++; // consume combining char
-                        if (i + 1 < humanFriendlyText.Length)
-                        {
+                        if (i + 1 < humanFriendlyText.Length) {
                             char next_next_c = humanFriendlyText[i + 1];
-                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c))
-                            {
+                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c)) {
                                 sb.Append(" ");
                             }
-                        }
-                        else
-                        {
+                        } else {
                             sb.Append(" ");
                         }
                         continue;
                     }
-                    if (next_c == '\u0302')
-                    { // hat
+                    if (next_c == '\u0302') { // hat
                         sb.Append($"\\hat{{{c}}}");
                         i++; // consume combining char
-                        if (i + 1 < humanFriendlyText.Length)
-                        {
+                        if (i + 1 < humanFriendlyText.Length) {
                             char next_next_c = humanFriendlyText[i + 1];
-                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c))
-                            {
+                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c)) {
                                 sb.Append(" ");
                             }
-                        }
-                        else
-                        {
+                        } else {
                             sb.Append(" ");
                         }
                         continue;
@@ -182,32 +172,24 @@ namespace LatexConverter
                 else if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()) && c != ' ')
                 {
                     sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]}");
-                    if (i + 1 < humanFriendlyText.Length)
-                    {
+                    if (i + 1 < humanFriendlyText.Length) {
                         char next_c = humanFriendlyText[i + 1];
-                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c))
-                        {
+                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c)) {
                             sb.Append(" ");
                         }
-                    }
-                    else
-                    {
+                    } else {
                         sb.Append(" ");
                     }
                 }
-                else if (Dictionaries.ReverseMathFontMap.ContainsKey(c.ToString()))
+                else if (Dictionaries.ReverseMathFontMap.ContainsKey(c))
                 {
-                    sb.Append($"{Dictionaries.ReverseMathFontMap[c.ToString()]}");
-                    if (i + 1 < humanFriendlyText.Length)
-                    {
+                    sb.Append($"{Dictionaries.ReverseMathFontMap[c]}");
+                    if (i + 1 < humanFriendlyText.Length) {
                         char next_c = humanFriendlyText[i + 1];
-                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c))
-                        {
+                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c)) {
                             sb.Append(" ");
                         }
-                    }
-                    else
-                    {
+                    } else {
                         sb.Append(" ");
                     }
                 }
@@ -1217,11 +1199,10 @@ namespace LatexConverter
             return sb.ToString();
         }
 
-        private string ToUnicode(string s, bool? isSuperscript, AstNode originalNode, Dictionary<char, string> map = null)
+        private string ToUnicode(string s, bool? isSuperscript, AstNode originalNode, Dictionary<char, char> map = null)
         {
-            var tempMap = isSuperscript.HasValue && isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
+            if (isSuperscript.HasValue && map == null) map = isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
 
-            if (isSuperscript.HasValue && map == null) map = convertToDic(tempMap);
             string stripped_s = Regex.Replace(s, @"[\(\)]", "");
             if (map != null && !string.IsNullOrEmpty(stripped_s) && stripped_s.All(c => map.ContainsKey(c)))
             {
@@ -1242,19 +1223,6 @@ namespace LatexConverter
             }
             return s;
         }
-
-        private Dictionary<char, string>? convertToDic(Dictionary<char, char> toBeConvertedMap)
-        {
-            if (toBeConvertedMap == null) return null;
-            var dic = new Dictionary<char, string>();
-            foreach (char c in toBeConvertedMap.Keys)
-            {
-                dic.Add(c, toBeConvertedMap[c].ToString());
-            }
-
-            return dic;
-        }
-
         public override string VisitMatrix(MatrixNode node)
         {
             var rows = node.Content.Split(new[] { @"\\" }, StringSplitOptions.RemoveEmptyEntries);
