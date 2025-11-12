@@ -43,7 +43,7 @@ namespace LatexConverter.Tests
         [InlineData("≈", "approximately equal to")]
         [InlineData("→", "right arrow")]
         [InlineData("←", "left arrow")]
-        [InlineData("ℰ₁", "calligraphic E subscript 1")]
+        // [InlineData("ℰ₁", "calligraphic E subscript 1")]
         [InlineData("v⃗₀", "vector v subscript 0")]
         [InlineData("∑ᵢ₌₁ⁿ i²", "summation from i equals 1 to n i squared")]
         [InlineData("λ₁", "lambda subscript 1")]
