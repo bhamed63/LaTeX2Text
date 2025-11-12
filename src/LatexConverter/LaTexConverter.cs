@@ -855,8 +855,9 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
+                    return HandleFraction(node);
                 case @"\binom":
-                    return HandleFractionAndBinomial(node);
+                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSqrt(node);
                 case @"\mathcal":
@@ -897,8 +898,9 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
+                    return HandleFraction(node);
                 case @"\binom":
-                    return HandleFractionAndBinomial(node);
+                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSqrt(node);
                 case @"\mathcal":
@@ -932,14 +934,15 @@ namespace LatexConverter
         }
 
 
-        private string HandleFractionAndBinomial(CommandNode node)
+        private string HandleFraction(CommandNode node)
         {
-            if (node.Command == @"\frac")
-            {
-                var side1 = node.Args[0].Accept(this);
-                var side2 = node.Args[1].Accept(this);
-                return $"{side1}/{side2}";
-            }
+            var side1 = node.Args[0].Accept(this);
+            var side2 = node.Args[1].Accept(this);
+            return $"{side1}/{side2}";
+        }
+
+        private string HandleBinomial(CommandNode node)
+        {
             return $@"binom({node.Args[0].Accept(this)},{node.Args[1].Accept(this)})";
         }
 
@@ -1076,13 +1079,15 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
+                    return HandleFraction(node);
                 case @"\binom":
-                    return HandleFractionAndBinomial(node);
+                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSqrt(node);
                 case @"\mathcal":
+                    return HandleMathcal(node);
                 case @"\mathbb":
-                    return HandleMathcalAndMathbb(node);
+                    return HandleMathbb(node);
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
@@ -1092,8 +1097,9 @@ namespace LatexConverter
                 case @"\mathtt":
                     return HandleTextFormatting(node);
                 case @"\mathfrak":
+                    return HandleMathfrak(node);
                 case @"\mathscr":
-                    return HandleMathFont(node);
+                    return Handlemathscr(node);
                 case @"\cos":
                 case @"\sin":
                 case @"\tan":
@@ -1116,12 +1122,13 @@ namespace LatexConverter
             return VisitCommand(node);
         }
 
-        private string HandleFractionAndBinomial(CommandNode node)
+        private string HandleFraction(CommandNode node)
         {
-            if (node.Command == @"\frac")
-            {
-                return $"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}";
-            }
+            return $"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}";
+        }
+
+        private string HandleBinomial(CommandNode node)
+        {
             return $"({node.Args[0].Accept(this)} {node.Args[1].Accept(this)})";
         }
 
@@ -1130,13 +1137,13 @@ namespace LatexConverter
             return $"√({node.Args[0].Accept(this)})";
         }
 
-        private string HandleMathcalAndMathbb(CommandNode node)
+        private string HandleMathcal(CommandNode node)
         {
-            if (node.Command == @"\mathcal")
-            {
-                return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap);
-            }
-            // \mathbb
+            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap);
+        }
+
+        private string HandleMathbb(CommandNode node)
+        {
             return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap);
         }
 
@@ -1145,13 +1152,13 @@ namespace LatexConverter
             return node.Args[0].Accept(this);
         }
 
-        private string HandleMathFont(CommandNode node)
+        private string HandleMathfrak(CommandNode node)
         {
-            if (node.Command == @"\mathfrak")
-            {
-                return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathfrakMap);
-            }
-            // \mathscr
+            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathfrakMap);
+        }
+
+        private string Handlemathscr(CommandNode node)
+        {
             return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathscrMap);
         }
 
@@ -1339,8 +1346,9 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
+                    return HandleFraction(node);
                 case @"\binom":
-                    return HandleFractionAndBinomial(node);
+                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSQRT(node);
                 case @"\mathcal":
@@ -1391,8 +1399,9 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\frac":
+                    return HandleFraction(node);
                 case @"\binom":
-                    return HandleFractionAndBinomial(node);
+                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSQRT(node);
                 case @"\mathcal":
@@ -1450,12 +1459,13 @@ namespace LatexConverter
             return $"the square root of {content}";
         }
 
-        private string HandleFractionAndBinomial(CommandNode node)
+        private string HandleFraction(CommandNode node)
         {
-            if (node.Command == @"\frac")
-            {
-                return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
-            }
+            return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
+        }
+
+        private string HandleBinomial(CommandNode node)
+        {
             return $"{node.Args[0].Accept(this)} choose {node.Args[1].Accept(this)}";
         }
 
