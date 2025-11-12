@@ -854,10 +854,6 @@ namespace LatexConverter
             }
             switch (node.Command)
             {
-                case @"\frac":
-                    return HandleFraction(node);
-                case @"\binom":
-                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSqrt(node);
                 case @"\mathcal":
@@ -899,8 +895,6 @@ namespace LatexConverter
             {
                 case @"\frac":
                     return HandleFraction(node);
-                case @"\binom":
-                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSqrt(node);
                 case @"\mathcal":
@@ -939,11 +933,6 @@ namespace LatexConverter
             var side1 = node.Args[0].Accept(this);
             var side2 = node.Args[1].Accept(this);
             return $"{side1}/{side2}";
-        }
-
-        private string HandleBinomial(CommandNode node)
-        {
-            return $@"binom({node.Args[0].Accept(this)},{node.Args[1].Accept(this)})";
         }
 
         private string HandleSqrt(CommandNode node)
@@ -1078,10 +1067,6 @@ namespace LatexConverter
             }
             switch (node.Command)
             {
-                case @"\frac":
-                    return HandleFraction(node);
-                case @"\binom":
-                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSqrt(node);
                 case @"\mathcal":
@@ -1121,17 +1106,7 @@ namespace LatexConverter
         {
             return VisitCommand(node);
         }
-
-        private string HandleFraction(CommandNode node)
-        {
-            return $"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}";
-        }
-
-        private string HandleBinomial(CommandNode node)
-        {
-            return $"({node.Args[0].Accept(this)} {node.Args[1].Accept(this)})";
-        }
-
+         
         private string HandleSqrt(CommandNode node)
         {
             return $"√({node.Args[0].Accept(this)})";
@@ -1345,10 +1320,6 @@ namespace LatexConverter
             }
             switch (node.Command)
             {
-                case @"\frac":
-                    return HandleFraction(node);
-                case @"\binom":
-                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSQRT(node);
                 case @"\mathcal":
@@ -1398,10 +1369,6 @@ namespace LatexConverter
             }
             switch (node.Command)
             {
-                case @"\frac":
-                    return HandleFraction(node);
-                case @"\binom":
-                    return HandleBinomial(node);
                 case @"\sqrt":
                     return HandleSQRT(node);
                 case @"\mathcal":
@@ -1432,11 +1399,6 @@ namespace LatexConverter
                     return HandleLimitStyleCommands(node);
                 case @"\lim":
                     return HandleLimitCommands(node);
-                //case @"\pm": return "plus-minus";
-                //case @"\mp": return "minus-plus";
-                //case @"\equiv": return "congruent to";
-                //case @"\Rightarrow": return "right double arrow";
-                //case @"\Leftrightarrow": return "if and only if";
                 case @"\pm":
                 case @"\mp":
                 case @"\equiv":
@@ -1457,16 +1419,6 @@ namespace LatexConverter
                 return $"the square root of ({content})";
             }
             return $"the square root of {content}";
-        }
-
-        private string HandleFraction(CommandNode node)
-        {
-            return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
-        }
-
-        private string HandleBinomial(CommandNode node)
-        {
-            return $"{node.Args[0].Accept(this)} choose {node.Args[1].Accept(this)}";
         }
 
         private string HandleHatVecAndMathcal(CommandNode node)
