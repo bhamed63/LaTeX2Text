@@ -12,6 +12,7 @@ namespace LatexConverter
         //public string? ScreenReaderTemplate { get; set; }
         public string? ExceptionalScreenReader { get; set; }
         public string? HumanFriendly { get; set; }
+        public string? HumanFriendlyKey { get; set; }
         //public string? HumanFriendlyTemplate { get; set; }
         public string? OpenAI { get; set; }
     }
@@ -263,7 +264,7 @@ namespace LatexConverter
             { @"\pm", new SymbolDefinition { PlainText = "pm", ScreenReader = "plus-minus", HumanFriendly = "±" } },
             { @"\mp", new SymbolDefinition { PlainText = "mp", ScreenReader = "minus-plus", HumanFriendly = "∓" } },
             { @"\cdot", new SymbolDefinition { PlainText = "cdot", ScreenReader = "cdot", HumanFriendly = "·" } },
-            { @"\circ", new SymbolDefinition { PlainText = "circ", ScreenReader = " degrees ", HumanFriendly = "∘" } },
+            { @"\circ", new SymbolDefinition { PlainText = "circ", ScreenReader = " degrees ", HumanFriendly = "{0}°" , HumanFriendlyKey = "°" } },
             { @"\bullet", new SymbolDefinition { PlainText = "bullet", ScreenReader = "bullet", HumanFriendly = "•" } },
             { @"\oplus", new SymbolDefinition { PlainText = "oplus", ScreenReader = "oplus", HumanFriendly = "⊕" } },
             { @"\ominus", new SymbolDefinition { PlainText = "ominus", ScreenReader = "ominus", HumanFriendly = "⊖" } },
@@ -291,10 +292,10 @@ namespace LatexConverter
             { @"\infty", new SymbolDefinition { PlainText = "infty", ScreenReader = "infinity", HumanFriendly = "∞" } },
             { @"\nabla", new SymbolDefinition { PlainText = "nabla", ScreenReader = "nabla", HumanFriendly = "∇" } },
             { @"\partial", new SymbolDefinition { PlainText = "partial", ScreenReader = "partial derivative", HumanFriendly = "∂" } },
-            { @"\int", new SymbolDefinition { PlainText = "integral", ScreenReader = "integral", HumanFriendly = "∫" } },
-            { @"\sum", new SymbolDefinition { PlainText = "summation", ScreenReader = "summation", HumanFriendly = "∑" } },
-            { @"\prod", new SymbolDefinition { PlainText = "product", ScreenReader = "product", HumanFriendly = "∏" } },
-            { @"\lim", new SymbolDefinition { PlainText = "limit", ScreenReader = "limit as", HumanFriendly = "lim" } },
+            { @"\int", new SymbolDefinition { PlainText = "integral", ScreenReader = "integral", HumanFriendly = "∫{0}{1}" , HumanFriendlyKey = "∫"} },
+            { @"\sum", new SymbolDefinition { PlainText = "summation", ScreenReader = "summation", HumanFriendly = "∑{0}{1}" , HumanFriendlyKey = "∑"} },
+            { @"\prod", new SymbolDefinition { PlainText = "product", ScreenReader = "product", HumanFriendly = "∏{0}{1}" , HumanFriendlyKey = "∏"} },
+            { @"\lim", new SymbolDefinition { PlainText = "limit", ScreenReader = "limit as", HumanFriendly = "lim_{{{0}}}" , HumanFriendlyKey = "lim"} },
             { @"\sqrt", new SymbolDefinition { PlainText = "sqrt", HumanFriendly ="√({0})", OpenAI ="sqrt({0})" } },
             { @"\frac", new SymbolDefinition { PlainText = "fraction with numerator", OpenAI = "{0}/{1}" , HumanFriendly  = "{0} / {1}", ScreenReader = "fraction with numerator {0} and denominator {1}"  } },
             { @"\binom", new SymbolDefinition { PlainText = "binom", OpenAI = "binom({0},{1})" , HumanFriendly = "({0} {1})" , ScreenReader = "{0} choose {1}" } },
@@ -327,7 +328,7 @@ namespace LatexConverter
             { @"\neg", new SymbolDefinition { PlainText = "neg", ScreenReader = "not", HumanFriendly = "¬" } },
             { @"\land", new SymbolDefinition { PlainText = "land", ScreenReader = "and", HumanFriendly = "∧" } },
             { @"\lor", new SymbolDefinition { PlainText = "lor", ScreenReader = "or", HumanFriendly = "∨" } },
-            { @"\prime", new SymbolDefinition { PlainText = "prime", ScreenReader = "prime", HumanFriendly = "′" } },
+            { @"\prime", new SymbolDefinition { PlainText = "prime", ScreenReader = "prime", HumanFriendly = "{0}′", HumanFriendlyKey="′" } },
             { @"\blacksquare", new SymbolDefinition { PlainText = "blacksquare", ScreenReader = "black square", HumanFriendly = "■" } },
             { @"\heartsuit", new SymbolDefinition { PlainText = "heartsuit", ScreenReader = "heart suit", HumanFriendly = "♥" } },
             { @"\clubsuit", new SymbolDefinition { PlainText = "clubsuit", ScreenReader = "club suit", HumanFriendly = "♣" } },
@@ -347,8 +348,18 @@ namespace LatexConverter
             { @"\,", new SymbolDefinition { PlainText = " ", ScreenReader = " ", HumanFriendly = " " } },
 
 
-            //{ @"\mathcal", new SymbolDefinition { PlainText = "calligraphic", ScreenReaderTemplate = "calligraphic {0}", OpenAITemplate = "{0}" } },
-            //{ @"\mathbb", new SymbolDefinition { PlainText = "the set of real numbers", ScreenReader = "the set of real numbers"  } },
+            { @"\mathcal", new SymbolDefinition { PlainText = "mathcal", ScreenReader = "{0}}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\mathbb", new SymbolDefinition { PlainText = "mathbb", ScreenReader = "the set of real numbers", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\mathfrak", new SymbolDefinition { PlainText = "mathfrak", ScreenReader = "frak {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\mathscr", new SymbolDefinition { PlainText = "mathscr", ScreenReader = "scr {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+
+            { @"\text", new SymbolDefinition { PlainText = "text", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\textrm", new SymbolDefinition { PlainText = "textrm", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\mathbf", new SymbolDefinition { PlainText = "mathbf", ScreenReader = "bf {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\mathit", new SymbolDefinition { PlainText = "mathit", ScreenReader = "it {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\mathsf", new SymbolDefinition { PlainText = "mathsf", ScreenReader = "sf {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\mathrm", new SymbolDefinition { PlainText = "mathrm", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { @"\mathtt", new SymbolDefinition { PlainText = "mathtt", ScreenReader = "tt {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
            };
 
         static Dictionaries()
@@ -363,7 +374,13 @@ namespace LatexConverter
             HumanFriendlySymbolMap = SymbolLibrary
                 .Where(kvp => kvp.Value.HumanFriendly != null)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
-            ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
+            //ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
+
+
+            ReverseHumanFriendlySymbolMap = SymbolLibrary
+                .Where(kvp => kvp.Value.HumanFriendly != null)
+                .GroupBy(kvp => (kvp.Value.HumanFriendlyKey ?? kvp.Value.HumanFriendly)!)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.First().Key.Substring(1));
 
             ScreenReaderTemplateMap = SymbolLibrary
                 .Where(kvp => kvp.Value.ScreenReader != null && kvp.Value.ScreenReader.Contains("{0}"))

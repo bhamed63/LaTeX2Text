@@ -22,22 +22,7 @@ namespace LatexConverter
                 _ => node.Text
             };
         }
-
-        public override string ExceptionalVisitText(TextNode node)
-        {
-            if (Regex.IsMatch(node.Text, @"[a-zA-Z0-9]+(-[a-zA-Z0-9]+)+")) return node.Text;
-            return node.Text switch
-            {
-                "+" => " plus ",
-                "-" => " minus ",
-                "=" => " equals ",
-                "*" => " times ",
-                "/" => " divided by ",
-                "ħ" => " h bar ",
-                _ => node.Text
-            };
-        }
-
+         
         public override string VisitGroup(GroupNode node)
         {
             return string.Join(" ", node.Body.Select(n => n.Accept(this)));
@@ -75,34 +60,7 @@ namespace LatexConverter
             }
             return $"{baseText} subscript {node.Script.Accept(this).Trim()} ";
         }
-
-        public override string ExceptionalVisitScript(ScriptNode node)
-        {
-            string baseText = node.Base.ExceptionalAccept(this).Trim();
-            if (node.IsSuperscript && node.Script is CommandNode cmdNode)
-            {
-                if (cmdNode.Command == @"\circ") return $"{baseText} degrees";
-                if (cmdNode.Command == @"\prime") return $"{baseText} prime";
-            }
-
-            string scriptText = node.Script.ExceptionalAccept(new PlainTextVisitor());
-            if (node.IsSuperscript)
-            {
-                switch (scriptText)
-                {
-                    case "+": return $"{baseText} plus";
-                    case "-": return $"{baseText} minus";
-                    case "*": return $"{baseText} star";
-                    case "′": return $"{baseText} prime";
-                    case "2": return $"{baseText} squared";
-                    case "3": return $"{baseText} cubed";
-                    case "°": return $"{baseText} degrees";
-                    default: return $"{baseText} to the power of {node.Script.ExceptionalAccept(this).Trim()}";
-                }
-            }
-            return $"{baseText} subscript {node.Script.ExceptionalAccept(this).Trim()} ";
-        }
-
+         
         public override string VisitCommand(CommandNode node)
         {
             if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
@@ -229,11 +187,6 @@ namespace LatexConverter
             });
 
             return $"a {num_rows}x{num_cols} matrix with rows {string.Join(" and ", matrix_desc)}";
-        }
-
-        public override string ExceptionalVisitMatrix(MatrixNode node)
-        {
-            return VisitMatrix(node);
         }
     }
 }

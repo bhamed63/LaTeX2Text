@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -11,23 +9,83 @@ namespace LatexConverter
     public abstract class BaseVisitor<T> : IVisitor<T>
     {
         public abstract T VisitText(TextNode node);
-        public abstract T ExceptionalVisitText(TextNode node);
         public abstract T VisitCommand(CommandNode node);
-        public abstract T ExceptionalVisitCommand(CommandNode node);
         public abstract T VisitGroup(GroupNode node);
-        public abstract T ExceptionalVisitGroup(GroupNode node);
         public abstract T VisitScript(ScriptNode node);
-        public abstract T ExceptionalVisitScript(ScriptNode node);
         public abstract T VisitMatrix(MatrixNode node);
-        public abstract T ExceptionalVisitMatrix(MatrixNode node);
 
-        internal static string ProcessTemplateCommand(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap)
+        public virtual T ExceptionalVisitText(TextNode node)
+        {
+            return VisitText(node);
+        }
+        public virtual T ExceptionalVisitCommand(CommandNode node)
+        {
+            return VisitCommand(node);
+        }
+
+        public virtual T ExceptionalVisitGroup(GroupNode node)
+        {
+            return VisitGroup(node);
+        }
+
+        public virtual T ExceptionalVisitScript(ScriptNode node)
+        {
+            return VisitScript(node);
+        }
+
+        public virtual T ExceptionalVisitMatrix(MatrixNode node)
+        {
+            return VisitMatrix(node);
+        }
+
+        internal static string ProcessTemplateCommand(CommandNode node, IVisitor<string> visitor,
+            IReadOnlyDictionary<string, string> templateMap, IReadOnlyDictionary<string, string> defaultMap = null)
         {
             if (templateMap.TryGetValue(node.Command, out var template))
             {
                 var args = node.Args.Select(arg => arg.Accept(visitor)).ToArray();
                 args = removeUnnecessaryParanthesses(template, args);
                 return string.Format(template, args);
+            }
+            return defaultMap != null ? defaultMap.GetValueOrDefault(node.Command, node.Command) : node.Command;
+        }
+
+        internal static string ProcessTemplateCommand(CommandNode node, string[] args, IVisitor<string> visitor,
+            IReadOnlyDictionary<string, string> templateMap, IReadOnlyDictionary<string, string> defaultMap = null)
+        {
+            if (templateMap.TryGetValue(node.Command, out var template))
+            { 
+                args = removeUnnecessaryParanthesses(template, args);
+                return string.Format(template, args);
+            }
+            return defaultMap != null ? defaultMap.GetValueOrDefault(node.Command, node.Command) : node.Command;
+        }
+
+        internal static string ProcessTemplateCommandSubscript(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap)
+        {
+            if (templateMap.TryGetValue(node.Command, out var template))
+            {
+                if (node.Subscript != null)
+                {
+                    var subscriptText = node.Subscript.Accept(visitor);
+                    subscriptText = Regex.Replace(subscriptText, @"\s+", "");
+                    return string.Format(template, subscriptText);
+                }
+            }
+            return node.Command;
+        }
+
+        internal static string ToUnicodeProcessTemplateCommandSubscriptSuperscript(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap, Dictionary<char, string> unicodeMap = null)
+        {
+            if (templateMap.TryGetValue(node.Command, out var template))
+            {
+                var subScript = "";
+                var superScript = "";
+                if (node.Subscript != null)
+                    subScript = ToUnicode(node.Subscript.Accept(visitor), false, node.Subscript);
+                if (node.Superscript != null)
+                    superScript = ToUnicode(node.Superscript.Accept(visitor), true, node.Superscript);
+                return string.Format(template, subScript, superScript);
             }
             return node.Command;
         }
@@ -48,12 +106,11 @@ namespace LatexConverter
             return args;
         }
 
-        internal static string ToUnicodeProcessTemplateCommand(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap)
+        internal static string ToUnicodeProcessTemplateCommand(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap, Dictionary<char, string> unicodeMap = null)
         {
-            var x = $"e{ToUnicode(node.Args[0].Accept(visitor), true, node.Args[0])}";
             if (templateMap.TryGetValue(node.Command, out var template))
             {
-                var args = node.Args.Select(arg => ToUnicode(arg.Accept(visitor), true, arg)).ToArray();
+                var args = node.Args.Select(arg => ToUnicode(arg.Accept(visitor), true, arg, unicodeMap)).ToArray();
                 args = removeUnnecessaryParanthesses(template, args);
                 return string.Format(template, args);
             }
