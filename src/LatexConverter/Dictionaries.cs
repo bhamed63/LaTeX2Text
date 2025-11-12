@@ -9,8 +9,11 @@ namespace LatexConverter
     {
         public string? PlainText { get; set; }
         public string? ScreenReader { get; set; }
+        public string? ScreenReaderTemplate { get; set; }
         public string? ExceptionalScreenReader { get; set; }
         public string? HumanFriendly { get; set; }
+        public string? HumanFriendlyTemplate { get; set; }
+        public string? OpenAITemplate { get; set; }
     }
 
     public record FontCharacter(char BaseChar, string FontCommand, char UnicodeChar);
@@ -125,8 +128,8 @@ namespace LatexConverter
             { @"\sum", new SymbolDefinition { PlainText = "summation", ScreenReader = "summation", HumanFriendly = "∑" } },
             { @"\prod", new SymbolDefinition { PlainText = "product", ScreenReader = "product", HumanFriendly = "∏" } },
             { @"\lim", new SymbolDefinition { PlainText = "limit", ScreenReader = "limit as", HumanFriendly = "lim" } },
-            { @"\sqrt", new SymbolDefinition { PlainText = "sqrt", ScreenReader = "the square root of ({0})", HumanFriendly = "√({0})" } },
-            { @"\frac", new SymbolDefinition { PlainText = "fraction with numerator", ScreenReader = "fraction with numerator {0} and denominator {1}", HumanFriendly = "{0} / {1}" } },
+            { @"\sqrt", new SymbolDefinition { PlainText = "sqrt" } },
+            { @"\frac", new SymbolDefinition { PlainText = "fraction with numerator" } },
             { @"\binom", new SymbolDefinition { PlainText = "binom", ScreenReader = "choose" } },
             { @"\hbar", new SymbolDefinition { PlainText = "hbar", ScreenReader = "h bar", HumanFriendly = "ħ" } },
             { @"\ell", new SymbolDefinition { PlainText = "ell", ScreenReader = "ell", HumanFriendly = "ℓ" } },
@@ -137,11 +140,11 @@ namespace LatexConverter
             { @"\exists", new SymbolDefinition { PlainText = "exists", ScreenReader = "there exists", HumanFriendly = "∃" } },
             { @"\in", new SymbolDefinition { PlainText = "in", ScreenReader = "in", HumanFriendly = "∈" } },
             { @"\to", new SymbolDefinition { PlainText = "->", ScreenReader = "approaches", HumanFriendly = "→" } },
-            { @"\vec", new SymbolDefinition { PlainText = "vector", ScreenReader = "vector" } },
-            { @"\hat", new SymbolDefinition { PlainText = "hat", ScreenReader = "hat" } },
+            { @"\vec", new SymbolDefinition { PlainText = "vector", ScreenReaderTemplate = "vector {0}", HumanFriendlyTemplate = "{0}⃗", OpenAITemplate = "{0}" } },
+            { @"\hat", new SymbolDefinition { PlainText = "hat", ScreenReaderTemplate = "{0} hat", HumanFriendlyTemplate = "{0}̂", OpenAITemplate = "hat {0}" } },
             { @"\mathcal", new SymbolDefinition { PlainText = "calligraphic", ScreenReader = "calligraphic" } },
             { @"\mathbb", new SymbolDefinition { PlainText = "the set of real numbers", ScreenReader = "the set of real numbers" } },
-            { @"\overline", new SymbolDefinition { PlainText = "bar", ScreenReader = "bar" } },
+            { @"\overline", new SymbolDefinition { PlainText = "bar", ScreenReaderTemplate = "{0} bar", HumanFriendlyTemplate = "{0}̅", OpenAITemplate = "overline({0})" } },
             { @"\sin", new SymbolDefinition { PlainText = "sine of", ScreenReader = "sine of" } },
             { @"\cos", new SymbolDefinition { PlainText = "cosine of", ScreenReader = "cosine of" } },
             { @"\tan", new SymbolDefinition { PlainText = "tangent of", ScreenReader = "tangent of" } },
@@ -192,6 +195,18 @@ namespace LatexConverter
                 .Where(kvp => kvp.Value.HumanFriendly != null)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
             ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
+
+            ScreenReaderTemplateMap = SymbolLibrary
+                .Where(kvp => kvp.Value.ScreenReaderTemplate != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ScreenReaderTemplate!);
+
+            HumanFriendlyTemplateMap = SymbolLibrary
+                .Where(kvp => kvp.Value.HumanFriendlyTemplate != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendlyTemplate!);
+
+            OpenAITemplateMap = SymbolLibrary
+                .Where(kvp => kvp.Value.OpenAITemplate != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.OpenAITemplate!);
 
             MathbbMap = FontLibrary
                 .Where(fc => fc.FontCommand == @"\mathbb")
@@ -245,11 +260,26 @@ namespace LatexConverter
         /// A map of LaTeX commands to their screen reader-friendly representations.
         /// </summary>
         public static readonly Dictionary<string, string> ExceptionalScreenReaderSymbolMap;
+
         /// <summary>
         /// A map of LaTeX commands to their human-friendly Unicode representations.
         /// </summary>
         public static readonly Dictionary<string, string> HumanFriendlySymbolMap;
 
+        /// <summary>
+        /// A map of LaTeX commands to their screen reader-friendly template strings.
+        /// </summary>
+        public static readonly Dictionary<string, string> ScreenReaderTemplateMap;
+
+        /// <summary>
+        /// A map of LaTeX commands to their human-friendly template strings.
+        /// </summary>
+        public static readonly Dictionary<string, string> HumanFriendlyTemplateMap;
+
+        /// <summary>
+        /// A map of LaTeX commands to their OpenAI-friendly template strings.
+        /// </summary>
+        public static readonly Dictionary<string, string> OpenAITemplateMap;
 
         /// <summary>
         /// A map of Unicode symbols to their plain text representations.
