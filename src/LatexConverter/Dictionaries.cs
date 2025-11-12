@@ -142,16 +142,14 @@ namespace LatexConverter
             { @"\to", new SymbolDefinition { PlainText = "->", ScreenReader = "approaches", HumanFriendly = "→" } },
             { @"\vec", new SymbolDefinition { PlainText = "vector", ScreenReaderTemplate = "vector {0}", HumanFriendlyTemplate = "{0}⃗", OpenAITemplate = "{0}" } },
             { @"\hat", new SymbolDefinition { PlainText = "hat", ScreenReaderTemplate = "{0} hat", HumanFriendlyTemplate = "{0}̂", OpenAITemplate = "hat {0}" } },
-            { @"\mathcal", new SymbolDefinition { PlainText = "calligraphic", ScreenReader = "calligraphic" } },
-            { @"\mathbb", new SymbolDefinition { PlainText = "the set of real numbers", ScreenReader = "the set of real numbers" } },
             { @"\overline", new SymbolDefinition { PlainText = "bar", ScreenReaderTemplate = "{0} bar", HumanFriendlyTemplate = "{0}̅", OpenAITemplate = "overline({0})" } },
-            { @"\sin", new SymbolDefinition { PlainText = "sine of", ScreenReader = "sine of" } },
-            { @"\cos", new SymbolDefinition { PlainText = "cosine of", ScreenReader = "cosine of" } },
-            { @"\tan", new SymbolDefinition { PlainText = "tangent of", ScreenReader = "tangent of" } },
-            { @"\log", new SymbolDefinition { PlainText = "logarithm of", ScreenReader = "logarithm of" } },
-            { @"\ln", new SymbolDefinition { PlainText = "natural logarithm of", ScreenReader = "natural logarithm of" } },
-            { @"\exp", new SymbolDefinition { PlainText = "e to the power of", ScreenReader = "e to the power of" } },
-            { @"\det", new SymbolDefinition { PlainText = "determinant of", ScreenReader = "determinant of" } },
+            { @"\sin", new SymbolDefinition { PlainText = "sine of", ScreenReader = "sine of" , ScreenReaderTemplate ="sine of {0}",  OpenAITemplate ="sin({0})" } },
+            { @"\cos", new SymbolDefinition { PlainText = "cosine of", ScreenReader = "cosine of" , ScreenReaderTemplate ="cosine of {0}",  OpenAITemplate ="cos({0})"} },
+            { @"\tan", new SymbolDefinition { PlainText = "tangent of", ScreenReader = "tangent of" , ScreenReaderTemplate ="tangent of {0}",  OpenAITemplate ="tan({0})"} },
+            { @"\log", new SymbolDefinition { PlainText = "logarithm of", ScreenReader = "logarithm of" , ScreenReaderTemplate ="logarithm of {0}",  OpenAITemplate ="log({0})"} },
+            { @"\ln", new SymbolDefinition { PlainText = "natural logarithm of", ScreenReader = "natural logarithm of" , ScreenReaderTemplate ="natural logarithm of {0}",  OpenAITemplate ="ln({0})"} },
+            { @"\exp", new SymbolDefinition { PlainText = "e to the power of", ScreenReader = "e to the power of", ScreenReaderTemplate ="e to the power of {0}",  OpenAITemplate ="exp({0})" } },
+            { @"\det", new SymbolDefinition { PlainText = "determinant of", ScreenReader = "determinant of"  , ScreenReaderTemplate ="determinant of {0}",  OpenAITemplate ="det({0})" } },
             { @"\arcsin", new SymbolDefinition { PlainText = "arcsin", ScreenReader = "arcsin", HumanFriendly = "sin⁻¹" } },
             { @"\arccos", new SymbolDefinition { PlainText = "arccos", ScreenReader = "arccos", HumanFriendly = "cos⁻¹" } },
             { @"\arctan", new SymbolDefinition { PlainText = "arctan", ScreenReader = "arctan", HumanFriendly = "tan⁻¹" } },
@@ -179,8 +177,12 @@ namespace LatexConverter
             { @"\cdots", new SymbolDefinition { PlainText = "...", ScreenReader = "centered dots", HumanFriendly = "⋯" } },
             { @"\vdots", new SymbolDefinition { PlainText = "...", ScreenReader = "vertical dots", HumanFriendly = "⋮" } },
             { @"\ddots", new SymbolDefinition { PlainText = "...", ScreenReader = "diagonal dots", HumanFriendly = "⋱" } },
-            { @"\,", new SymbolDefinition { PlainText = " ", ScreenReader = " ", HumanFriendly = " " } }
-        };
+            { @"\,", new SymbolDefinition { PlainText = " ", ScreenReader = " ", HumanFriendly = " " } },
+
+
+            //{ @"\mathcal", new SymbolDefinition { PlainText = "calligraphic", ScreenReaderTemplate = "calligraphic {0}", OpenAITemplate = "{0}" } },
+            //{ @"\mathbb", new SymbolDefinition { PlainText = "the set of real numbers", ScreenReader = "the set of real numbers"  } },
+           };
 
         static Dictionaries()
         {

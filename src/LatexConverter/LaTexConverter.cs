@@ -855,8 +855,7 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\sqrt":
-                    return HandleSqrt(node);
-                case @"\mathcal":
+                    return HandleSqrt(node); 
                 case @"\mathbb":
                 case @"\text":
                 case @"\mathrm":
@@ -896,8 +895,7 @@ namespace LatexConverter
                 case @"\frac":
                     return HandleFraction(node);
                 case @"\sqrt":
-                    return HandleSqrt(node);
-                case @"\mathcal":
+                    return HandleSqrt(node); 
                 case @"\mathbb":
                 case @"\text":
                 case @"\mathrm":
@@ -1322,8 +1320,6 @@ namespace LatexConverter
             {
                 case @"\sqrt":
                     return HandleSQRT(node);
-                case @"\mathcal":
-                    return HandleHatVecAndMathcal(node);
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
@@ -1334,14 +1330,6 @@ namespace LatexConverter
                 case @"\mathfrak":
                 case @"\mathscr":
                     return HandleStyledText(node);
-                case @"\sin":
-                case @"\cos":
-                case @"\tan":
-                case @"\log":
-                case @"\ln":
-                case @"\exp":
-                case @"\det":
-                    return HandleMathFunctions(node);
                 case @"\mathbb":
                     return HandleMathbb(node);
                 case @"\sum":
@@ -1370,9 +1358,7 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case @"\sqrt":
-                    return HandleSQRT(node);
-                case @"\mathcal":
-                    return HandleHatVecAndMathcal(node);
+                    return HandleSQRT(node); 
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
@@ -1383,14 +1369,6 @@ namespace LatexConverter
                 case @"\mathfrak":
                 case @"\mathscr":
                     return HandleStyledText(node);
-                case @"\sin":
-                case @"\cos":
-                case @"\tan":
-                case @"\log":
-                case @"\ln":
-                case @"\exp":
-                case @"\det":
-                    return HandleMathFunctions(node);
                 case @"\mathbb":
                     return HandleMathbb(node);
                 case @"\sum":
@@ -1420,29 +1398,7 @@ namespace LatexConverter
             }
             return $"the square root of {content}";
         }
-
-        private string HandleHatVecAndMathcal(CommandNode node)
-        {
-            return $"calligraphic {node.Args[0].Accept(this)}";
-        }
-
-        private string HandleMathFunctions(CommandNode node)
-        {
-            var commandName = node.Command.Substring(1);
-            var argument = node.Args[0].Accept(this).Replace("(", "").Replace(")", "");
-            switch (commandName)
-            {
-                case "sin": return $"sine of {argument}";
-                case "cos": return $"cosine of {argument}";
-                case "tan": return $"tangent of {argument}";
-                case "log": return $"logarithm of {argument}";
-                case "ln": return $"natural logarithm of {argument}";
-                case "exp": return $"e to the power of {argument}";
-                case "det": return $"determinant of {argument}";
-                default: return "";
-            }
-        }
-
+        
         private string HandleMathbb(CommandNode node)
         {
             if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R")
