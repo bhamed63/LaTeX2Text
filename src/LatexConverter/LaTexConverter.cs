@@ -111,38 +111,28 @@ namespace LatexConverter
                 if (i + 1 < humanFriendlyText.Length)
                 {
                     char next_c = humanFriendlyText[i + 1];
-                    if (next_c == '\u20D7')
-                    { // vec
+                    if (next_c == '\u20D7') { // vec
                         sb.Append($"\\vec{{{c}}}");
                         i++; // consume combining char
-                        if (i + 1 < humanFriendlyText.Length)
-                        {
+                        if (i + 1 < humanFriendlyText.Length) {
                             char next_next_c = humanFriendlyText[i + 1];
-                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c))
-                            {
+                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c)) {
                                 sb.Append(" ");
                             }
-                        }
-                        else
-                        {
+                        } else {
                             sb.Append(" ");
                         }
                         continue;
                     }
-                    if (next_c == '\u0302')
-                    { // hat
+                    if (next_c == '\u0302') { // hat
                         sb.Append($"\\hat{{{c}}}");
                         i++; // consume combining char
-                        if (i + 1 < humanFriendlyText.Length)
-                        {
+                        if (i + 1 < humanFriendlyText.Length) {
                             char next_next_c = humanFriendlyText[i + 1];
-                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c))
-                            {
+                            if (!Dictionaries.ReverseSubMap.ContainsKey(next_next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_next_c)) {
                                 sb.Append(" ");
                             }
-                        }
-                        else
-                        {
+                        } else {
                             sb.Append(" ");
                         }
                         continue;
@@ -182,32 +172,24 @@ namespace LatexConverter
                 else if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()) && c != ' ')
                 {
                     sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]}");
-                    if (i + 1 < humanFriendlyText.Length)
-                    {
+                    if (i + 1 < humanFriendlyText.Length) {
                         char next_c = humanFriendlyText[i + 1];
-                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c))
-                        {
+                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c)) {
                             sb.Append(" ");
                         }
-                    }
-                    else
-                    {
+                    } else {
                         sb.Append(" ");
                     }
                 }
                 else if (Dictionaries.ReverseMathFontMap.ContainsKey(c))
                 {
                     sb.Append($"{Dictionaries.ReverseMathFontMap[c]}");
-                    if (i + 1 < humanFriendlyText.Length)
-                    {
+                    if (i + 1 < humanFriendlyText.Length) {
                         char next_c = humanFriendlyText[i + 1];
-                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c))
-                        {
+                        if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c)) {
                             sb.Append(" ");
                         }
-                    }
-                    else
-                    {
+                    } else {
                         sb.Append(" ");
                     }
                 }
@@ -792,70 +774,6 @@ namespace LatexConverter
         public abstract T ExceptionalVisitScript(ScriptNode node);
         public abstract T VisitMatrix(MatrixNode node);
         public abstract T ExceptionalVisitMatrix(MatrixNode node);
-
-        internal static string ProcessTemplateCommand(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap)
-        {
-            if (templateMap.TryGetValue(node.Command, out var template))
-            {
-                var args = node.Args.Select(arg => arg.Accept(visitor)).ToArray();
-                args = removeUnnecessaryParanthesses(template, args);
-                return string.Format(template, args);
-            }
-            return node.Command;
-        }
-
-        private static string[] removeUnnecessaryParanthesses(string template, string[] args)
-        {
-            for (int i = 0; i < args.Count(); i++)
-            {
-                var arg = args[i];
-
-                if (template.Contains("({" + i + "})"))
-                {
-                    if (arg.StartsWith("(") && arg.EndsWith(")"))
-                        arg = arg.Substring(1, arg.Length - 2);
-                }
-                args[i] = arg;
-            }
-            return args;
-        }
-
-        internal static string ToUnicodeProcessTemplateCommand(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap)
-        {
-            var x = $"e{ToUnicode(node.Args[0].Accept(visitor), true, node.Args[0])}";
-            if (templateMap.TryGetValue(node.Command, out var template))
-            {
-                var args = node.Args.Select(arg => ToUnicode(arg.Accept(visitor), true, arg)).ToArray();
-                args = removeUnnecessaryParanthesses(template, args);
-                return string.Format(template, args);
-            }
-            return node.Command;
-        }
-
-        protected static string ToUnicode(string s, bool? isSuperscript, AstNode originalNode, Dictionary<char, char> map = null)
-        {
-            if (isSuperscript.HasValue && map == null) map = isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
-
-            string stripped_s = Regex.Replace(s, @"[\(\)]", "");
-            if (map != null && !string.IsNullOrEmpty(stripped_s) && stripped_s.All(c => map.ContainsKey(c)))
-            {
-                var sb = new StringBuilder();
-                foreach (char c in stripped_s) sb.Append(map[c]);
-                return sb.ToString();
-            }
-
-            bool needsParentheses = !(originalNode is TextNode textNode && Regex.IsMatch(textNode.Text, @"^[a-zA-Z0-9]+$"));
-            if (isSuperscript.HasValue)
-            {
-                string op = isSuperscript.Value ? "^" : "_";
-                if (needsParentheses && !(s.StartsWith("(") || s.EndsWith(")")))
-                {
-                    return $"{op}({s})";
-                }
-                return $"{op}{s}";
-            }
-            return s;
-        }
     }
 
     /// <summary>
@@ -920,12 +838,15 @@ namespace LatexConverter
 
         public override string VisitCommand(CommandNode node)
         {
-            if (Dictionaries.OpenAITemplateMap.ContainsKey(node.Command))
-            {
-                return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
-            }
             switch (node.Command)
             {
+                case @"\frac":
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
+                case @"\sqrt":
+                    return HandleSqrt(node);
+                case @"\vec":
+                case @"\mathcal":
                 case @"\mathbb":
                 case @"\text":
                 case @"\mathrm":
@@ -937,6 +858,18 @@ namespace LatexConverter
                 case @"\mathfrak":
                 case @"\mathscr":
                     return HandleTextFormatting(node);
+                case @"\cos":
+                case @"\sin":
+                case @"\tan":
+                case @"\log":
+                case @"\ln":
+                case @"\exp":
+                case @"\det":
+                    return HandleMathFunctions(node);
+                case @"\hat":
+                    return HandleHat(node);
+                case @"\overline":
+                    return $@"overline({node.Args[0].Accept(this)})";
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
@@ -948,12 +881,15 @@ namespace LatexConverter
         }
         public override string ExceptionalVisitCommand(CommandNode node)
         {
-            if (Dictionaries.OpenAITemplateMap.ContainsKey(node.Command))
-            {
-                return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
-            }
             switch (node.Command)
-            { 
+            {
+                case @"\frac":
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
+                case @"\sqrt":
+                    return HandleSqrt(node);
+                case @"\vec":
+                case @"\mathcal":
                 case @"\mathbb":
                 case @"\text":
                 case @"\mathrm":
@@ -965,6 +901,18 @@ namespace LatexConverter
                 case @"\mathfrak":
                 case @"\mathscr":
                     return HandleTextFormatting(node);
+                case @"\cos":
+                case @"\sin":
+                case @"\tan":
+                case @"\log":
+                case @"\ln":
+                case @"\exp":
+                case @"\det":
+                    return HandleMathFunctions(node);
+                case @"\hat":
+                    return HandleHat(node);
+                case @"\overline":
+                    return $@"overline({node.Args[0].Accept(this)})";
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
@@ -974,10 +922,42 @@ namespace LatexConverter
                     return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
             }
         }
-                 
+
+
+        private string HandleFractionAndBinomial(CommandNode node)
+        {
+            if (node.Command == @"\frac")
+            {
+                var side1 = node.Args[0].Accept(this);
+                var side2 = node.Args[1].Accept(this);
+                return $"{side1}/{side2}";
+            }
+            // \binom
+            return $@"binom({node.Args[0].Accept(this)},{node.Args[1].Accept(this)})";
+        }
+
+        private string HandleSqrt(CommandNode node)
+        {
+            var underSQRT = node.Args[0].Accept(this);
+            if (!underSQRT.StartsWith("(") && !underSQRT.EndsWith(")"))
+                return $"sqrt({underSQRT})";
+            else
+                return $"sqrt{underSQRT}";
+        }
+
         private string HandleTextFormatting(CommandNode node)
         {
             return node.Args[0].Accept(this);
+        }
+
+        private string HandleMathFunctions(CommandNode node)
+        {
+            return $@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})";
+        }
+
+        private string HandleHat(CommandNode node)
+        {
+            return $"hat {node.Args[0].Accept(this)}";
         }
 
         private string HandleLimitStyleCommands(CommandNode node)
@@ -1087,13 +1067,19 @@ namespace LatexConverter
 
         public override string VisitCommand(CommandNode node)
         {
-
             switch (node.Command)
             {
+                case @"\frac":
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
+                case @"\sqrt":
+                    return HandleSqrt(node);
+                case @"\vec":
+                case @"\hat":
+                    return HandleHatAndVec(node);
                 case @"\mathcal":
-                    return HandleMathcal(node);
                 case @"\mathbb":
-                    return HandleMathbb(node);
+                    return HandleMathcalAndMathbb(node);
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
@@ -1103,21 +1089,24 @@ namespace LatexConverter
                 case @"\mathtt":
                     return HandleTextFormatting(node);
                 case @"\mathfrak":
-                    return HandleMathfrak(node);
                 case @"\mathscr":
-                    return Handlemathscr(node);
+                    return HandleMathFont(node);
+                case @"\overline":
+                    return $"{node.Args[0].Accept(this)}\u0305";
+                case @"\cos":
+                case @"\sin":
+                case @"\tan":
+                case @"\log":
+                case @"\ln":
                 case @"\exp":
-                    return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap);
+                case @"\det":
+                    return HandleMathFunctions(node);
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
                 case @"\lim":
                     return HandleLimitStyleCommands(node);
                 default:
-                    if (Dictionaries.HumanFriendlyTemplateMap.ContainsKey(node.Command))
-                    {
-                        return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap);
-                    }
                     return Dictionaries.HumanFriendlySymbolMap.GetValueOrDefault(node.Command, node.Command);
             }
         }
@@ -1126,13 +1115,38 @@ namespace LatexConverter
             return VisitCommand(node);
         }
 
-        private string HandleMathcal(CommandNode node)
+        private string HandleFractionAndBinomial(CommandNode node)
         {
-            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap);
+            if (node.Command == @"\frac")
+            {
+                return $"{node.Args[0].Accept(this)} / {node.Args[1].Accept(this)}";
+            }
+            // \binom
+            return $"({node.Args[0].Accept(this)} {node.Args[1].Accept(this)})";
         }
 
-        private string HandleMathbb(CommandNode node)
+        private string HandleSqrt(CommandNode node)
         {
+            return $"√({node.Args[0].Accept(this)})";
+        }
+
+        private string HandleHatAndVec(CommandNode node)
+        {
+            if (node.Command == @"\vec")
+            {
+                return $"{node.Args[0].Accept(this)}\u20D7";
+            }
+            // \hat
+            return $"{node.Args[0].Accept(this)}\u0302";
+        }
+
+        private string HandleMathcalAndMathbb(CommandNode node)
+        {
+            if (node.Command == @"\mathcal")
+            {
+                return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathcalMap);
+            }
+            // \mathbb
             return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathbbMap);
         }
 
@@ -1141,14 +1155,27 @@ namespace LatexConverter
             return node.Args[0].Accept(this);
         }
 
-        private string HandleMathfrak(CommandNode node)
+        private string HandleMathFont(CommandNode node)
         {
-            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathfrakMap);
+            if (node.Command == @"\mathfrak")
+            {
+                return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathfrakMap);
+            }
+            // \mathscr
+            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathscrMap);
         }
 
-        private string Handlemathscr(CommandNode node)
+        private string HandleMathFunctions(CommandNode node)
         {
-            return ToUnicode(node.Args[0].Accept(this), null, node.Args[0], Dictionaries.MathscrMap);
+            if (node.Command == @"\exp")
+            {
+                return $"e{ToUnicode(node.Args[0].Accept(this), true, node.Args[0])}";
+            }
+            if (node.Command == @"\det")
+            {
+                return $"det({node.Args[0].Accept(this)})";
+            }
+            return $@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})";
         }
 
         private string HandleLimitStyleCommands(CommandNode node)
@@ -1172,6 +1199,30 @@ namespace LatexConverter
             return sb.ToString();
         }
 
+        private string ToUnicode(string s, bool? isSuperscript, AstNode originalNode, Dictionary<char, char> map = null)
+        {
+            if (isSuperscript.HasValue && map == null) map = isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
+
+            string stripped_s = Regex.Replace(s, @"[\(\)]", "");
+            if (map != null && !string.IsNullOrEmpty(stripped_s) && stripped_s.All(c => map.ContainsKey(c)))
+            {
+                var sb = new StringBuilder();
+                foreach (char c in stripped_s) sb.Append(map[c]);
+                return sb.ToString();
+            }
+
+            bool needsParentheses = !(originalNode is TextNode textNode && Regex.IsMatch(textNode.Text, @"^[a-zA-Z0-9]+$"));
+            if (isSuperscript.HasValue)
+            {
+                string op = isSuperscript.Value ? "^" : "_";
+                if (needsParentheses && !(s.StartsWith("(") || s.EndsWith(")")))
+                {
+                    return $"{op}({s})";
+                }
+                return $"{op}{s}";
+            }
+            return s;
+        }
         public override string VisitMatrix(MatrixNode node)
         {
             var rows = node.Content.Split(new[] { @"\\" }, StringSplitOptions.RemoveEmptyEntries);
@@ -1291,14 +1342,17 @@ namespace LatexConverter
 
         public override string VisitCommand(CommandNode node)
         {
-            if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
-            {
-                return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
-            }
             switch (node.Command)
             {
+                case @"\frac":
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
                 case @"\sqrt":
                     return HandleSQRT(node);
+                case @"\vec":
+                case @"\hat":
+                case @"\mathcal":
+                    return HandleHatVecAndMathcal(node);
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
@@ -1308,7 +1362,16 @@ namespace LatexConverter
                 case @"\mathtt":
                 case @"\mathfrak":
                 case @"\mathscr":
+                case @"\overline":
                     return HandleStyledText(node);
+                case @"\sin":
+                case @"\cos":
+                case @"\tan":
+                case @"\log":
+                case @"\ln":
+                case @"\exp":
+                case @"\det":
+                    return HandleMathFunctions(node);
                 case @"\mathbb":
                     return HandleMathbb(node);
                 case @"\sum":
@@ -1317,6 +1380,11 @@ namespace LatexConverter
                     return HandleLimitStyleCommands(node);
                 case @"\lim":
                     return HandleLimitCommands(node);
+                case @"\pm": return "plus-minus";
+                case @"\mp": return "minus-plus";
+                case @"\equiv": return "congruent to";
+                case @"\Rightarrow": return "right double arrow";
+                case @"\Leftrightarrow": return "if and only if";
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -1325,14 +1393,17 @@ namespace LatexConverter
 
         public override string ExceptionalVisitCommand(CommandNode node)
         {
-            if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
-            {
-                return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
-            }
             switch (node.Command)
             {
+                case @"\frac":
+                case @"\binom":
+                    return HandleFractionAndBinomial(node);
                 case @"\sqrt":
                     return HandleSQRT(node);
+                case @"\vec":
+                case @"\hat":
+                case @"\mathcal":
+                    return HandleHatVecAndMathcal(node);
                 case @"\text":
                 case @"\mathrm":
                 case @"\textrm":
@@ -1342,7 +1413,16 @@ namespace LatexConverter
                 case @"\mathtt":
                 case @"\mathfrak":
                 case @"\mathscr":
+                case @"\overline":
                     return HandleStyledText(node);
+                case @"\sin":
+                case @"\cos":
+                case @"\tan":
+                case @"\log":
+                case @"\ln":
+                case @"\exp":
+                case @"\det":
+                    return HandleMathFunctions(node);
                 case @"\mathbb":
                     return HandleMathbb(node);
                 case @"\sum":
@@ -1351,6 +1431,16 @@ namespace LatexConverter
                     return HandleLimitStyleCommands(node);
                 case @"\lim":
                     return HandleLimitCommands(node);
+                //case @"\pm": return "plus-minus";
+                //case @"\mp": return "minus-plus";
+                //case @"\equiv": return "congruent to";
+                //case @"\Rightarrow": return "right double arrow";
+                //case @"\Leftrightarrow": return "if and only if";
+                case @"\pm":
+                case @"\mp":
+                case @"\equiv":
+                case @"\Rightarrow":
+                case @"\Leftrightarrow":
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     string screenReaderSymbolVal = Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -1368,6 +1458,44 @@ namespace LatexConverter
             return $"the square root of {content}";
         }
 
+        private string HandleFractionAndBinomial(CommandNode node)
+        {
+            if (node.Command == @"\frac")
+            {
+                return $"fraction with numerator {node.Args[0].Accept(this)} and denominator {node.Args[1].Accept(this)}";
+            }
+            // \binom
+            return $"{node.Args[0].Accept(this)} choose {node.Args[1].Accept(this)}";
+        }
+
+        private string HandleHatVecAndMathcal(CommandNode node)
+        {
+            switch (node.Command)
+            {
+                case @"\vec": return $"vector {node.Args[0].Accept(this)}";
+                case @"\hat": return $"{node.Args[0].Accept(this)} hat";
+                case @"\mathcal": return $"calligraphic {node.Args[0].Accept(this)}";
+                default: return "";
+            }
+        }
+
+        private string HandleMathFunctions(CommandNode node)
+        {
+            var commandName = node.Command.Substring(1);
+            var argument = node.Args[0].Accept(this).Replace("(", "").Replace(")", "");
+            switch (commandName)
+            {
+                case "sin": return $"sine of {argument}";
+                case "cos": return $"cosine of {argument}";
+                case "tan": return $"tangent of {argument}";
+                case "log": return $"logarithm of {argument}";
+                case "ln": return $"natural logarithm of {argument}";
+                case "exp": return $"e to the power of {argument}";
+                case "det": return $"determinant of {argument}";
+                default: return "";
+            }
+        }
+
         private string HandleMathbb(CommandNode node)
         {
             if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R")
@@ -1383,6 +1511,10 @@ namespace LatexConverter
             if (command == @"\text" || command == @"\mathrm" || command == @"\textrm")
             {
                 return node.Args[0].Accept(this);
+            }
+            if (command == @"\overline")
+            {
+                return $"{node.Args[0].Accept(this)} bar";
             }
             var style = command.Substring(1).Replace("math", "");
             return $"{style} {node.Args[0].Accept(this)}";

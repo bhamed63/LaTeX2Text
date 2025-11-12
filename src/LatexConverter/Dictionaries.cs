@@ -26,12 +26,49 @@ namespace LatexConverter
     {
         private static readonly List<FontCharacter> FontLibrary = new()
         {
-            new('R', @"\mathbb", 'ℝ'), new('C', @"\mathbb", 'ℂ'), new('N', @"\mathbb", 'ℕ'), new('Q', @"\mathbb", 'ℚ'), new('Z', @"\mathbb", 'ℤ'),
-            new('E', @"\mathcal", 'ℰ'), new('F', @"\mathcal", 'ℱ'), new('H', @"\mathcal", 'ℋ'), new('B', @"\mathcal", 'ℬ'), new('I', @"\mathcal", 'ℐ'),
-            new('R', @"\mathcal", 'ℛ'), new('L', @"\mathcal", 'ℒ'), new('M', @"\mathcal", 'ℳ'),
-            new('C', @"\mathfrak", 'ℭ'), new('H', @"\mathfrak", 'ℌ'), new('I', @"\mathfrak", 'ℑ'), new('R', @"\mathfrak", 'ℜ'), new('Z', @"\mathfrak", 'ℨ'),
-            new('E', @"\mathscr", 'ℰ'), new('F', @"\mathscr", 'ℱ'), new('H', @"\mathscr", 'ℋ'), new('I', @"\mathscr", 'ℐ'), new('L', @"\mathscr", 'ℒ'),
-            new('M', @"\mathscr", 'ℳ'), new('R', @"\mathscr", 'ℛ')
+            // mathbb
+            new('A', @"\mathbb", '𝔸'), new('B', @"\mathbb", '𝔹'), new('C', @"\mathbb", 'ℂ'), new('D', @"\mathbb", '𝔻'), new('E', @"\mathbb", '𝔼'),
+            new('F', @"\mathbb", '𝔽'), new('G', @"\mathbb", '𝔾'), new('H', @"\mathbb", 'ℍ'), new('I', @"\mathbb", '𝕀'), new('J', @"\mathbb", '𝕁'),
+            new('K', @"\mathbb", '𝕂'), new('L', @"\mathbb", '𝕃'), new('M', @"\mathbb", '𝕄'), new('N', @"\mathbb", 'ℕ'), new('O', @"\mathbb", '𝕆'),
+            new('P', @"\mathbb", 'ℙ'), new('Q', @"\mathbb", 'ℚ'), new('R', @"\mathbb", 'ℝ'), new('S', @"\mathbb", '𝕊'), new('T', @"\mathbb", '𝕋'),
+            new('U', @"\mathbb", '𝕌'), new('V', @"\mathbb", '𝕍'), new('W', @"\mathbb", '𝕎'), new('X', @"\mathbb", '𝕏'), new('Y', @"\mathbb", '𝕐'),
+            new('Z', @"\mathbb", 'ℤ'),
+            new('a', @"\mathbb", '𝕒'), new('b', @"\mathbb", '𝕓'), new('c', @"\mathbb", '𝕔'), new('d', @"\mathbb", '𝕕'), new('e', @"\mathbb", '𝕖'),
+            new('f', @"\mathbb", '𝕗'), new('g', @"\mathbb", '𝕘'), new('h', @"\mathbb", '𝕙'), new('i', @"\mathbb", '𝕚'), new('j', @"\mathbb", '𝕛'),
+            new('k', @"\mathbb", '𝕜'), new('l', @"\mathbb", '𝕝'), new('m', @"\mathbb", '𝕞'), new('n', @"\mathbb", '𝕟'), new('o', @"\mathbb", '𝕠'),
+            new('p', @"\mathbb", '𝕡'), new('q', @"\mathbb", '𝕢'), new('r', @"\mathbb", '𝕣'), new('s', @"\mathbb", '𝕤'), new('t', @"\mathbb", '𝕥'),
+            new('u', @"\mathbb", '𝕦'), new('v', @"\mathbb", '𝕧'), new('w', @"\mathbb", '𝕨'), new('x', @"\mathbb", '𝕩'), new('y', @"\mathbb", '𝕪'),
+            new('z', @"\mathbb", '𝕫'),
+
+            // mathcal
+            new('A', @"\mathcal", '𝒜'), new('B', @"\mathcal", 'ℬ'), new('C', @"\mathcal", '𝒞'), new('D', @"\mathcal", '𝒟'), new('E', @"\mathcal", 'ℰ'),
+            new('F', @"\mathcal", 'ℱ'), new('G', @"\mathcal", '𝒢'), new('H', @"\mathcal", 'ℋ'), new('I', @"\mathcal", 'ℐ'), new('J', @"\mathcal", '𝒥'),
+            new('K', @"\mathcal", '𝒦'), new('L', @"\mathcal", 'ℒ'), new('M', @"\mathcal", 'ℳ'), new('N', @"\mathcal", '𝒩'), new('O', @"\mathcal", '𝒪'),
+            new('P', @"\mathcal", '𝒫'), new('Q', @"\mathcal", '𝒬'), new('R', @"\mathcal", 'ℛ'), new('S', @"\mathcal", '𝒮'), new('T', @"\mathcal", '𝒯'),
+            new('U', @"\mathcal", '𝒰'), new('V', @"\mathcal", '𝒱'), new('W', @"\mathcal", '𝒲'), new('X', @"\mathcal", '𝒳'), new('Y', @"\mathcal", '𝒴'),
+            new('Z', @"\mathcal", '𝒵'),
+
+            // mathfrak
+            new('A', @"\mathfrak", '𝔄'), new('B', @"\mathfrak", '𝔅'), new('C', @"\mathfrak", 'ℭ'), new('D', @"\mathfrak", '𝔇'), new('E', @"\mathfrak", '𝔈'),
+            new('F', @"\mathfrak", '𝔉'), new('G', @"\mathfrak", '𝔊'), new('H', @"\mathfrak", 'ℌ'), new('I', @"\mathfrak", 'ℑ'), new('J', @"\mathfrak", '𝔍'),
+            new('K', @"\mathfrak", '𝔎'), new('L', @"\mathfrak", '𝔏'), new('M', @"\mathfrak", '𝔐'), new('N', @"\mathfrak", '𝔑'), new('O', @"\mathfrak", '𝔒'),
+            new('P', @"\mathfrak", '𝔓'), new('Q', @"\mathfrak", '𝔔'), new('R', @"\mathfrak", 'ℜ'), new('S', @"\mathfrak", '𝔖'), new('T', @"\mathfrak", '𝔗'),
+            new('U', @"\mathfrak", '𝔘'), new('V', @"\mathfrak", '𝔙'), new('W', @"\mathfrak", '𝔚'), new('X', @"\mathfrak", '𝔛'), new('Y', @"\mathfrak", '𝔜'),
+            new('Z', @"\mathfrak", 'ℨ'),
+            new('a', @"\mathfrak", '𝔞'), new('b', @"\mathfrak", '𝔟'), new('c', @"\mathfrak", '𝔠'), new('d', @"\mathfrak", '𝔡'), new('e', @"\mathfrak", '𝔢'),
+            new('f', @"\mathfrak", '𝔣'), new('g', @"\mathfrak", '𝔤'), new('h', @"\mathfrak", '𝔥'), new('i', @"\mathfrak", '𝔦'), new('j', @"\mathfrak", '𝔧'),
+            new('k', @"\mathfrak", '𝔨'), new('l', @"\mathfrak", '𝔩'), new('m', @"\mathfrak", '𝔪'), new('n', @"\mathfrak", '𝔫'), new('o', @"\mathfrak", '𝔬'),
+            new('p', @"\mathfrak", '𝔭'), new('q', @"\mathfrak", '𝔮'), new('r', @"\mathfrak", '𝔯'), new('s', @"\mathfrak", '𝔰'), new('t', @"\mathfrak", '𝔱'),
+            new('u', @"\mathfrak", '𝔲'), new('v', @"\mathfrak", '𝔳'), new('w', @"\mathfrak", '𝔴'), new('x', @"\mathfrak", '𝔵'), new('y', @"\mathfrak", '𝔶'),
+            new('z', @"\mathfrak", '𝔷'),
+
+            // mathscr
+            new('A', @"\mathscr", '𝒜'), new('B', @"\mathscr", 'ℬ'), new('C', @"\mathscr", '𝒞'), new('D', @"\mathscr", '𝒟'), new('E', @"\mathscr", 'ℰ'),
+            new('F', @"\mathscr", 'ℱ'), new('G', @"\mathscr", '𝒢'), new('H', @"\mathscr", 'ℋ'), new('I', @"\mathscr", 'ℐ'), new('J', @"\mathscr", '𝒥'),
+            new('K', @"\mathscr", '𝒦'), new('L', @"\mathscr", 'ℒ'), new('M', @"\mathscr", 'ℳ'), new('N', @"\mathscr", '𝒩'), new('O', @"\mathscr", '𝒪'),
+            new('P', @"\mathscr", '𝒫'), new('Q', @"\mathscr", '𝒬'), new('R', @"\mathscr", 'ℛ'), new('S', @"\mathscr", '𝒮'), new('T', @"\mathscr", '𝒯'),
+            new('U', @"\mathscr", '𝒰'), new('V', @"\mathscr", '𝒱'), new('W', @"\mathscr", '𝒲'), new('X', @"\mathscr", '𝒳'), new('Y', @"\mathscr", '𝒴'),
+            new('Z', @"\mathscr", '𝒵')
         };
         private static readonly List<ScriptCharacter> ScriptLibrary = new()
         {
@@ -50,6 +87,15 @@ namespace LatexConverter
         };
         private static readonly Dictionary<string, SymbolDefinition> SymbolLibrary = new()
         {
+            // Text Formatting Commands
+            { @"\mathbf", new SymbolDefinition { ScreenReader = "bold {0}", HumanFriendly = "{0}", OpenAI = "{0}" } },
+            { @"\mathit", new SymbolDefinition { ScreenReader = "italic {0}", HumanFriendly = "{0}", OpenAI = "{0}" } },
+            { @"\text", new SymbolDefinition { ScreenReader = "{0}", HumanFriendly = "{0}", OpenAI = "{0}" } },
+            { @"\mathrm", new SymbolDefinition { ScreenReader = "{0}", HumanFriendly = "{0}", OpenAI = "{0}" } },
+            { @"\textrm", new SymbolDefinition { ScreenReader = "{0}", HumanFriendly = "{0}", OpenAI = "{0}" } },
+            { @"\mathsf", new SymbolDefinition { ScreenReader = "sans-serif {0}", HumanFriendly = "{0}", OpenAI = "{0}" } },
+            { @"\mathtt", new SymbolDefinition { ScreenReader = "monospace {0}", HumanFriendly = "{0}", OpenAI = "{0}" } },
+
             { @"\alpha", new SymbolDefinition { PlainText = "alpha", ScreenReader = "alpha", HumanFriendly = "α" } },
             { @"\beta", new SymbolDefinition { PlainText = "beta", ScreenReader = "beta", HumanFriendly = "β" } },
             { @"\gamma", new SymbolDefinition { PlainText = "gamma", ScreenReader = "gamma", HumanFriendly = "γ" } },

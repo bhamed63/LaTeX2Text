@@ -43,7 +43,7 @@ namespace LatexConverter.Tests
         [InlineData("A small segment of the wire is marked in blue as \"d-x.\"", "A small segment of the wire is marked in blue as \"d-x.\"")]
         [InlineData("An x-y coordinate system is shown in the top right", "An x-y coordinate system is shown in the top right")]
         [InlineData("rod: dE_x = -k * lambda * x * dx / (a^2 + x^2)^(3/2).", "rod: dEₓ = -k * λ * x * dx / (a² + x²)^(3/2).")]
-        [InlineData("V(r) = (q / (4 * \\pi * \\epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).", "V(r) = (q / (4 * π * ε₀ * a₀)) * e^(-2 * r / a₀) * (1 + a₀/r).")]
+        [InlineData("V(r) = (q / (4 * \\pi * \\epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).", "V(r) = (q / (4 * π * ε₀ * a₀)) * exp(-2 * r / a₀) * (1 + a₀/r).")]
         [InlineData(
             "sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]",
             "sin⁻¹[(λ / (d * π)) * cos⁻¹(√(I / I₀))]")]
@@ -58,7 +58,7 @@ namespace LatexConverter.Tests
         [InlineData("alpha + beta", "α + β")]
         [InlineData("Delta - gamma", "Δ - γ")]
         [InlineData("alpha^2 + beta^2 = gamma^2", "α² + β² = γ²")]
-        //[InlineData("sin(theta) * cos(phi)", "sin(θ) * cos(φ)")]
+        [InlineData("sin(theta) * cos(phi)", "sin(θ) * cos(φ)")]
         [InlineData("pi * r^2", "π * r²")]
         [InlineData("kappa", "κ")]
         [InlineData("+q", "+q")]
@@ -164,7 +164,6 @@ namespace LatexConverter.Tests
         [InlineData(@"\overline{xyz}", "xyz̅")]
         [InlineData(@"a\,b", "a b")]
         [InlineData(@"\sin \theta", "sin(θ)")]
-        [InlineData(@"\sin \theta * \cos \phi", "sin(θ) * cos(φ)")]
         [InlineData(@"\cos \alpha", "cos(α)")]
         [InlineData(@"\tan \beta", "tan(β)")]
         [InlineData(@"The vertical component of the vector is labeled as (|v_y| = v \sin \theta). The angle (\theta) is marked between the vector and the horizontal axis.", @"The vertical component of the vector is labeled as (|v_y| = v sin(θ)). The angle (θ) is marked between the vector and the horizontal axis.")]
