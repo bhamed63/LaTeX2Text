@@ -11,7 +11,7 @@ namespace LatexConverter.Tests
         [InlineData(@"F_\textrm{k}", "F subscript k")]
         [InlineData(@"43^\circ", "43 degrees")]
         [InlineData(@"\alpha", "alpha")]
-        // [InlineData(@"\sqrt{x}", "the square root of x")]
+        //[InlineData(@"\sqrt{x}", "the square root of x")]
         [InlineData(@"\frac{1}{2}", "fraction with numerator 1 and denominator 2")]
         [InlineData(@"a^{b+c}", "a to the power of b plus c")]
         [InlineData(@"x^{10}", "x to the power of 10")]
@@ -24,7 +24,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\mathrm{N}", "N")]
         [InlineData(@"\vec{v}_0", "vector v subscript 0")]
         [InlineData(@"a^{b^{c}}", "a to the power of b to the power of c")]
-        // [InlineData(@"\frac{\sqrt{a^2+b^2}}{2}", "fraction with numerator the square root of a squared plus b squared and denominator 2")]
+        //[InlineData(@"\frac{\sqrt{a^2+b^2}}{2}", "fraction with numerator the square root of a squared plus b squared and denominator 2")]
         [InlineData(@"\sum_{i=1}^{n} i^2", "summation from i equals 1 to n i squared")]
         [InlineData(@"\int_{0}^{\infty} e^{-x} dx", "integral from 0 to infinity e to the power of minus x dx")]
         [InlineData(@"\forall x \in \mathbb{R}", "for all x in the set of real numbers")]
@@ -40,14 +40,14 @@ namespace LatexConverter.Tests
         [InlineData("sin^(-1)", "arcsin")]
         [InlineData("cos^(-1)", "arccos")]
         [InlineData("tan^(-1)", "arctan")]
-        // [InlineData("sqrt(x)", "the square root of x")]
+        //[InlineData("sqrt(x)", "the square root of x")]
         [InlineData("A small segment of the wire is marked in blue as \"d-x.\"", "A small segment of the wire is marked in blue as \"d-x.\"")]
         [InlineData("An x-y coordinate system is shown in the top right", "An x-y coordinate system is shown in the top right")]
         [InlineData("rod: dE_x = -k * lambda * x * dx / (a^2 + x^2)^(3/2).", "rod: dE subscript x equals minus k times lambda times x times dx divided by (a squared plus x squared) to the power of (3 divided by 2).")]
         [InlineData("V(r) = (q / (4 * \\pi * \\epsilon_0 * a_0)) * exp(-2 * r / a_0) * (1 + a_0/r).", "V(r) equals (q divided by (4 times pi times epsilon subscript 0 times a subscript 0)) times exp(minus 2 times r divided by a subscript 0) times (1 plus a subscript 0 divided by r).")]
-        // [InlineData(
-        //     "sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]",
-        //     "arcsin [ (lambda divided by (d times pi)) times arccos (the square root of I divided by I subscript 0) ]")]
+        //[InlineData(
+        //    "sin^(-1) [ (lambda / (d * pi)) * cos^(-1) (sqrt(I / I_0)) ]",
+        //    "arcsin [ (lambda divided by (d times pi)) times arccos (the square root of I divided by I subscript 0) ]")]
         [InlineData("the quantity (x/2 squared plus l squared) raised to the 3/2 power", "the quantity (x divided by 2 squared plus l squared) raised to the 3 divided by 2 power")]
         [InlineData("y_ob to a", "y subscript ob to a")]
         [InlineData(@"\mu_k", "mu subscript k")]
