@@ -1243,12 +1243,13 @@ namespace LatexConverter
             return s;
         }
 
-        private Dictionary<char, string>? convertToDic(Dictionary<char, char> tempMap)
+        private Dictionary<char, string>? convertToDic(Dictionary<char, char> toBeConvertedMap)
         {
+            if (toBeConvertedMap == null) return null;
             var dic = new Dictionary<char, string>();
-            foreach (char c in tempMap.Keys)
+            foreach (char c in toBeConvertedMap.Keys)
             {
-                dic.Add(c, tempMap[c].ToString());
+                dic.Add(c, toBeConvertedMap[c].ToString());
             }
 
             return dic;
