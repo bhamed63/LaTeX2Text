@@ -9,11 +9,11 @@ namespace LatexConverter
     {
         public string? PlainText { get; set; }
         public string? ScreenReader { get; set; }
-        public string? ScreenReaderTemplate { get; set; }
+        //public string? ScreenReaderTemplate { get; set; }
         public string? ExceptionalScreenReader { get; set; }
         public string? HumanFriendly { get; set; }
-        public string? HumanFriendlyTemplate { get; set; }
-        public string? OpenAITemplate { get; set; }
+        //public string? HumanFriendlyTemplate { get; set; }
+        public string? OpenAI { get; set; }
     }
 
     public record FontCharacter(char BaseChar, string FontCommand, char UnicodeChar);
@@ -129,8 +129,8 @@ namespace LatexConverter
             { @"\prod", new SymbolDefinition { PlainText = "product", ScreenReader = "product", HumanFriendly = "∏" } },
             { @"\lim", new SymbolDefinition { PlainText = "limit", ScreenReader = "limit as", HumanFriendly = "lim" } },
             { @"\sqrt", new SymbolDefinition { PlainText = "sqrt" } },
-            { @"\frac", new SymbolDefinition { PlainText = "fraction with numerator", OpenAITemplate = "{0}/{1}" , HumanFriendlyTemplate = "{0} / {1}", ScreenReaderTemplate = "fraction with numerator {0} and denominator {1}"  } },
-            { @"\binom", new SymbolDefinition { PlainText = "binom", OpenAITemplate = "binom({0},{1})" , HumanFriendlyTemplate = "({0} {1})" , ScreenReaderTemplate = "{0} choose {1}" } },
+            { @"\frac", new SymbolDefinition { PlainText = "fraction with numerator", OpenAI = "{0}/{1}" , HumanFriendly  = "{0} / {1}", ScreenReader = "fraction with numerator {0} and denominator {1}"  } },
+            { @"\binom", new SymbolDefinition { PlainText = "binom", OpenAI = "binom({0},{1})" , HumanFriendly = "({0} {1})" , ScreenReader = "{0} choose {1}" } },
             { @"\hbar", new SymbolDefinition { PlainText = "hbar", ScreenReader = "h bar", HumanFriendly = "ħ" } },
             { @"\ell", new SymbolDefinition { PlainText = "ell", ScreenReader = "ell", HumanFriendly = "ℓ" } },
             { @"\wp", new SymbolDefinition { PlainText = "wp", ScreenReader = "Weierstrass p", HumanFriendly = "wp" } },
@@ -140,16 +140,16 @@ namespace LatexConverter
             { @"\exists", new SymbolDefinition { PlainText = "exists", ScreenReader = "there exists", HumanFriendly = "∃" } },
             { @"\in", new SymbolDefinition { PlainText = "in", ScreenReader = "in", HumanFriendly = "∈" } },
             { @"\to", new SymbolDefinition { PlainText = "->", ScreenReader = "approaches", HumanFriendly = "→" } },
-            { @"\vec", new SymbolDefinition { PlainText = "vector", ScreenReaderTemplate = "vector {0}", HumanFriendlyTemplate = "{0}⃗", OpenAITemplate = "{0}" } },
-            { @"\hat", new SymbolDefinition { PlainText = "hat", ScreenReaderTemplate = "{0} hat", HumanFriendlyTemplate = "{0}̂", OpenAITemplate = "hat {0}" } },
-            { @"\overline", new SymbolDefinition { PlainText = "bar", ScreenReaderTemplate = "{0} bar", HumanFriendlyTemplate = "{0}̅", OpenAITemplate = "overline({0})" } },
-            { @"\sin", new SymbolDefinition { PlainText = "sine of", ScreenReader = "sine of" , ScreenReaderTemplate ="sine of {0}",  OpenAITemplate ="sin({0})" } },
-            { @"\cos", new SymbolDefinition { PlainText = "cosine of", ScreenReader = "cosine of" , ScreenReaderTemplate ="cosine of {0}",  OpenAITemplate ="cos({0})"} },
-            { @"\tan", new SymbolDefinition { PlainText = "tangent of", ScreenReader = "tangent of" , ScreenReaderTemplate ="tangent of {0}",  OpenAITemplate ="tan({0})"} },
-            { @"\log", new SymbolDefinition { PlainText = "logarithm of", ScreenReader = "logarithm of" , ScreenReaderTemplate ="logarithm of {0}",  OpenAITemplate ="log({0})"} },
-            { @"\ln", new SymbolDefinition { PlainText = "natural logarithm of", ScreenReader = "natural logarithm of" , ScreenReaderTemplate ="natural logarithm of {0}",  OpenAITemplate ="ln({0})"} },
-            { @"\exp", new SymbolDefinition { PlainText = "e to the power of", ScreenReader = "e to the power of", ScreenReaderTemplate ="e to the power of {0}",  OpenAITemplate ="exp({0})" } },
-            { @"\det", new SymbolDefinition { PlainText = "determinant of", ScreenReader = "determinant of"  , ScreenReaderTemplate ="determinant of {0}",  OpenAITemplate ="det({0})" } },
+            { @"\vec", new SymbolDefinition { PlainText = "vector", ScreenReader = "vector {0}", HumanFriendly = "{0}⃗", OpenAI = "{0}" } },
+            { @"\hat", new SymbolDefinition { PlainText = "hat", ScreenReader = "{0} hat", HumanFriendly = "{0}̂", OpenAI = "hat {0}" } },
+            { @"\overline", new SymbolDefinition { PlainText = "bar", ScreenReader = "{0} bar", HumanFriendly = "{0}̅", OpenAI = "overline({0})" } },
+            { @"\sin", new SymbolDefinition { PlainText = "sine of", ScreenReader ="sine of {0}",  HumanFriendly ="sin({0})" ,  OpenAI ="sin({0})" } },
+            { @"\cos", new SymbolDefinition { PlainText = "cosine of", ScreenReader ="cosine of {0}", HumanFriendly ="cos({0})" ,  OpenAI ="cos({0})"} },
+            { @"\tan", new SymbolDefinition { PlainText = "tangent of", ScreenReader ="tangent of {0}", HumanFriendly ="tan({0})" ,  OpenAI ="tan({0})"} },
+            { @"\log", new SymbolDefinition { PlainText = "logarithm of", ScreenReader ="logarithm of {0}",HumanFriendly ="log({0})" ,   OpenAI ="log({0})"} },
+            { @"\ln", new SymbolDefinition { PlainText = "natural logarithm of", ScreenReader ="natural logarithm of {0}", HumanFriendly ="ln({0})" ,  OpenAI ="ln({0})"} },
+            { @"\exp", new SymbolDefinition { PlainText = "e to the power of", ScreenReader ="e to the power of {0}",  OpenAI ="exp({0})" } },
+            { @"\det", new SymbolDefinition { PlainText = "determinant of", ScreenReader ="determinant of {0}", HumanFriendly ="det({0})" ,  OpenAI ="det({0})" } },
             { @"\arcsin", new SymbolDefinition { PlainText = "arcsin", ScreenReader = "arcsin", HumanFriendly = "sin⁻¹" } },
             { @"\arccos", new SymbolDefinition { PlainText = "arccos", ScreenReader = "arccos", HumanFriendly = "cos⁻¹" } },
             { @"\arctan", new SymbolDefinition { PlainText = "arctan", ScreenReader = "arctan", HumanFriendly = "tan⁻¹" } },
@@ -199,16 +199,16 @@ namespace LatexConverter
             ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
 
             ScreenReaderTemplateMap = SymbolLibrary
-                .Where(kvp => kvp.Value.ScreenReaderTemplate != null)
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ScreenReaderTemplate!);
+                .Where(kvp => kvp.Value.ScreenReader != null && kvp.Value.ScreenReader.Contains("{0}") )
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ScreenReader!);
 
             HumanFriendlyTemplateMap = SymbolLibrary
-                .Where(kvp => kvp.Value.HumanFriendlyTemplate != null)
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendlyTemplate!);
+                .Where(kvp => kvp.Value.HumanFriendly != null && kvp.Value.HumanFriendly.Contains("{0}"))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
 
             OpenAITemplateMap = SymbolLibrary
-                .Where(kvp => kvp.Value.OpenAITemplate != null)
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.OpenAITemplate!);
+                .Where(kvp => kvp.Value.OpenAI != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.OpenAI!);
 
             MathbbMap = FontLibrary
                 .Where(fc => fc.FontCommand == @"\mathbb")

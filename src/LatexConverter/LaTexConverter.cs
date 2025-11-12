@@ -784,6 +784,7 @@ namespace LatexConverter
             }
             return node.Command;
         }
+
     }
 
     /// <summary>
@@ -866,15 +867,7 @@ namespace LatexConverter
                 case @"\mathtt":
                 case @"\mathfrak":
                 case @"\mathscr":
-                    return HandleTextFormatting(node);
-                case @"\cos":
-                case @"\sin":
-                case @"\tan":
-                case @"\log":
-                case @"\ln":
-                case @"\exp":
-                case @"\det":
-                    return HandleMathFunctions(node);
+                    return HandleTextFormatting(node); 
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
@@ -906,15 +899,7 @@ namespace LatexConverter
                 case @"\mathtt":
                 case @"\mathfrak":
                 case @"\mathscr":
-                    return HandleTextFormatting(node);
-                case @"\cos":
-                case @"\sin":
-                case @"\tan":
-                case @"\log":
-                case @"\ln":
-                case @"\exp":
-                case @"\det":
-                    return HandleMathFunctions(node);
+                    return HandleTextFormatting(node); 
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
@@ -946,12 +931,7 @@ namespace LatexConverter
         {
             return node.Args[0].Accept(this);
         }
-
-        private string HandleMathFunctions(CommandNode node)
-        {
-            return $@"{node.Command.Substring(1)}({node.Args[0].Accept(this)})";
-        }
-
+         
         private string HandleLimitStyleCommands(CommandNode node)
         {
             var sb = new StringBuilder();
@@ -1089,7 +1069,6 @@ namespace LatexConverter
                 case @"\log":
                 case @"\ln":
                 case @"\exp":
-                case @"\det":
                     return HandleMathFunctions(node);
                 case @"\sum":
                 case @"\int":
@@ -1137,6 +1116,7 @@ namespace LatexConverter
 
         private string HandleMathFunctions(CommandNode node)
         {
+            //return $"e{ToUnicode(node.Args[0].Accept(this), true, node.Args[0])}";
             if (node.Command == @"\exp")
             {
                 return $"e{ToUnicode(node.Args[0].Accept(this), true, node.Args[0])}";
@@ -1338,11 +1318,6 @@ namespace LatexConverter
                     return HandleLimitStyleCommands(node);
                 case @"\lim":
                     return HandleLimitCommands(node);
-                case @"\pm": return "plus-minus";
-                case @"\mp": return "minus-plus";
-                case @"\equiv": return "congruent to";
-                case @"\Rightarrow": return "right double arrow";
-                case @"\Leftrightarrow": return "if and only if";
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -1377,11 +1352,6 @@ namespace LatexConverter
                     return HandleLimitStyleCommands(node);
                 case @"\lim":
                     return HandleLimitCommands(node);
-                case @"\pm":
-                case @"\mp":
-                case @"\equiv":
-                case @"\Rightarrow":
-                case @"\Leftrightarrow":
                 default:
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     string screenReaderSymbolVal = Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
