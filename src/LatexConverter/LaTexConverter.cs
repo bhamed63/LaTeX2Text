@@ -195,9 +195,9 @@ namespace LatexConverter
                         sb.Append(" ");
                     }
                 }
-                else if (Dictionaries.ReverseMathFontMap.ContainsKey(c))
+                else if (Dictionaries.ReverseMathFontMap.ContainsKey(c.ToString()))
                 {
-                    sb.Append($"{Dictionaries.ReverseMathFontMap[c]}");
+                    sb.Append($"{Dictionaries.ReverseMathFontMap[c.ToString()]}");
                     if (i + 1 < humanFriendlyText.Length)
                     {
                         char next_c = humanFriendlyText[i + 1];
@@ -380,6 +380,7 @@ namespace LatexConverter
             }
             return true;
         }
+
     }
 
     #region Parser
@@ -832,9 +833,10 @@ namespace LatexConverter
             return node.Command;
         }
 
-        protected static string ToUnicode(string s, bool? isSuperscript, AstNode originalNode, Dictionary<char, char> map = null)
+        protected static string ToUnicode(string s, bool? isSuperscript, AstNode originalNode, Dictionary<char, string> map = null)
         {
-            if (isSuperscript.HasValue && map == null) map = isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
+            var tempMap = isSuperscript.HasValue && isSuperscript.Value ? Dictionaries.SupMap : Dictionaries.SubMap;
+            if (isSuperscript.HasValue && map == null) map = convertToMap(tempMap);
 
             string stripped_s = Regex.Replace(s, @"[\(\)]", "");
             if (map != null && !string.IsNullOrEmpty(stripped_s) && stripped_s.All(c => map.ContainsKey(c)))
@@ -855,6 +857,19 @@ namespace LatexConverter
                 return $"{op}{s}";
             }
             return s;
+        }
+
+        private static Dictionary<char, string>? convertToMap(Dictionary<char, char> tempMap)
+        {
+            if (tempMap == null)
+                return null;
+
+            var convertedMap = new Dictionary<char, string>();
+            foreach (var key in tempMap.Keys)
+            {
+                convertedMap.Add(key, tempMap[key].ToString());
+            }
+            return convertedMap;
         }
     }
 
@@ -953,7 +968,7 @@ namespace LatexConverter
                 return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
             }
             switch (node.Command)
-            { 
+            {
                 case @"\mathbb":
                 case @"\text":
                 case @"\mathrm":
@@ -974,7 +989,7 @@ namespace LatexConverter
                     return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
             }
         }
-                 
+
         private string HandleTextFormatting(CommandNode node)
         {
             return node.Args[0].Accept(this);
