@@ -164,6 +164,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\overline{xyz}", "xyz̅")]
         [InlineData(@"a\,b", "a b")]
         [InlineData(@"\sin \theta", "sin(θ)")]
+        [InlineData(@"\sin \theta * \cos \phi", "sin(θ) * cos(φ)")]
         [InlineData(@"\cos \alpha", "cos(α)")]
         [InlineData(@"\tan \beta", "tan(β)")]
         [InlineData(@"The vertical component of the vector is labeled as (|v_y| = v \sin \theta). The angle (\theta) is marked between the vector and the horizontal axis.", @"The vertical component of the vector is labeled as (|v_y| = v sin(θ)). The angle (θ) is marked between the vector and the horizontal axis.")]
