@@ -60,16 +60,16 @@ namespace LatexConverter
         {
             if (string.IsNullOrEmpty(humanFriendlyText)) return "";
 
-            humanFriendlyText = humanFriendlyText.Replace("sin⁻¹", @"\arcsin ");
-            humanFriendlyText = humanFriendlyText.Replace("cos⁻¹", @"\arccos ");
-            humanFriendlyText = humanFriendlyText.Replace("tan⁻¹", @"\arctan ");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"√\((.*?)\)", @"\sqrt{$1}");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"√([^ ])", @"\sqrt{$1}");
+            humanFriendlyText = humanFriendlyText.Replace("sin⁻¹", CommandNames.Arcsin + " ");
+            humanFriendlyText = humanFriendlyText.Replace("cos⁻¹", CommandNames.Arccos + " ");
+            humanFriendlyText = humanFriendlyText.Replace("tan⁻¹", CommandNames.Arctan + " ");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"√\((.*?)\)", CommandNames.Sqrt + "{$1}");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"√([^ ])", CommandNames.Sqrt + "{$1}");
             humanFriendlyText = Regex.Replace(humanFriendlyText, @"\(([^ ]*?) ([^ ]*?)\)\n\(([^ ]*?) ([^ ]*?)\)", @"\begin{pmatrix} $1 & $2 \\ $3 & $4 \end{pmatrix}");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"\(([^ ]*?) ([^ ]*?)\)", @"\binom{$1}{$2}");
-            humanFriendlyText = humanFriendlyText.Replace("p̅", @"\overline{p}");
-            humanFriendlyText = humanFriendlyText.Replace("xyz̅", @"\overline{xyz}");
-            humanFriendlyText = Regex.Replace(humanFriendlyText, @"lim_{([^}]*)}", @"\lim_{$1}");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"\(([^ ]*?) ([^ ]*?)\)", CommandNames.Binom + "{$1}{$2}");
+            humanFriendlyText = humanFriendlyText.Replace("p̅", CommandNames.Overline + "{p}");
+            humanFriendlyText = humanFriendlyText.Replace("xyz̅", CommandNames.Overline + "{xyz}");
+            humanFriendlyText = Regex.Replace(humanFriendlyText, @"lim_{([^}]*)}", CommandNames.Lim + "_{$1}");
 
 
 
@@ -80,7 +80,7 @@ namespace LatexConverter
 
                 if (c == '∫')
                 {
-                    sb.Append(@"\int");
+                    sb.Append(CommandNames.Int);
                     i++;
 
 
@@ -115,7 +115,7 @@ namespace LatexConverter
                     char next_c = humanFriendlyText[i + 1];
                     if (next_c == '\u20D7')
                     { // vec
-                        sb.Append($"\\vec{{{c}}}");
+                        sb.Append($"{CommandNames.Vec}{{{c}}}");
                         i++; // consume combining char
                         if (i + 1 < humanFriendlyText.Length)
                         {
@@ -133,7 +133,7 @@ namespace LatexConverter
                     }
                     if (next_c == '\u0302')
                     { // hat
-                        sb.Append($"\\hat{{{c}}}");
+                        sb.Append($"{CommandNames.Hat}{{{c}}}");
                         i++; // consume combining char
                         if (i + 1 < humanFriendlyText.Length)
                         {
@@ -178,9 +178,9 @@ namespace LatexConverter
                     i--;
                     if (content.Length > 1 && !content.ToString().Contains("\\")) sb.Append($"_{{{content}}}"); else sb.Append($"_{content}");
                 }
-                else if (c == '⇔') { sb.Append(@"\Leftrightarrow "); }
-                else if (c == '⇒') { sb.Append(@"\Rightarrow "); }
-                else if (c == '°') { sb.Append(@"\circ "); }
+                else if (c == '⇔') { sb.Append(CommandNames.BigLeftrightarrow + " "); }
+                else if (c == '⇒') { sb.Append(CommandNames.BigRightarrow + " "); }
+                else if (c == '°') { sb.Append(CommandNames.Circ + " "); }
                 else if (Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()) && c != ' ')
                 {
                     sb.Append($"\\{Dictionaries.ReverseHumanFriendlySymbolMap[c.ToString()]}");
@@ -227,9 +227,9 @@ namespace LatexConverter
         private string NormalizeStructuralPatterns(string latex_input)
         {
             if (latex_input == null) return "";
-            var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", @"\sqrt{$1}");
-            processed_input = Regex.Replace(processed_input, @"\\(cos|sin|tan|log|ln|exp|det)\((.*?)\)", @"\$1{$2}");
-            processed_input = Regex.Replace(processed_input, @"(sin|cos|tan)\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
+            var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", CommandNames.Sqrt + "{$1}");
+            processed_input = Regex.Replace(processed_input, $@"\\({CommandNames.Cos.Substring(1)}|{CommandNames.Sin.Substring(1)}|{CommandNames.Tan.Substring(1)}|{CommandNames.Log.Substring(1)}|{CommandNames.Ln.Substring(1)}|{CommandNames.Exp.Substring(1)}|{CommandNames.Det.Substring(1)})\((.*?)\)", @"\$1{$2}");
+            processed_input = Regex.Replace(processed_input, $@"({CommandNames.Sin.Substring(1)}|{CommandNames.Cos.Substring(1)}|{CommandNames.Tan.Substring(1)})\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
             return processed_input;
         }
 
@@ -266,7 +266,7 @@ namespace LatexConverter
             {
                 return "";
             }
-            text = Regex.Replace(text, @"\\(big|Big|bigg|Bigg)[l|r]?\s*[\(\)]", "");
+            text = Regex.Replace(text, $@"\\({CommandNames.Big}|{CommandNames.Big.ToLower()}|{CommandNames.Bigg.ToLower()}|{CommandNames.Bigg})[l|r]?\s*[\(\)]", "");
 
             var parts = Regex.Split(text, @"(\r?\n)");
             var resultBuilder = new StringBuilder();

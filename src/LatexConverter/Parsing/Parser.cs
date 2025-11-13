@@ -73,14 +73,14 @@ namespace LatexConverter
             return new GroupNode(nodes);
         }
 
-        private bool IsLimitCommand(string command) => command == @"\sum" || command == @"\int" || command == @"\prod" || command == @"\lim";
+        private bool IsLimitCommand(string command) => command == CommandNames.Sum || command == CommandNames.Int || command == CommandNames.Prod || command == CommandNames.Lim;
 
         private int GetArgumentCount(string command)
         {
             return command switch
             {
-                @"\frac" or @"\binom" => 2,
-                @"\sqrt" or @"\vec" or @"\hat" or @"\mathcal" or @"\mathbb" or @"\text" or @"\mathrm" or @"\textrm" or @"\cos" or @"\sin" or @"\tan" or @"\log" or @"\ln" or @"\exp" or @"\det" or @"\mathbf" or @"\mathit" or @"\mathsf" or @"\mathtt" or @"\mathfrak" or @"\mathscr" or @"\overline" => 1,
+                CommandNames.Frac or CommandNames.Binom => 2,
+                CommandNames.Sqrt or CommandNames.Vec or CommandNames.Hat or CommandNames.Mathcal or CommandNames.Mathbb or CommandNames.Text or CommandNames.Mathrm or CommandNames.Textrm or CommandNames.Cos or CommandNames.Sin or CommandNames.Tan or CommandNames.Log or CommandNames.Ln or CommandNames.Exp or CommandNames.Det or CommandNames.Mathbf or CommandNames.Mathit or CommandNames.Mathsf or CommandNames.Mathtt or CommandNames.Mathfrak or CommandNames.Mathscr or CommandNames.Overline => 1,
                 _ => 0,
             };
         }
