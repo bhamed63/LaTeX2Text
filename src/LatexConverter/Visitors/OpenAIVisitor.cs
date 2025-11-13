@@ -27,7 +27,7 @@ namespace LatexConverter
                     return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.OpenAITemplateMap);
             }
 
-            string commandName = node.IsSuperscript ? "\\for_superscript" : "\\for_subscript";
+            string commandName = node.IsSuperscript ? CommandNames.superscript : CommandNames.subscript;
             if (node.NeedsParentheses())
                 scriptText = $"({scriptText})";
             return BaseVisitor<string>.ProcessTemplateCommand(commandName, new string[] { baseText, scriptText }, this, Dictionaries.OpenAITemplateMap);
@@ -85,7 +85,7 @@ namespace LatexConverter
                 return $"[{string.Join(", ", elements)}]";
             });
             var args = new string[] { string.Join(", ", matrix) };
-            return BaseVisitor<string>.ProcessTemplateCommand("\\for_matrix", args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.matrix, args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
     }
 }
