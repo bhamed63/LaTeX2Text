@@ -39,7 +39,7 @@ namespace LatexConverter
             string baseText = node.Base.Accept(this).Trim();
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
-                if (cmdNode.Command == @"\circ" || cmdNode.Command == @"\prime")
+                if (cmdNode.Command == CommandNames.Circ || cmdNode.Command == CommandNames.Prime)
                     return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
 
             }
@@ -59,11 +59,11 @@ namespace LatexConverter
                         return " " + BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
 
                     default:
-                        return BaseVisitor<string>.ProcessTemplateCommand("\\for_superscript", new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+                        return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Superscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
 
                 }
             }
-            return BaseVisitor<string>.ProcessTemplateCommand("\\for_subscript", new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap) + " ";
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Subscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap) + " ";
 
         }
 
@@ -71,15 +71,15 @@ namespace LatexConverter
         {
             switch (node.Command)
             {
-                case @"\sqrt":
+                case CommandNames.Sqrt:
                     return HandleSQRT(node);
-                case @"\mathbb":
+                case CommandNames.Mathbb:
                     return HandleMathbb(node);
-                case @"\sum":
-                case @"\int":
-                case @"\prod":
+                case CommandNames.Sum:
+                case CommandNames.Int:
+                case CommandNames.Prod:
                     return HandleLimitStyleCommands(node);
-                case @"\lim":
+                case CommandNames.Lim:
                     return HandleLimitCommands(node);
                 default:
                     if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
@@ -95,15 +95,15 @@ namespace LatexConverter
         {
             switch (node.Command)
             {
-                case @"\sqrt":
+                case CommandNames.Sqrt:
                     return HandleSQRT(node);
-                case @"\mathbb":
+                case CommandNames.Mathbb:
                     return HandleMathbb(node);
-                case @"\sum":
-                case @"\int":
-                case @"\prod":
+                case CommandNames.Sum:
+                case CommandNames.Int:
+                case CommandNames.Prod:
                     return HandleLimitStyleCommands(node);
-                case @"\lim":
+                case CommandNames.Lim:
                     return HandleLimitCommands(node);
                 default:
                     if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
@@ -162,7 +162,7 @@ namespace LatexConverter
             });
 
             var args = new string[] { num_rows.ToString(), num_cols.ToString(), string.Join(" and ", matrix_desc) };
-            return BaseVisitor<string>.ProcessTemplateCommand("\\for_matrix", args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
     }
 }
