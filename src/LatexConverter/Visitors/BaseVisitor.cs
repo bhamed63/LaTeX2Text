@@ -41,24 +41,21 @@ namespace LatexConverter
         internal static string ProcessTemplateCommand(CommandNode node, IVisitor<string> visitor,
             IReadOnlyDictionary<string, string> templateMap, IReadOnlyDictionary<string, string> defaultMap = null)
         {
-            if (templateMap.TryGetValue(node.Command, out var template))
-            {
-                var args = node.Args.Select(arg => arg.Accept(visitor)).ToArray();
-                args = removeUnnecessaryParanthesses(template, args);
-                return string.Format(template, args);
-            }
-            return defaultMap != null ? defaultMap.GetValueOrDefault(node.Command, node.Command) : node.Command;
+            var args = node.Args.Select(arg => arg.Accept(visitor)).ToArray();
+            return ProcessTemplateCommand(node.Command, args, visitor, templateMap, defaultMap); 
         }
 
-        internal static string ProcessTemplateCommand(CommandNode node, string[] args, IVisitor<string> visitor,
+        internal static string ProcessTemplateCommand(string command, string[] args, IVisitor<string> visitor,
             IReadOnlyDictionary<string, string> templateMap, IReadOnlyDictionary<string, string> defaultMap = null)
         {
-            if (templateMap.TryGetValue(node.Command, out var template))
-            { 
+            if (templateMap.TryGetValue(command, out var template))
+            {
                 args = removeUnnecessaryParanthesses(template, args);
-                return string.Format(template, args);
+                if (args.Length > 0)
+                    return string.Format(template, args);
+                return removeUnnecessaryParameters(template);
             }
-            return defaultMap != null ? defaultMap.GetValueOrDefault(node.Command, node.Command) : node.Command;
+            return defaultMap != null ? defaultMap.GetValueOrDefault(command, command) : command;
         }
 
         internal static string ProcessTemplateCommandSubscript(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap)
@@ -104,6 +101,11 @@ namespace LatexConverter
                 args[i] = arg;
             }
             return args;
+        }
+
+        private static string removeUnnecessaryParameters(string template)
+        {
+            return Regex.Replace(template, @"\{\d+\}", "");
         }
 
         internal static string ToUnicodeProcessTemplateCommand(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap, Dictionary<char, string> unicodeMap = null)

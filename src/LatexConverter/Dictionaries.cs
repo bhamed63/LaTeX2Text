@@ -19,6 +19,7 @@ namespace LatexConverter
 
     public record FontCharacter(char BaseChar, string FontCommand, string UnicodeChar);
     public record ScriptCharacter(char BaseChar, char? Superscript, char? Subscript);
+    public record OperatorMapping(string openAiFriendly, string humanFriendly, string screenReaderFriendly, string screenReaderFriendlySuperscript);
 
     /// <summary>
     /// Provides centralized storage for symbol and character mappings used in LaTeX conversion.
@@ -264,7 +265,7 @@ namespace LatexConverter
             { @"\pm", new SymbolDefinition { PlainText = "pm", ScreenReader = "plus-minus", HumanFriendly = "±" } },
             { @"\mp", new SymbolDefinition { PlainText = "mp", ScreenReader = "minus-plus", HumanFriendly = "∓" } },
             { @"\cdot", new SymbolDefinition { PlainText = "cdot", ScreenReader = "cdot", HumanFriendly = "·" } },
-            { @"\circ", new SymbolDefinition { PlainText = "circ", ScreenReader = " degrees ", HumanFriendly = "{0}°" , HumanFriendlyKey = "°" } },
+            { @"\circ", new SymbolDefinition { PlainText = "circ", ScreenReader = "{0} degrees", HumanFriendly = "{0}°" , HumanFriendlyKey = "°" } },
             { @"\bullet", new SymbolDefinition { PlainText = "bullet", ScreenReader = "bullet", HumanFriendly = "•" } },
             { @"\oplus", new SymbolDefinition { PlainText = "oplus", ScreenReader = "oplus", HumanFriendly = "⊕" } },
             { @"\ominus", new SymbolDefinition { PlainText = "ominus", ScreenReader = "ominus", HumanFriendly = "⊖" } },
@@ -292,11 +293,11 @@ namespace LatexConverter
             { @"\infty", new SymbolDefinition { PlainText = "infty", ScreenReader = "infinity", HumanFriendly = "∞" } },
             { @"\nabla", new SymbolDefinition { PlainText = "nabla", ScreenReader = "nabla", HumanFriendly = "∇" } },
             { @"\partial", new SymbolDefinition { PlainText = "partial", ScreenReader = "partial derivative", HumanFriendly = "∂" } },
-            { @"\int", new SymbolDefinition { PlainText = "integral", ScreenReader = "integral", HumanFriendly = "∫{0}{1}" , HumanFriendlyKey = "∫"} },
-            { @"\sum", new SymbolDefinition { PlainText = "summation", ScreenReader = "summation", HumanFriendly = "∑{0}{1}" , HumanFriendlyKey = "∑"} },
-            { @"\prod", new SymbolDefinition { PlainText = "product", ScreenReader = "product", HumanFriendly = "∏{0}{1}" , HumanFriendlyKey = "∏"} },
-            { @"\lim", new SymbolDefinition { PlainText = "limit", ScreenReader = "limit as", HumanFriendly = "lim_{{{0}}}" , HumanFriendlyKey = "lim"} },
-            { @"\sqrt", new SymbolDefinition { PlainText = "sqrt", HumanFriendly ="√({0})", OpenAI ="sqrt({0})" } },
+            { @"\int", new SymbolDefinition { PlainText = "integral", ScreenReader = "integral from {0} to {1}", HumanFriendly = "∫{0}{1}" , HumanFriendlyKey = "∫"} },
+            { @"\sum", new SymbolDefinition { PlainText = "summation", ScreenReader = "summation from {0} to {1}", HumanFriendly = "∑{0}{1}" , HumanFriendlyKey = "∑"} },
+            { @"\prod", new SymbolDefinition { PlainText = "product", ScreenReader = "prod from {0} to {1}", HumanFriendly = "∏{0}{1}" , HumanFriendlyKey = "∏"} },
+            { @"\lim", new SymbolDefinition { PlainText = "limit", ScreenReader = "limit as {0} of", HumanFriendly = "lim_{{{0}}}" , HumanFriendlyKey = "lim"} },
+            { @"\sqrt", new SymbolDefinition { PlainText = "sqrt", ScreenReader = "the square root of {0}", HumanFriendly ="√({0})", OpenAI ="sqrt({0})" } },
             { @"\frac", new SymbolDefinition { PlainText = "fraction with numerator", OpenAI = "{0}/{1}" , HumanFriendly  = "{0} / {1}", ScreenReader = "fraction with numerator {0} and denominator {1}"  } },
             { @"\binom", new SymbolDefinition { PlainText = "binom", OpenAI = "binom({0},{1})" , HumanFriendly = "({0} {1})" , ScreenReader = "{0} choose {1}" } },
             { @"\hbar", new SymbolDefinition { PlainText = "hbar", ScreenReader = "h bar", HumanFriendly = "ħ" } },
@@ -328,7 +329,7 @@ namespace LatexConverter
             { @"\neg", new SymbolDefinition { PlainText = "neg", ScreenReader = "not", HumanFriendly = "¬" } },
             { @"\land", new SymbolDefinition { PlainText = "land", ScreenReader = "and", HumanFriendly = "∧" } },
             { @"\lor", new SymbolDefinition { PlainText = "lor", ScreenReader = "or", HumanFriendly = "∨" } },
-            { @"\prime", new SymbolDefinition { PlainText = "prime", ScreenReader = "prime", HumanFriendly = "{0}′", HumanFriendlyKey="′" } },
+            { @"\prime", new SymbolDefinition { PlainText = "prime", ScreenReader = "{0} prime", HumanFriendly = "{0}′", HumanFriendlyKey="′" } },
             { @"\blacksquare", new SymbolDefinition { PlainText = "blacksquare", ScreenReader = "black square", HumanFriendly = "■" } },
             { @"\heartsuit", new SymbolDefinition { PlainText = "heartsuit", ScreenReader = "heart suit", HumanFriendly = "♥" } },
             { @"\clubsuit", new SymbolDefinition { PlainText = "clubsuit", ScreenReader = "club suit", HumanFriendly = "♣" } },
@@ -360,6 +361,11 @@ namespace LatexConverter
             { @"\mathsf", new SymbolDefinition { PlainText = "mathsf", ScreenReader = "sf {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
             { @"\mathrm", new SymbolDefinition { PlainText = "mathrm", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
             { @"\mathtt", new SymbolDefinition { PlainText = "mathtt", ScreenReader = "tt {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+
+            { @"\for_superscript", new SymbolDefinition { PlainText = "for_superscript", ScreenReader = "{0} to the power of {1}", HumanFriendly = "{0}^{1}}" , OpenAI = "{0}" } },
+            { @"\for_subscript", new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}_{1}" , OpenAI = "{0}" } },
+            { @"\for_matrix", new SymbolDefinition { PlainText = "for_matrix", ScreenReader = "a {0}x{1} matrix with rows {2}", HumanFriendly = "{0}_{1}" , OpenAI = "{0}" } },
+
            };
 
         static Dictionaries()
@@ -393,6 +399,14 @@ namespace LatexConverter
             OpenAITemplateMap = SymbolLibrary
                 .Where(kvp => kvp.Value.OpenAI != null)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.OpenAI!);
+
+            ScreenReaderOperatorMap = OperatorMap
+                .Where(kvp => kvp.Value.screenReaderFriendly != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.screenReaderFriendly!);
+
+            ScreenReaderOperatorSuperscriptTemplateMap = OperatorMap
+                .Where(kvp => kvp.Value.screenReaderFriendlySuperscript != null && kvp.Value.screenReaderFriendlySuperscript.Contains("{0}"))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.screenReaderFriendlySuperscript!);
 
             MathbbMap = FontLibrary
                 .Where(fc => fc.FontCommand == @"\mathbb")
@@ -433,6 +447,22 @@ namespace LatexConverter
 
 
         /// <summary>
+        /// A comprehensive map of operators to their plain text representations.
+        /// </summary>
+        public static readonly Dictionary<string, OperatorMapping> OperatorMap = new()
+        {
+            { "+", new OperatorMapping("+", "+", "plus","{0} plus") },
+            { "-", new OperatorMapping("-", "-", "minus","{0} minus") },
+            { "=", new OperatorMapping("=", "=", "equals","{0} equals") },
+            { "*", new OperatorMapping("*", "*", "times","{0} star") },
+            { "/", new OperatorMapping("/", "/", "divided by","{0} divided by") },
+            { "′", new OperatorMapping("′", "′", "prime","{0} prime") },
+            { "2", new OperatorMapping("2", "2", "squared","{0} squared") },
+            { "3", new OperatorMapping("3", "3", "cubed","{0} cubed") },
+            { "°", new OperatorMapping("°", "°", "degrees","{0} degrees") },
+        };
+
+        /// <summary>
         /// A comprehensive map of LaTeX commands to their plain text representations.
         /// </summary>
         public static readonly Dictionary<string, string> SymbolMap;
@@ -441,6 +471,16 @@ namespace LatexConverter
         /// A map of LaTeX commands to their screen reader-friendly representations.
         /// </summary>
         public static readonly Dictionary<string, string> ScreenReaderSymbolMap;
+
+        /// <summary>
+        /// A map of LaTeX commands to their screen reader-friendly representations.
+        /// </summary>
+        public static readonly Dictionary<string, string> ScreenReaderOperatorMap;
+
+        /// <summary>
+        /// A map of LaTeX commands to their screen reader-friendly template strings.
+        /// </summary>
+        public static readonly Dictionary<string, string> ScreenReaderOperatorSuperscriptTemplateMap;
 
         /// <summary>
         /// A map of LaTeX commands to their screen reader-friendly representations.

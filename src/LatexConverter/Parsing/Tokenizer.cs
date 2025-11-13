@@ -20,7 +20,9 @@ namespace LatexConverter
     public static class Tokenizer
     {
         private static readonly Regex CommandRegex = new Regex(@"\\[a-zA-Z]+|\\.", RegexOptions.Compiled);
-        private static readonly Regex MatrixRegex = new Regex(@"\\begin\{pmatrix\}(.*?)\\end\{pmatrix\}", RegexOptions.Singleline | RegexOptions.Compiled);
+        //private static readonly Regex MatrixRegex = new Regex(@"\\begin\{pmatrix\}(.*?)\\end\{pmatrix\}", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex MatrixRegex = new Regex(@"\\begin\{(?:[pPbBvV]?matrix)\}(.*?)\\end\{(?:[pPbBvV]?matrix)\}", RegexOptions.Singleline | RegexOptions.Compiled);
+        //private static readonly Regex MatrixRegex = new Regex(@"\\begin\{(?:p|b|B|v|V)matrix\}(.*?)\\end\{(?:p|b|B|v|V)matrix\}", RegexOptions.Singleline | RegexOptions.Compiled);
 
         /// <summary>
         /// Tokenizes the input LaTeX string.

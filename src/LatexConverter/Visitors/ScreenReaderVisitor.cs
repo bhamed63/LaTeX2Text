@@ -1,6 +1,3 @@
-using System.Linq;
-using System.Text.RegularExpressions;
-
 namespace LatexConverter
 {
     /// <summary>
@@ -10,19 +7,22 @@ namespace LatexConverter
     {
         public override string VisitText(TextNode node)
         {
-            if (Regex.IsMatch(node.Text, @"[a-zA-Z0-9]+(-[a-zA-Z0-9]+)+")) return node.Text;
-            return node.Text switch
+            switch (node.Text)
             {
-                "+" => " plus ",
-                "-" => " minus ",
-                "=" => " equals ",
-                "*" => " times ",
-                "/" => " divided by ",
-                "ħ" => " h bar ",
-                _ => node.Text
-            };
+                case "+":
+                case "-":
+                case "=":
+                case "*":
+                case "/":
+                    return " " + BaseVisitor<string>.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap) + " ";
+               //Need to extend \bar{a} \bar{p}
+                case "ħ":
+                    return " h bar ";
+                default:
+                    return node.Text;
+            }
         }
-         
+
         public override string VisitGroup(GroupNode node)
         {
             return string.Join(" ", node.Body.Select(n => n.Accept(this)));
@@ -39,8 +39,9 @@ namespace LatexConverter
             string baseText = node.Base.Accept(this).Trim();
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
-                if (cmdNode.Command == @"\circ") return $"{baseText} degrees";
-                if (cmdNode.Command == @"\prime") return $"{baseText} prime";
+                if (cmdNode.Command == @"\circ" || cmdNode.Command == @"\prime")
+                    return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+
             }
 
             string scriptText = node.Script.Accept(new PlainTextVisitor());
@@ -48,39 +49,30 @@ namespace LatexConverter
             {
                 switch (scriptText)
                 {
-                    case "+": return $"{baseText} plus";
-                    case "-": return $"{baseText} minus";
-                    case "*": return $"{baseText} star";
-                    case "′": return $"{baseText} prime";
-                    case "2": return $"{baseText} squared";
-                    case "3": return $"{baseText} cubed";
-                    case "°": return $"{baseText} degrees";
-                    default: return $"{baseText} to the power of {node.Script.Accept(this).Trim()}";
+                    case "+":
+                    case "-":
+                    case "*":
+                    case "′":
+                    case "2":
+                    case "3":
+                    case "°":
+                        return " " + BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
+
+                    default:
+                        return BaseVisitor<string>.ProcessTemplateCommand("\\for_superscript", new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+
                 }
             }
-            return $"{baseText} subscript {node.Script.Accept(this).Trim()} ";
+            return BaseVisitor<string>.ProcessTemplateCommand("\\for_subscript", new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap) + " ";
+
         }
-         
+
         public override string VisitCommand(CommandNode node)
         {
-            if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
-            {
-                return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
-            }
             switch (node.Command)
             {
                 case @"\sqrt":
                     return HandleSQRT(node);
-                case @"\text":
-                case @"\mathrm":
-                case @"\textrm":
-                case @"\mathbf":
-                case @"\mathit":
-                case @"\mathsf":
-                case @"\mathtt":
-                case @"\mathfrak":
-                case @"\mathscr":
-                    return HandleStyledText(node);
                 case @"\mathbb":
                     return HandleMathbb(node);
                 case @"\sum":
@@ -90,6 +82,10 @@ namespace LatexConverter
                 case @"\lim":
                     return HandleLimitCommands(node);
                 default:
+                    if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
+                    {
+                        return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
+                    }
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
             }
@@ -97,24 +93,10 @@ namespace LatexConverter
 
         public override string ExceptionalVisitCommand(CommandNode node)
         {
-            if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
-            {
-                return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
-            }
             switch (node.Command)
             {
                 case @"\sqrt":
                     return HandleSQRT(node);
-                case @"\text":
-                case @"\mathrm":
-                case @"\textrm":
-                case @"\mathbf":
-                case @"\mathit":
-                case @"\mathsf":
-                case @"\mathtt":
-                case @"\mathfrak":
-                case @"\mathscr":
-                    return HandleStyledText(node);
                 case @"\mathbb":
                     return HandleMathbb(node);
                 case @"\sum":
@@ -124,6 +106,10 @@ namespace LatexConverter
                 case @"\lim":
                     return HandleLimitCommands(node);
                 default:
+                    if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
+                    {
+                        return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
+                    }
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     string screenReaderSymbolVal = Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
                     return Dictionaries.ExceptionalScreenReaderSymbolMap.GetValueOrDefault(node.Command, screenReaderSymbolVal);
@@ -134,14 +120,13 @@ namespace LatexConverter
         {
             var content = node.Args[0].Accept(this);
             if (node.Args[0] is GroupNode)
-            {
-                return $"the square root of ({content})";
-            }
-            return $"the square root of {content}";
+                content = $"({content})";
+            return BaseVisitor<string>.ProcessTemplateCommand(node.Command, new string[] { content }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         private string HandleMathbb(CommandNode node)
         {
+            //TODO: Need to extend Mathbb based on the accept result
             if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R")
             {
                 return "the set of real numbers";
@@ -149,29 +134,19 @@ namespace LatexConverter
             return node.Args[0].Accept(this);
         }
 
-        private string HandleStyledText(CommandNode node)
-        {
-            var command = node.Command;
-            if (command == @"\text" || command == @"\mathrm" || command == @"\textrm")
-            {
-                return node.Args[0].Accept(this);
-            }
-            var style = command.Substring(1).Replace("math", "");
-            return $"{style} {node.Args[0].Accept(this)}";
-        }
-
         private string HandleLimitCommands(CommandNode node)
         {
             var sub_lim = node.Subscript != null ? node.Subscript.ExceptionalAccept(this) : "";
-            return $"limit as {sub_lim} of";
+            return BaseVisitor<string>.ProcessTemplateCommand(node.Command, new string[] { sub_lim }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         private string HandleLimitStyleCommands(CommandNode node)
         {
             var sub = node.Subscript != null ? node.Subscript.Accept(this) : "";
             var sup = node.Superscript != null ? node.Superscript.Accept(this) : "";
-            string commandName = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, "");
-            return $"{commandName} from {sub} to {sup}";
+
+            var args = new string[] { sub, sup };
+            return BaseVisitor<string>.ProcessTemplateCommand(node.Command, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         public override string VisitMatrix(MatrixNode node)
@@ -186,7 +161,8 @@ namespace LatexConverter
                 return $"({string.Join(", ", elements)})";
             });
 
-            return $"a {num_rows}x{num_cols} matrix with rows {string.Join(" and ", matrix_desc)}";
+            var args = new string[] { num_rows.ToString(), num_cols.ToString(), string.Join(" and ", matrix_desc) };
+            return BaseVisitor<string>.ProcessTemplateCommand("\\for_matrix", args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace LatexConverter
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
                 if (cmdNode.Command == @"\circ" || cmdNode.Command == @"\prime")
-                    return BaseVisitor<string>.ProcessTemplateCommand(cmdNode, new string[] { baseText }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+                    return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
 
             var scriptContent = node.Script.Accept(this);
