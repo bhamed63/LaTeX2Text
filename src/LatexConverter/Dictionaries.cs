@@ -265,7 +265,7 @@ namespace LatexConverter
             { @"\pm", new SymbolDefinition { PlainText = "pm", ScreenReader = "plus-minus", HumanFriendly = "±" } },
             { @"\mp", new SymbolDefinition { PlainText = "mp", ScreenReader = "minus-plus", HumanFriendly = "∓" } },
             { @"\cdot", new SymbolDefinition { PlainText = "cdot", ScreenReader = "cdot", HumanFriendly = "·" } },
-            { @"\circ", new SymbolDefinition { PlainText = "circ", ScreenReader = "{0} degrees", HumanFriendly = "{0}°" , HumanFriendlyKey = "°" } },
+            { @"\circ", new SymbolDefinition { PlainText = "circ", ScreenReader = "{0} degrees", HumanFriendly = "{0}°" , HumanFriendlyKey = "°", OpenAI ="{0} degrees" } },
             { @"\bullet", new SymbolDefinition { PlainText = "bullet", ScreenReader = "bullet", HumanFriendly = "•" } },
             { @"\oplus", new SymbolDefinition { PlainText = "oplus", ScreenReader = "oplus", HumanFriendly = "⊕" } },
             { @"\ominus", new SymbolDefinition { PlainText = "ominus", ScreenReader = "ominus", HumanFriendly = "⊖" } },
@@ -329,7 +329,7 @@ namespace LatexConverter
             { @"\neg", new SymbolDefinition { PlainText = "neg", ScreenReader = "not", HumanFriendly = "¬" } },
             { @"\land", new SymbolDefinition { PlainText = "land", ScreenReader = "and", HumanFriendly = "∧" } },
             { @"\lor", new SymbolDefinition { PlainText = "lor", ScreenReader = "or", HumanFriendly = "∨" } },
-            { @"\prime", new SymbolDefinition { PlainText = "prime", ScreenReader = "{0} prime", HumanFriendly = "{0}′", HumanFriendlyKey="′" } },
+            { @"\prime", new SymbolDefinition { PlainText = "prime", ScreenReader = "{0} prime", HumanFriendly = "{0}′", HumanFriendlyKey="′", OpenAI="{0} prime" } },
             { @"\blacksquare", new SymbolDefinition { PlainText = "blacksquare", ScreenReader = "black square", HumanFriendly = "■" } },
             { @"\heartsuit", new SymbolDefinition { PlainText = "heartsuit", ScreenReader = "heart suit", HumanFriendly = "♥" } },
             { @"\clubsuit", new SymbolDefinition { PlainText = "clubsuit", ScreenReader = "club suit", HumanFriendly = "♣" } },
@@ -362,9 +362,9 @@ namespace LatexConverter
             { @"\mathrm", new SymbolDefinition { PlainText = "mathrm", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
             { @"\mathtt", new SymbolDefinition { PlainText = "mathtt", ScreenReader = "tt {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
 
-            { @"\for_superscript", new SymbolDefinition { PlainText = "for_superscript", ScreenReader = "{0} to the power of {1}", HumanFriendly = "{0}^{1}}" , OpenAI = "{0}" } },
-            { @"\for_subscript", new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}_{1}" , OpenAI = "{0}" } },
-            { @"\for_matrix", new SymbolDefinition { PlainText = "for_matrix", ScreenReader = "a {0}x{1} matrix with rows {2}", HumanFriendly = "{0}_{1}" , OpenAI = "{0}" } },
+            { @"\for_superscript", new SymbolDefinition { PlainText = "for_superscript", ScreenReader = "{0} to the power of {1}", HumanFriendly = "{0}^{1}}" , OpenAI ="{0}^{1}" } },
+            { @"\for_subscript", new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}_{1}" , OpenAI =  "{0}_{1}" } },
+            { @"\for_matrix", new SymbolDefinition { PlainText = "for_matrix", ScreenReader = "a {0}x{1} matrix with rows {2}", HumanFriendly = "matrix[{0}]" , OpenAI = "{0}" } },
 
            };
 

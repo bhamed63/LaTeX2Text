@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Text;
 
 namespace LatexConverter
@@ -16,26 +15,24 @@ namespace LatexConverter
                 return $"({string.Join("", node.Body.Select(n => n.Accept(this)))})";
             return $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
         }
-         
+
         public override string VisitScript(ScriptNode node)
         {
             string baseText = node.Base.Accept(this);
             string scriptText = node.Script.Accept(this);
-            string op = node.IsSuperscript ? "^" : "_";
 
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
-                if (cmdNode.Command == @"\circ") return $"{baseText} degrees";
-                if (cmdNode.Command == @"\prime") return $"{baseText}'";
+                if (cmdNode.Command == @"\circ" || cmdNode.Command == @"\prime")
+                    return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.OpenAITemplateMap);
             }
 
+            string commandName = node.IsSuperscript ? "\\for_superscript" : "\\for_subscript";
             if (node.NeedsParentheses())
-            {
-                return $"{baseText}{op}({scriptText})";
-            }
-            return $"{baseText}{op}{scriptText}";
+                scriptText = $"({scriptText})";
+            return BaseVisitor<string>.ProcessTemplateCommand(commandName, new string[] { baseText, scriptText }, this, Dictionaries.OpenAITemplateMap);
         }
-         
+
         public override string VisitCommand(CommandNode node)
         {
             if (Dictionaries.OpenAITemplateMap.ContainsKey(node.Command))
@@ -44,17 +41,6 @@ namespace LatexConverter
             }
             switch (node.Command)
             {
-                case @"\mathbb":
-                case @"\text":
-                case @"\mathrm":
-                case @"\textrm":
-                case @"\mathbf":
-                case @"\mathit":
-                case @"\mathsf":
-                case @"\mathtt":
-                case @"\mathfrak":
-                case @"\mathscr":
-                    return HandleTextFormatting(node);
                 case @"\sum":
                 case @"\int":
                 case @"\prod":
@@ -63,11 +49,6 @@ namespace LatexConverter
                 default:
                     return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
             }
-        }
- 
-        private string HandleTextFormatting(CommandNode node)
-        {
-            return node.Args[0].Accept(this);
         }
 
         private string HandleLimitStyleCommands(CommandNode node)
@@ -103,7 +84,8 @@ namespace LatexConverter
                 var elements = row.Split('&').Select(e => e.Trim());
                 return $"[{string.Join(", ", elements)}]";
             });
-            return $"matrix[{string.Join(", ", matrix)}]";
+            var args = new string[] { string.Join(", ", matrix) };
+            return BaseVisitor<string>.ProcessTemplateCommand("\\for_matrix", args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
     }
 }

@@ -117,7 +117,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\sharp", "sharp")]
         [InlineData(@"\angle", "angle")]
         [InlineData(@"\measuredangle", "measuredangle")]
-        [InlineData(@"f^\prime", "f'")]
+        [InlineData(@"f^\prime", "f prime")]
         [InlineData(@"\dots", "...")]
         [InlineData(@"\cdots", "...")]
         [InlineData(@"\vdots", "...")]
