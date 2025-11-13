@@ -356,5 +356,7 @@ namespace LatexConverter.Data
             { "3", new OperatorMapping("3", "3", "cubed","{0} cubed") },
             { "°", new OperatorMapping("°", "°", "degrees","{0} degrees") },
         };
+
+        internal static readonly List<string> DeniedConvertWithoutSlash = new() { CommandNames.Bullet, CommandNames.In, CommandNames.Times, CommandNames.Sum, CommandNames.Exists, CommandNames.To, CommandNames.Angle, CommandNames.Triangle, CommandNames.Natural, CommandNames.Sharp, CommandNames.Parallel, CommandNames.Prod, CommandNames.Flat, CommandNames.Lim };
     }
 }

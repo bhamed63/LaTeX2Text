@@ -157,5 +157,10 @@ namespace LatexConverter
             }
             return convertedMap;
         }
+
+        public virtual string GetPreProcessedResult(string text)
+        {
+            return text;
+        }
     }
 }

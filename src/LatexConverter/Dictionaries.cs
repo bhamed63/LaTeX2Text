@@ -102,6 +102,8 @@ namespace LatexConverter
             ReverseSubMap = Data.RawData.ScriptLibrary
                 .Where(sc => sc.Subscript.HasValue)
                 .ToDictionary(sc => sc.Subscript!.Value, sc => sc.BaseChar);
+
+            DeniedConvertWithoutSlash = Data.RawData.DeniedConvertWithoutSlash;
         }
 
         /// <summary>
@@ -156,7 +158,7 @@ namespace LatexConverter
         /// <summary>
         /// A list of LaTeX commands that should not be converted from plain text without a leading backslash.
         /// </summary>
-        public static readonly List<string> DeniedConvertWithoutSlash = new List<string>() { CommandNames.Bullet, CommandNames.In, CommandNames.Times, CommandNames.Sum, CommandNames.Exists, CommandNames.To, CommandNames.Angle, CommandNames.Triangle, CommandNames.Natural, CommandNames.Sharp, CommandNames.Parallel, CommandNames.Prod, CommandNames.Flat, CommandNames.Lim };
+        public static readonly List<string> DeniedConvertWithoutSlash;
 
         /// <summary>
         /// A map of characters to their superscript Unicode representations.

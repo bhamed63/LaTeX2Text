@@ -165,7 +165,7 @@ namespace LatexConverter
             return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
-        public string GetPreProcessedResult(string text)
+        public override string GetPreProcessedResult(string text)
         {
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\(\s+", "(");
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\)", ")");

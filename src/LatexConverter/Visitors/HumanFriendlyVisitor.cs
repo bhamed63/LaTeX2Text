@@ -73,7 +73,7 @@ namespace LatexConverter
             return string.Join("\n", matrix);
         }
 
-        public string GetPreProcessedResult(string text)
+        public override string GetPreProcessedResult(string text)
         {
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([\[\]])\s*", "$1");
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*√\s*\((.*?)\)", "√($1)");

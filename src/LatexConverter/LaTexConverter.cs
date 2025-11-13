@@ -308,14 +308,7 @@ namespace LatexConverter
                         var nodes = parser.Parse();
                         var processedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
                         processedPart = Regex.Replace(processedPart, @"[ \t]+", " ").Trim();
-                        if (visitor is HumanFriendlyVisitor humanFriendlyVisitor)
-                        {
-                            processedPart = humanFriendlyVisitor.GetPreProcessedResult(processedPart);
-                        }
-                        else if (visitor is ScreenReaderVisitor screenReaderVisitor)
-                        {
-                            processedPart = screenReaderVisitor.GetPreProcessedResult(processedPart);
-                        }
+                        processedPart = (visitor as BaseVisitor<string>).GetPreProcessedResult(processedPart);
                         resultBuilder.Append(processedPart);
                     }
                 }
