@@ -23,11 +23,11 @@ namespace LatexConverter
 
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
-                if (cmdNode.Command == CommandNames.Circ || cmdNode.Command == CommandNames.Prime)
+                if (cmdNode.Command == @"\circ" || cmdNode.Command == @"\prime")
                     return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.OpenAITemplateMap);
             }
 
-            string commandName = node.IsSuperscript ? CommandNames.Superscript : CommandNames.Subscript;
+            string commandName = node.IsSuperscript ? CommandNames.superscript : CommandNames.subscript;
             if (node.NeedsParentheses())
                 scriptText = $"({scriptText})";
             return BaseVisitor<string>.ProcessTemplateCommand(commandName, new string[] { baseText, scriptText }, this, Dictionaries.OpenAITemplateMap);
@@ -41,10 +41,10 @@ namespace LatexConverter
             }
             switch (node.Command)
             {
-                case CommandNames.Sum:
-                case CommandNames.Int:
-                case CommandNames.Prod:
-                case CommandNames.Lim:
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
+                case @"\lim":
                     return HandleLimitStyleCommands(node);
                 default:
                     return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
@@ -85,7 +85,7 @@ namespace LatexConverter
                 return $"[{string.Join(", ", elements)}]";
             });
             var args = new string[] { string.Join(", ", matrix) };
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.matrix, args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
     }
 }

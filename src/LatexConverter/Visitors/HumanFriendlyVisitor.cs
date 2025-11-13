@@ -23,7 +23,7 @@ namespace LatexConverter
             string baseText = node.Base.Accept(this);
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
-                if (cmdNode.Command == CommandNames.Circ || cmdNode.Command == CommandNames.Prime)
+                if (cmdNode.Command == @"\circ" || cmdNode.Command == @"\prime")
                     return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
 
@@ -41,21 +41,21 @@ namespace LatexConverter
         {
             switch (node.Command)
             {
-                case CommandNames.Mathfrak:
+                case @"\mathfrak":
                     return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.MathfrakMap);
-                case CommandNames.Mathscr:
+                case @"\mathscr":
                     return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.MathscrMap);
-                case CommandNames.Mathcal:
+                case @"\mathcal":
                     return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.MathcalMap);
-                case CommandNames.Mathbb:
+                case @"\mathbb":
                     return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.MathbbMap);
-                case CommandNames.Exp:
+                case @"\exp":
                     return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap);
-                case CommandNames.Sum:
-                case CommandNames.Int:
-                case CommandNames.Prod:
+                case @"\sum":
+                case @"\int":
+                case @"\prod":
                     return BaseVisitor<string>.ToUnicodeProcessTemplateCommandSubscriptSuperscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
-                case CommandNames.Lim:
+                case @"\lim":
                     return BaseVisitor<string>.ProcessTemplateCommandSubscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
                 default:
                     return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
