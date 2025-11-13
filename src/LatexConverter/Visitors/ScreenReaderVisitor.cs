@@ -164,5 +164,12 @@ namespace LatexConverter
             var args = new string[] { num_rows.ToString(), num_cols.ToString(), string.Join(" and ", matrix_desc) };
             return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
+
+        public string GetPreProcessedResult(string text)
+        {
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\(\s+", "(");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\)", ")");
+            return text;
+        }
     }
 }

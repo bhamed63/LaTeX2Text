@@ -308,13 +308,13 @@ namespace LatexConverter
                         var nodes = parser.Parse();
                         var processedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
                         processedPart = Regex.Replace(processedPart, @"[ \t]+", " ").Trim();
-                        if (visitor is HumanFriendlyVisitor)
+                        if (visitor is HumanFriendlyVisitor humanFriendlyVisitor)
                         {
-                            processedPart = ApplyHumanFriendlyPostProcessing(processedPart);
+                            processedPart = humanFriendlyVisitor.GetPreProcessedResult(processedPart);
                         }
-                        else if (visitor is ScreenReaderVisitor)
+                        else if (visitor is ScreenReaderVisitor screenReaderVisitor)
                         {
-                            processedPart = ApplyScreenReaderPostProcessing(processedPart);
+                            processedPart = screenReaderVisitor.GetPreProcessedResult(processedPart);
                         }
                         resultBuilder.Append(processedPart);
                     }
@@ -325,34 +325,6 @@ namespace LatexConverter
                 }
             }
             return resultBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Applies post-processing rules for the `HumanFriendlyVisitor`.
-        /// </summary>
-        /// <param name="text">The text to process.</param>
-        /// <returns>The post-processed text.</returns>
-        private string ApplyHumanFriendlyPostProcessing(string text)
-        {
-            text = Regex.Replace(text, @"\s*([\[\]])\s*", "$1");
-            text = Regex.Replace(text, @"\s*√\s*\((.*?)\)", "√($1)");
-            text = Regex.Replace(text, @"(sin⁻¹|cos⁻¹|tan⁻¹)\s+\(", "$1(");
-            text = Regex.Replace(text, @"(¬)\s+([a-zA-Z0-9])", "$1$2");
-            return text;
-        }
-
-        /// <summary>
-        /// Applies post-processing rules for the `ScreenReaderVisitor`.
-        /// </summary>
-        /// <param name="text">The text to process.</param>
-        /// <returns>The post-processed text.</returns>
-        private string ApplyScreenReaderPostProcessing(string text)
-        {
-            //text = Regex.Replace(text, @"(\w+)\((.*?)\)", "$1 of $2");
-            //text = Regex.Replace(text, @"(integral from \w+ to \w+)( f of x)", "$1 of$2");
-            text = Regex.Replace(text, @"\(\s+", "(");
-            text = Regex.Replace(text, @"\s+\)", ")");
-            return text;
         }
 
         /// <summary>

@@ -72,5 +72,14 @@ namespace LatexConverter
             });
             return string.Join("\n", matrix);
         }
+
+        public string GetPreProcessedResult(string text)
+        {
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([\[\]])\s*", "$1");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*√\s*\((.*?)\)", "√($1)");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"(sin⁻¹|cos⁻¹|tan⁻¹)\s+\(", "$1(");
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"(¬)\s+([a-zA-Z0-9])", "$1$2");
+            return text;
+        }
     }
 }
