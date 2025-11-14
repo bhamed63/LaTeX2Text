@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 class Program
@@ -20,6 +19,8 @@ class Program
         var latexCommands = new HashSet<string>();
         var latexRegex = new Regex(@"\\([a-zA-Z]+|.)");
 
+        Console.WriteLine("Found unique LaTeX commands:");
+
         try
         {
             var files = Directory.GetFiles(FilePath, "*.xml", SearchOption.AllDirectories);
@@ -33,7 +34,10 @@ class Program
 
                     foreach (Match match in matches)
                     {
-                        latexCommands.Add(match.Value);
+                        if (latexCommands.Add(match.Value))
+                        {
+                            Console.WriteLine(match.Value);
+                        }
                     }
                 }
                 catch (IOException)
@@ -46,16 +50,6 @@ class Program
         {
             Console.WriteLine($"An error occurred while processing files: {ex.Message}");
             return;
-        }
-
-
-        var sortedCommands = latexCommands.ToList();
-        sortedCommands.Sort();
-
-        Console.WriteLine("Found unique LaTeX commands:");
-        foreach (var command in sortedCommands)
-        {
-            Console.WriteLine(command);
         }
     }
 }
