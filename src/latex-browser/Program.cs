@@ -10,7 +10,8 @@ using ExcelDataReader;
 class Program
 {
     private static readonly string OutputDirectory = "sample-xml-files";
-    private static readonly string XmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbs";
+    private static readonly string XmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbSol";
+    private static readonly string SecondXmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbs";
     private static readonly string ExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\FilesCreated\\f004093e-0158-4ce8-a0a0-fe944ef531f0.xlsx";
     private static readonly Regex LatexRegex = new Regex(@"\\([a-zA-Z]+|.)");
 
@@ -18,9 +19,9 @@ class Program
     static void Main(string[] args)
     {
         // To process Excel files, comment out the line below and uncomment the one after
-        //ProcessXmlFiles();
+        ProcessXmlFiles();
 
-        ProcessExcelFile();
+        //ProcessExcelFile();
     }
 
     private static void ProcessXmlFiles()
@@ -31,12 +32,27 @@ class Program
             return;
         }
 
+        if (!Directory.Exists(SecondXmlFilePath))
+        {
+            Console.WriteLine($"Directory not found: {Path.GetFullPath(SecondXmlFilePath)}");
+            return;
+        }
+
         Console.WriteLine("Found unique LaTeX commands from XML files:");
 
         try
         {
             var filePaths = Directory.GetFiles(XmlFilePath, "*.xml", SearchOption.AllDirectories);
             var foundCommands = new HashSet<string>();
+
+            foreach (var filePath in filePaths)
+            {
+                var text = File.ReadAllText(filePath);
+                ProcessText(new List<string> { text }, foundCommands);
+            }
+
+            filePaths = Directory.GetFiles(SecondXmlFilePath, "*.xml", SearchOption.AllDirectories);
+            foundCommands = new HashSet<string>();
 
             foreach (var filePath in filePaths)
             {
