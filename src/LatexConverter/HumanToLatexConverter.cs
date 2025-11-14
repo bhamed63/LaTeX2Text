@@ -36,7 +36,7 @@ namespace LatexConverter
             text = text.Replace("tan⁻¹", CommandNames.Arctan + " ");
             text = Regex.Replace(text, @"√\((.*?)\)", CommandNames.Sqrt + "{$1}");
             text = Regex.Replace(text, @"√([^ ])", CommandNames.Sqrt + "{$1}");
-            text = Regex.Replace(text, @"\(([^ ]*?) ([^ ]*?)\)\n\(([^ ]*?) ([^ ]*?)\)", @"\begin{pmatrix} $1 & $2 \\ $3 & $4 \end{pmatrix}");
+            text = Regex.Replace(text, @"\(([^ ]*?) ([^ ]*?)\)\n\(([^ ]*?) ([^ ]*?)\)", $@"{SyntaxNames.PmatrixBegin} $1 {SyntaxNames.MatrixColumnSeparator} $2 {SyntaxNames.MatrixRowSeparator} $3 {SyntaxNames.MatrixColumnSeparator} $4 {SyntaxNames.PmatrixEnd}");
             text = Regex.Replace(text, @"\(([^ ]*?) ([^ ]*?)\)", CommandNames.Binom + "{$1}{$2}");
             text = text.Replace("p̅", CommandNames.Overline + "{p}");
             text = text.Replace("xyz̅", CommandNames.Overline + "{xyz}");
@@ -59,7 +59,7 @@ namespace LatexConverter
             }
             if (sub_content.Length > 0)
             {
-                if (sub_content.Length > 1) sb.Append($"_{{{sub_content}}}"); else sb.Append($"_{sub_content}");
+                if (sub_content.Length > 1) sb.Append($"{SyntaxNames.Subscript}{{{sub_content}}}"); else sb.Append($"{SyntaxNames.Subscript}{sub_content}");
             }
 
             var sup_content = new StringBuilder();
@@ -70,7 +70,7 @@ namespace LatexConverter
             }
             if (sup_content.Length > 0)
             {
-                if (sup_content.Length > 1) sb.Append($"^{{{sup_content}}}"); else sb.Append($"^{sup_content}");
+                if (sup_content.Length > 1) sb.Append($"{SyntaxNames.Superscript}{{{sup_content}}}"); else sb.Append($"{SyntaxNames.Superscript}{sup_content}");
             }
             i--;
             return true;
@@ -107,7 +107,7 @@ namespace LatexConverter
                 i++;
             }
             i--;
-            if (content.Length > 1) sb.Append($"^{{{content}}}"); else sb.Append($"^{content}");
+            if (content.Length > 1) sb.Append($"{SyntaxNames.Superscript}{{{content}}}"); else sb.Append($"{SyntaxNames.Superscript}{content}");
             return true;
         }
 
@@ -127,7 +127,7 @@ namespace LatexConverter
                 i++;
             }
             i--;
-            if (content.Length > 1 && !content.ToString().Contains("\\")) sb.Append($"_{{{content}}}"); else sb.Append($"_{content}");
+            if (content.Length > 1 && !content.ToString().Contains("\\")) sb.Append($"{SyntaxNames.Subscript}{{{content}}}"); else sb.Append($"{SyntaxNames.Subscript}{content}");
             return true;
         }
 
