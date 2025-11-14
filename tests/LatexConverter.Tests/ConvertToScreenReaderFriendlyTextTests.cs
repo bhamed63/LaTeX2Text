@@ -154,6 +154,9 @@ namespace LatexConverter.Tests
         [InlineData(@"K^+", "K plus")]
         [InlineData(@"e^-", "e minus")]
         [InlineData(@"A^{*}", "A star")]
+        [InlineData(@"\bar{a}", "a bar")]
+        [InlineData(@"\bar{w}", "w bar")]
+        [InlineData(@"a sample \bar{l} for updating the \bar{p} + \sqrt{p}", "a sample l bar for updating the p bar plus the square root of (p)")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);

@@ -15,9 +15,6 @@ namespace LatexConverter
                 case "*":
                 case "/":
                     return " " + BaseVisitor<string>.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap) + " ";
-               //Need to extend \bar{a} \bar{p}
-                case "ħ":
-                    return " h bar ";
                 default:
                     return node.Text;
             }
