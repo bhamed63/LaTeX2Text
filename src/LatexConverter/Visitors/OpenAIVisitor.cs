@@ -87,5 +87,25 @@ namespace LatexConverter
             var args = new string[] { string.Join(", ", matrix) };
             return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
+
+        public override string VisitSqrt(SqrtNode node)
+        {
+            var arg = node.Argument.Accept(this);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { arg }, this, Dictionaries.OpenAITemplateMap);
+        }
+
+        public override string VisitFrac(FracNode node)
+        {
+            var numerator = node.Numerator.Accept(this);
+            var denominator = node.Denominator.Accept(this);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.OpenAITemplateMap);
+        }
+
+        public override string VisitBinom(BinomNode node)
+        {
+            var top = node.Top.Accept(this);
+            var bottom = node.Bottom.Accept(this);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.OpenAITemplateMap);
+        }
     }
 }
