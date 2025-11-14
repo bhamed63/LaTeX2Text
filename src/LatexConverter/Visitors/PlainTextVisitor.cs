@@ -26,5 +26,17 @@ namespace LatexConverter
         public override string VisitMatrix(MatrixNode node) => node.Content;
 
         public override string ExceptionalVisitMatrix(MatrixNode node) => node.Content;
+
+        public override string VisitSqrt(SqrtNode node) => node.Argument.Accept(this);
+
+        public override string ExceptionalVisitSqrt(SqrtNode node) => node.Argument.ExceptionalAccept(this);
+
+        public override string VisitFrac(FracNode node) => node.Numerator.Accept(this) + node.Denominator.Accept(this);
+
+        public override string ExceptionalVisitFrac(FracNode node) => node.Numerator.ExceptionalAccept(this) + node.Denominator.ExceptionalAccept(this);
+
+        public override string VisitBinom(BinomNode node) => node.Top.Accept(this) + node.Bottom.Accept(this);
+
+        public override string ExceptionalVisitBinom(BinomNode node) => node.Top.ExceptionalAccept(this) + node.Bottom.ExceptionalAccept(this);
     }
 }

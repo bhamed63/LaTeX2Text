@@ -15,7 +15,6 @@ class Program
     private static readonly string ExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\FilesCreated\\f004093e-0158-4ce8-a0a0-fe944ef531f0.xlsx";
     private static readonly Regex LatexRegex = new Regex(@"\\([a-zA-Z]+|.)");
 
-
     static void Main(string[] args)
     {
         // To process Excel files, comment out the line below and uncomment the one after
@@ -91,7 +90,7 @@ class Program
 
                 while (reader.Read()) // Read one row at a time
                 {
-                    var cellValue = reader.GetValue(7)?.ToString(); // Get value from first column
+                    var cellValue = reader.GetValue(0)?.ToString(); // Get value from first column
                     if (!string.IsNullOrEmpty(cellValue))
                     {
                         ProcessText(new List<string> { cellValue }, foundCommands);
