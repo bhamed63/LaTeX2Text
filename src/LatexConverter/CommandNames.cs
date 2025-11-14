@@ -29,6 +29,7 @@ namespace LatexConverter
         public const string Vec = @"\vec";
         public const string Hat = @"\hat";
         public const string Overline = @"\overline";
+        public const string Bar = @"\bar";
         public const string Prime = @"\prime";
         public const string Circ = @"\circ";
 

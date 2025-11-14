@@ -15,9 +15,6 @@ namespace LatexConverter
                 case "*":
                 case "/":
                     return " " + BaseVisitor<string>.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap) + " ";
-               //Need to extend \bar{a} \bar{p}
-                case "ħ":
-                    return " h bar ";
                 default:
                     return node.Text;
             }
@@ -71,8 +68,6 @@ namespace LatexConverter
         {
             switch (node.Command)
             {
-                case CommandNames.Sqrt:
-                    return HandleSQRT(node);
                 case CommandNames.Mathbb:
                     return HandleMathbb(node);
                 case CommandNames.Sum:
@@ -95,8 +90,6 @@ namespace LatexConverter
         {
             switch (node.Command)
             {
-                case CommandNames.Sqrt:
-                    return HandleSQRT(node);
                 case CommandNames.Mathbb:
                     return HandleMathbb(node);
                 case CommandNames.Sum:
@@ -116,12 +109,26 @@ namespace LatexConverter
             }
         }
 
-        private string HandleSQRT(CommandNode node)
+        public override string VisitSqrt(SqrtNode node)
         {
-            var content = node.Args[0].Accept(this);
-            if (node.Args[0] is GroupNode)
+            var content = node.Argument.Accept(this);
+            if (node.Argument is GroupNode)
                 content = $"({content})";
-            return BaseVisitor<string>.ProcessTemplateCommand(node.Command, new string[] { content }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { content }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+        }
+
+        public override string VisitFrac(FracNode node)
+        {
+            var numerator = node.Numerator.Accept(this);
+            var denominator = node.Denominator.Accept(this);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+        }
+
+        public override string VisitBinom(BinomNode node)
+        {
+            var top = node.Top.Accept(this);
+            var bottom = node.Bottom.Accept(this);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         private string HandleMathbb(CommandNode node)

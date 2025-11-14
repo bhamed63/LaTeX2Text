@@ -79,8 +79,7 @@ namespace LatexConverter
         {
             return command switch
             {
-                CommandNames.Frac or CommandNames.Binom => 2,
-                CommandNames.Sqrt or CommandNames.Vec or CommandNames.Hat or CommandNames.Mathcal or CommandNames.Mathbb or CommandNames.Text or CommandNames.Mathrm or CommandNames.Textrm or CommandNames.Cos or CommandNames.Sin or CommandNames.Tan or CommandNames.Log or CommandNames.Ln or CommandNames.Exp or CommandNames.Det or CommandNames.Mathbf or CommandNames.Mathit or CommandNames.Mathsf or CommandNames.Mathtt or CommandNames.Mathfrak or CommandNames.Mathscr or CommandNames.Overline => 1,
+                CommandNames.Vec or CommandNames.Hat or CommandNames.Mathcal or CommandNames.Mathbb or CommandNames.Text or CommandNames.Mathrm or CommandNames.Textrm or CommandNames.Cos or CommandNames.Sin or CommandNames.Tan or CommandNames.Log or CommandNames.Ln or CommandNames.Exp or CommandNames.Det or CommandNames.Mathbf or CommandNames.Mathit or CommandNames.Mathsf or CommandNames.Mathtt or CommandNames.Mathfrak or CommandNames.Mathscr or CommandNames.Overline or CommandNames.Bar => 1,
                 _ => 0,
             };
         }
@@ -95,6 +94,16 @@ namespace LatexConverter
                 return ParseLimitCommand(token);
             }
 
+            switch (token.Value)
+            {
+                case CommandNames.Sqrt:
+                    return ParseSqrtCommand();
+                case CommandNames.Frac:
+                    return ParseFracCommand();
+                case CommandNames.Binom:
+                    return ParseBinomCommand();
+            }
+
             var args = new List<AstNode>();
             int numArgs = GetArgumentCount(token.Value);
             for (int i = 0; i < numArgs; i++)
@@ -104,6 +113,31 @@ namespace LatexConverter
             }
 
             return new CommandNode(token.Value, args, null, null);
+        }
+
+        private AstNode ParseSqrtCommand()
+        {
+            SkipSpaces();
+            var arg = ParsePrimary();
+            return new SqrtNode(arg);
+        }
+
+        private AstNode ParseFracCommand()
+        {
+            SkipSpaces();
+            var numerator = ParsePrimary();
+            SkipSpaces();
+            var denominator = ParsePrimary();
+            return new FracNode(numerator, denominator);
+        }
+
+        private AstNode ParseBinomCommand()
+        {
+            SkipSpaces();
+            var top = ParsePrimary();
+            SkipSpaces();
+            var bottom = ParsePrimary();
+            return new BinomNode(top, bottom);
         }
 
         private void SkipSpaces()

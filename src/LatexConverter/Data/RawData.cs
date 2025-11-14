@@ -213,6 +213,7 @@ namespace LatexConverter.Data
             { CommandNames.Nu, new SymbolDefinition { PlainText = "nu", ScreenReader = "nu", HumanFriendly = "ν" } },
             { CommandNames.Xi, new SymbolDefinition { PlainText = "xi", ScreenReader = "xi", HumanFriendly = "ξ" } },
             { CommandNames.Omicron, new SymbolDefinition { PlainText = "omicron", ScreenReader = "omicron", HumanFriendly = "ο" } },
+            { CommandNames.Bar, new SymbolDefinition { PlainText = "bar", ScreenReader = "{0} bar", HumanFriendly = "{0}̅", OpenAI = "bar({0})" } },
             { CommandNames.Pi, new SymbolDefinition { PlainText = "pi", ScreenReader = "pi", HumanFriendly = "π" } },
             { CommandNames.Varpi, new SymbolDefinition { PlainText = "varpi", ScreenReader = "varpi", HumanFriendly = "ϖ" } },
             { CommandNames.Rho, new SymbolDefinition { PlainText = "rho", ScreenReader = "rho", HumanFriendly = "ρ" } },

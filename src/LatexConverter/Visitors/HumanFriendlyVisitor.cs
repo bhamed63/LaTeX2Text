@@ -73,6 +73,26 @@ namespace LatexConverter
             return string.Join("\n", matrix);
         }
 
+        public override string VisitSqrt(SqrtNode node)
+        {
+            var arg = node.Argument.Accept(this);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { arg }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+        }
+
+        public override string VisitFrac(FracNode node)
+        {
+            var numerator = node.Numerator.Accept(this);
+            var denominator = node.Denominator.Accept(this);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+        }
+
+        public override string VisitBinom(BinomNode node)
+        {
+            var top = node.Top.Accept(this);
+            var bottom = node.Bottom.Accept(this);
+            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+        }
+
         public override string GetPreProcessedResult(string text)
         {
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([\[\]])\s*", "$1");
