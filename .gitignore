@@ -7,3 +7,9 @@
 /.vs
 /src/LatexConverter/.vs
 /src/latex-browser/.vs
+
+# Ignore temporary and generated files
+*.py
+*.xlsx
+!src/latex-browser/sample-xml-files/sample.xlsx
+found_commands_*.txt
