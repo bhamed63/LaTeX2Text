@@ -1,0 +1,5 @@
+<root>
+  <text>Here are some latex commands: \alpha, \beta, and \gamma.</text>
+  <equation>\frac{1}{2}</equation>
+  <text>Another one: \alpha</text>
+</root>
