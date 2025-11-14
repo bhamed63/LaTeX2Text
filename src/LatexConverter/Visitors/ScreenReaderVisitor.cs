@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace LatexConverter
 {
     /// <summary>
@@ -162,13 +164,30 @@ namespace LatexConverter
             var num_rows = rows.Length;
             var num_cols = rows[0].Split('&').Length;
 
-            var matrix_desc = rows.Select(row =>
-            {
-                var elements = row.Split('&').Select(e => e.Trim());
-                return $"({string.Join(", ", elements)})";
-            });
+            //var matrix_desc = rows.Select(row =>
+            //{
+            //    var elements = row.Split('&').Select(e => e.Trim());
+            //    return $"({string.Join(", ", elements)})";
+            //});
 
-            var args = new string[] { num_rows.ToString(), num_cols.ToString(), string.Join(" and ", matrix_desc) };
+            StringBuilder matrix_desc = new StringBuilder();
+            for (int i = 0; i < rows.Length; i++)
+            {
+                var item = rows[i];
+                var cols = rows[i].Split('&');
+                if (i > 0)
+                    matrix_desc.Append(", and ");
+
+                matrix_desc.AppendFormat("row {0}: ", i + 1);
+                for (int j = 0; j < cols.Length; j++)
+                {
+                    if (j > 0)
+                        matrix_desc.Append(", ");
+                    matrix_desc.Append(cols[j].Trim());
+                }
+            }
+
+            var args = new string[] { num_rows.ToString(), num_cols.ToString(), matrix_desc.ToString() };
             return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 

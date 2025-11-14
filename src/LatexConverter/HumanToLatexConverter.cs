@@ -176,7 +176,11 @@ namespace LatexConverter
             if (i + 1 < text.Length)
             {
                 char next_c = text[i + 1];
-                if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && !Dictionaries.ReverseSupMap.ContainsKey(next_c))
+                if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && 
+                    !Dictionaries.ReverseSupMap.ContainsKey(next_c) &&
+                    next_c != '}' &&
+                    next_c != ')' &&
+                    next_c != ']')
                 {
                     sb.Append(" ");
                 }
@@ -189,7 +193,7 @@ namespace LatexConverter
 
         private string PostProcessHumanLatex(string text)
         {
-            return Regex.Replace(text, @" ([,.])", "$1");
+            return Regex.Replace(text, @" ([,.])", "$1").Trim(' ');
         }
     }
 }
