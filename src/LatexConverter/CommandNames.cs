@@ -2,6 +2,14 @@ namespace LatexConverter
 {
     public struct CommandNames
     {
+        public const string PmatrixBegin = @"\begin{pmatrix}";
+        public const string PmatrixEnd = @"\end{pmatrix}";
+        public const string MatrixColumnSeparator = @"&";
+        public const string MatrixRowSeparator = @"\\";
+        public const string SuperscriptChar = @"^";
+        public const string SubscriptChar = @"_";
+        public const string Arc = @"\arc";
+
         public const string Superscript = @"\for_superscript";
         public const string Subscript = @"\for_subscript";
         public const string Matrix = @"\for_matrix";

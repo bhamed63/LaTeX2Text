@@ -72,7 +72,7 @@ namespace LatexConverter
             if (latex_input == null) return "";
             var processed_input = Regex.Replace(latex_input, @"sqrt\((.*?)\)", CommandNames.Sqrt + "{$1}");
             processed_input = Regex.Replace(processed_input, $@"\\({CommandNames.Cos.Substring(1)}|{CommandNames.Sin.Substring(1)}|{CommandNames.Tan.Substring(1)}|{CommandNames.Log.Substring(1)}|{CommandNames.Ln.Substring(1)}|{CommandNames.Exp.Substring(1)}|{CommandNames.Det.Substring(1)})\((.*?)\)", @"\$1{$2}");
-            processed_input = Regex.Replace(processed_input, $@"({CommandNames.Sin.Substring(1)}|{CommandNames.Cos.Substring(1)}|{CommandNames.Tan.Substring(1)})\s*\^\s*\(\s*-1\s*\)", @"\arc$1");
+            processed_input = Regex.Replace(processed_input, $@"({CommandNames.Sin.Substring(1)}|{CommandNames.Cos.Substring(1)}|{CommandNames.Tan.Substring(1)})\s*\^\s*\(\s*-1\s*\)", $@"{CommandNames.Arc}$1");
             return processed_input;
         }
 
