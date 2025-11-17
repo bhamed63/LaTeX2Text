@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using ExcelDataReader;
 using LatexConverter;
 using LatexConverter.Data;
 using OfficeOpenXml;
@@ -20,13 +21,98 @@ class Program
 
     static void Main(string[] args)
     {
-        if (args.Length > 0 && args[0] == "--export")
+        if (args.Length > 0)
         {
-            ExportDataToExcel();
+            switch (args[0])
+            {
+                case "--export":
+                    ExportDataToExcel();
+                    break;
+                case "--generate-code":
+                    GenerateSymbolLibraryFile();
+                    break;
+                default:
+                    Console.WriteLine("Invalid command. Use --export or --generate-code.");
+                    break;
+            }
         }
         else
         {
             ProcessXmlFiles();
+        }
+    }
+
+    private static void GenerateSymbolLibraryFile([CallerFilePath] string sourceFilePath = "")
+    {
+        string projectDirectory = Path.GetDirectoryName(sourceFilePath);
+        string filePath = Path.Combine(projectDirectory, "sample-xml-files", "Commands.xlsx");
+
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine($"File not found at: {filePath}");
+            return;
+        }
+
+        var symbolsByType = new Dictionary<string, List<string>>();
+
+        try
+        {
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+                for (var row = 2; row <= worksheet.Dimension.End.Row; row++)
+                {
+                    var latexCommand = worksheet.Cells[row, 1].Value?.ToString();
+                    var type = worksheet.Cells[row, 2].Value?.ToString();
+                    var args = worksheet.Cells[row, 3].Value?.ToString() ?? "0";
+                    var screenReader = worksheet.Cells[row, 4].Value?.ToString()?.Replace("\"", "\\\"");
+                    var humanFriendly = worksheet.Cells[row, 5].Value?.ToString()?.Replace("\"", "\\\"");
+                    var openAI = worksheet.Cells[row, 6].Value?.ToString()?.Replace("\"", "\\\"");
+
+                    if (string.IsNullOrEmpty(latexCommand) || string.IsNullOrEmpty(type)) continue;
+
+                    var sanitizedType = Utilities.SanitizeCommandType(type);
+                    var commandName = "CommandNames." + char.ToUpper(latexCommand[1]) + latexCommand.Substring(2);
+
+                    var sb = new StringBuilder();
+                    sb.Append($"            {{ {commandName}, new SymbolDefinition {{ ");
+                    sb.Append($"PlainText = \"{latexCommand.Substring(1)}\", ");
+                    sb.Append($"ScreenReader = \"{screenReader}\", ");
+                    sb.Append($"HumanFriendly = \"{humanFriendly}\", ");
+                    sb.Append($"OpenAI = \"{openAI}\", ");
+                    sb.Append($"CommandType = CommandType.{sanitizedType}, ");
+                    sb.Append($"ArgsNumber = {args} ");
+                    sb.Append("} },");
+
+                    if (!symbolsByType.ContainsKey(sanitizedType))
+                    {
+                        symbolsByType[sanitizedType] = new List<string>();
+                    }
+                    symbolsByType[sanitizedType].Add(sb.ToString());
+                }
+            }
+
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var outputFileName = $"SymbolLibrary_init_{timestamp}.txt";
+            var outputPath = Path.Combine(OutputDirectory, outputFileName);
+
+            using (var writer = new StreamWriter(outputPath))
+            {
+                foreach (var entry in symbolsByType)
+                {
+                    writer.WriteLine($"            // {entry.Key}");
+                    foreach (var line in entry.Value)
+                    {
+                        writer.WriteLine(line);
+                    }
+                    writer.WriteLine();
+                }
+            }
+            Console.WriteLine($"\nCode generated and saved to {Path.GetFullPath(outputPath)}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
         }
     }
 
