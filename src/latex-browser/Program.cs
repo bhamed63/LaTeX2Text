@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using ExcelDataReader;
+using LatexConverter;
 using LatexConverter.Data;
 using OfficeOpenXml;
 
@@ -15,168 +17,103 @@ class Program
     private static readonly string XmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbSol";
     private static readonly string SecondXmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbs";
     private static readonly string ExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\FilesCreated\\f004093e-0158-4ce8-a0a0-fe944ef531f0.xlsx";
-    private static readonly string rawDataExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\Files\\RawData.xlsx";
     private static readonly Regex LatexRegex = new Regex(@"\\([a-zA-Z]+|.)");
-    private static readonly HashSet<char> UsualChars = new HashSet<char>(
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ,.?!\"'()[]{}<>:;-_=+|\\/"
-    );
 
     static void Main(string[] args)
     {
-        //ImportDataFromExternalResource();
-        ExportDataToExcel();
-        //ProcessXmlFiles();
-        //ProcessExcelFile();
-    }
-
-    private static void ImportDataFromExternalResource()
-    {
-        var converter = new LatexConverter.LaTexConverter();
-        converter.LoadExternalData(rawDataExcelFilePath);
-        Console.WriteLine("Data loaded successfully.");
-    }
-
-    private static void ProcessXmlFiles()
-    {
-        if (!Directory.Exists(XmlFilePath))
+        if (args.Length > 0)
         {
-            Console.WriteLine($"Directory not found: {Path.GetFullPath(XmlFilePath)}");
+            switch (args[0])
+            {
+                case "--export":
+                    ExportDataToExcel();
+                    break;
+                case "--generate-code":
+                    GenerateSymbolLibraryFile();
+                    break;
+                default:
+                    Console.WriteLine("Invalid command. Use --export or --generate-code.");
+                    break;
+            }
+        }
+        else
+        {
+            ProcessXmlFiles();
+        }
+    }
+
+    private static void GenerateSymbolLibraryFile([CallerFilePath] string sourceFilePath = "")
+    {
+        string projectDirectory = Path.GetDirectoryName(sourceFilePath);
+        string filePath = Path.Combine(projectDirectory, "sample-xml-files", "Commands.xlsx");
+
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine($"File not found at: {filePath}");
             return;
         }
 
-        if (!Directory.Exists(SecondXmlFilePath))
-        {
-            Console.WriteLine($"Directory not found: {Path.GetFullPath(SecondXmlFilePath)}");
-            return;
-        }
-
-        Console.WriteLine("Found unique LaTeX commands from XML files:");
+        var symbolsByType = new Dictionary<string, List<string>>();
 
         try
         {
-            var commandCounts = new Dictionary<string, int>();
-
-            var filePaths = Directory.GetFiles(XmlFilePath, "*.xml", SearchOption.AllDirectories);
-            foreach (var filePath in filePaths)
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
             {
-                var text = File.ReadAllText(filePath);
-                ProcessText(new List<string> { text }, commandCounts);
-            }
-
-            filePaths = Directory.GetFiles(SecondXmlFilePath, "*.xml", SearchOption.AllDirectories);
-            foreach (var filePath in filePaths)
-            {
-                var text = File.ReadAllText(filePath);
-                ProcessText(new List<string> { text }, commandCounts);
-            }
-
-            SaveReport(commandCounts);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred while processing files: {ex.Message}");
-        }
-    }
-
-    private static void ProcessExcelFile()
-    {
-        if (!File.Exists(ExcelFilePath))
-        {
-            Console.WriteLine($"File not found: {Path.GetFullPath(ExcelFilePath)}");
-            return;
-        }
-
-        Console.WriteLine("Found unique LaTeX commands from Excel file:");
-
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-        try
-        {
-            var commandCounts = new Dictionary<string, int>();
-            using (var stream = File.Open(ExcelFilePath, FileMode.Open, FileAccess.Read))
-            using (var reader = ExcelReaderFactory.CreateReader(stream))
-            {
-                // Skip header row
-                reader.Read();
-                int rowNum = 2; // Start from row 2 as we skipped the header
-
-                while (reader.Read()) // Read one row at a time
+                var worksheet = package.Workbook.Worksheets[0];
+                for (var row = 2; row <= worksheet.Dimension.End.Row; row++)
                 {
-                    // Process LaTeX commands from the first column
-                    var latexCellValue = reader.GetValue(0)?.ToString();
-                    if (!string.IsNullOrEmpty(latexCellValue))
-                    {
-                        ProcessText(new List<string> { latexCellValue }, commandCounts);
-                    }
+                    var latexCommand = worksheet.Cells[row, 1].Value?.ToString();
+                    var type = worksheet.Cells[row, 2].Value?.ToString();
+                    var args = worksheet.Cells[row, 3].Value?.ToString() ?? "0";
+                    var screenReader = worksheet.Cells[row, 4].Value?.ToString()?.Replace("\"", "\\\"");
+                    var humanFriendly = worksheet.Cells[row, 5].Value?.ToString()?.Replace("\"", "\\\"");
+                    var openAI = worksheet.Cells[row, 6].Value?.ToString()?.Replace("\"", "\\\"");
 
-                    // Process Unicode symbols from the second column
-                    var unicodeCellValue = reader.GetValue(1)?.ToString();
-                    if (!string.IsNullOrEmpty(unicodeCellValue))
+                    if (string.IsNullOrEmpty(latexCommand) || string.IsNullOrEmpty(type)) continue;
+
+                    var sanitizedType = Utilities.SanitizeCommandType(type);
+                    var commandName = "CommandNames." + char.ToUpper(latexCommand[1]) + latexCommand.Substring(2);
+
+                    var sb = new StringBuilder();
+                    sb.Append($"            {{ {commandName}, new SymbolDefinition {{ ");
+                    sb.Append($"PlainText = \"{latexCommand.Substring(1)}\", ");
+                    sb.Append($"ScreenReader = \"{screenReader}\", ");
+                    sb.Append($"HumanFriendly = \"{humanFriendly}\", ");
+                    sb.Append($"OpenAI = \"{openAI}\", ");
+                    sb.Append($"CommandType = CommandType.{sanitizedType}, ");
+                    sb.Append($"ArgsNumber = {args} ");
+                    sb.Append("} },");
+
+                    if (!symbolsByType.ContainsKey(sanitizedType))
                     {
-                        int unconvertibleCount = 0;
-                        foreach (char c in unicodeCellValue)
-                        {
-                            if (!UsualChars.Contains(c) && !LatexConverter.Dictionaries.ReverseHumanFriendlySymbolMap.ContainsKey(c.ToString()))
-                            {
-                                unconvertibleCount++;
-                            }
-                        }
-                        if (unconvertibleCount > 0)
-                        {
-                            Console.WriteLine($"{unconvertibleCount} Unicode symbol(s) not converted in row: {rowNum}");
-                        }
+                        symbolsByType[sanitizedType] = new List<string>();
                     }
-                    rowNum++;
+                    symbolsByType[sanitizedType].Add(sb.ToString());
                 }
             }
 
-            SaveReport(commandCounts);
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var outputFileName = $"SymbolLibrary_init_{timestamp}.txt";
+            var outputPath = Path.Combine(OutputDirectory, outputFileName);
+
+            using (var writer = new StreamWriter(outputPath))
+            {
+                foreach (var entry in symbolsByType)
+                {
+                    writer.WriteLine($"            // {entry.Key}");
+                    foreach (var line in entry.Value)
+                    {
+                        writer.WriteLine(line);
+                    }
+                    writer.WriteLine();
+                }
+            }
+            Console.WriteLine($"\nCode generated and saved to {Path.GetFullPath(outputPath)}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred while processing the Excel file: {ex.Message}");
+            Console.WriteLine($"An error occurred: {ex.Message}");
         }
-    }
-
-    private static void ProcessText(IEnumerable<string> texts, Dictionary<string, int> commandCounts)
-    {
-        foreach (var text in texts)
-        {
-            if (string.IsNullOrEmpty(text)) continue;
-            var matches = LatexRegex.Matches(text);
-            foreach (Match match in matches)
-            {
-                var command = match.Value;
-                if (!commandCounts.ContainsKey(command))
-                {
-                    commandCounts[command] = 0;
-                    Console.WriteLine(command);
-                }
-                commandCounts[command]++;
-            }
-        }
-    }
-
-    private static void SaveReport(Dictionary<string, int> commands)
-    {
-        var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
-
-        // Alphabetical report
-        var alphaSortedCommands = commands.OrderBy(kvp => kvp.Key)
-                                          .Select(kvp => $"Count: {kvp.Value}\t, Command: {kvp.Key}");
-        var alphaOutputFileName = $"found_commands_alpha_{timestamp}.txt";
-        var alphaOutputPath = Path.Combine(OutputDirectory, alphaOutputFileName);
-        File.WriteAllLines(alphaOutputPath, alphaSortedCommands);
-        Console.WriteLine($"\nAlphabetical report saved to {Path.GetFullPath(alphaOutputPath)}");
-
-        // Frequency report
-        var freqSortedCommands = commands.OrderByDescending(kvp => kvp.Value)
-                                         .ThenBy(kvp => kvp.Key)
-                                         .Select(kvp => $"Count: {kvp.Value}\t, Command: {kvp.Key}");
-        var freqOutputFileName = $"found_commands_freq_{timestamp}.txt";
-        var freqOutputPath = Path.Combine(OutputDirectory, freqOutputFileName);
-        File.WriteAllLines(freqOutputPath, freqSortedCommands);
-        Console.WriteLine($"Frequency report saved to {Path.GetFullPath(freqOutputPath)}");
     }
 
     private static void ExportDataToExcel()
@@ -203,9 +140,9 @@ class Program
             descriptionSheet.Cells["B6"].Value = "Contains a list of commands that are not converted from plain text to LaTeX without a leading slash.";
 
             var fontLibrarySheet = package.Workbook.Worksheets.Add("FontLibrary");
-            fontLibrarySheet.Cells["A1"].Value = "Character";
-            fontLibrarySheet.Cells["B1"].Value = "Command";
-            fontLibrarySheet.Cells["C1"].Value = "UnicodeCharacter";
+            fontLibrarySheet.Cells["A1"].Value = "BaseChar";
+            fontLibrarySheet.Cells["B1"].Value = "FontCommand";
+            fontLibrarySheet.Cells["C1"].Value = "UnicodeChar";
             var row = 2;
             foreach (var font in RawData.FontLibrary)
             {
@@ -216,7 +153,7 @@ class Program
             }
 
             var scriptLibrarySheet = package.Workbook.Worksheets.Add("ScriptLibrary");
-            scriptLibrarySheet.Cells["A1"].Value = "Character";
+            scriptLibrarySheet.Cells["A1"].Value = "BaseChar";
             scriptLibrarySheet.Cells["B1"].Value = "Superscript";
             scriptLibrarySheet.Cells["C1"].Value = "Subscript";
             row = 2;
@@ -236,6 +173,8 @@ class Program
             symbolLibrarySheet.Cells["E1"].Value = "HumanFriendlyKey";
             symbolLibrarySheet.Cells["F1"].Value = "OpenAI";
             symbolLibrarySheet.Cells["G1"].Value = "ExceptionalScreenReader";
+            symbolLibrarySheet.Cells["H1"].Value = "CommandType";
+            symbolLibrarySheet.Cells["I1"].Value = "ArgsNumber";
 
             row = 2;
             foreach (var symbol in RawData.SymbolLibrary)
@@ -247,6 +186,8 @@ class Program
                 symbolLibrarySheet.Cells[$"E{row}"].Value = symbol.Value.HumanFriendlyKey;
                 symbolLibrarySheet.Cells[$"F{row}"].Value = symbol.Value.OpenAI;
                 symbolLibrarySheet.Cells[$"G{row}"].Value = symbol.Value.ExceptionalScreenReader;
+                symbolLibrarySheet.Cells[$"H{row}"].Value = symbol.Value.CommandType.ToString();
+                symbolLibrarySheet.Cells[$"I{row}"].Value = symbol.Value.ArgsNumber;
                 row++;
             }
 
@@ -278,7 +219,120 @@ class Program
 
             package.SaveAs(new FileInfo(outputPath));
         }
-
         Console.WriteLine($"\nData exported to {Path.GetFullPath(outputPath)}");
+    }
+
+    private static void ProcessXmlFiles()
+    {
+        if (!Directory.Exists(XmlFilePath))
+        {
+            Console.WriteLine($"Directory not found: {Path.GetFullPath(XmlFilePath)}");
+            return;
+        }
+
+        if (!Directory.Exists(SecondXmlFilePath))
+        {
+            Console.WriteLine($"Directory not found: {Path.GetFullPath(SecondXmlFilePath)}");
+            return;
+        }
+
+        Console.WriteLine("Found unique LaTeX commands from XML files:");
+
+        try
+        {
+            var filePaths = Directory.GetFiles(XmlFilePath, "*.xml", SearchOption.AllDirectories);
+            var foundCommands = new HashSet<string>();
+
+            foreach (var filePath in filePaths)
+            {
+                var text = File.ReadAllText(filePath);
+                ProcessText(new List<string> { text }, foundCommands);
+            }
+
+            filePaths = Directory.GetFiles(SecondXmlFilePath, "*.xml", SearchOption.AllDirectories);
+            foundCommands = new HashSet<string>();
+
+            foreach (var filePath in filePaths)
+            {
+                var text = File.ReadAllText(filePath);
+                ProcessText(new List<string> { text }, foundCommands);
+            }
+
+            SaveReport(foundCommands);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred while processing files: {ex.Message}");
+        }
+    }
+
+    private static void ProcessExcelFile()
+    {
+        if (!File.Exists(ExcelFilePath))
+        {
+            Console.WriteLine($"File not found: {Path.GetFullPath(ExcelFilePath)}");
+            return;
+        }
+
+        Console.WriteLine("Found unique LaTeX commands from Excel file:");
+
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        try
+        {
+            var foundCommands = new HashSet<string>();
+            using (var stream = File.Open(ExcelFilePath, FileMode.Open, FileAccess.Read))
+            //using (var reader = ExcelReaderFactory.CreateReader(stream))
+            //{
+            //    // Skip header row
+            //    reader.Read();
+
+            //    while (reader.Read()) // Read one row at a time
+            //    {
+            //        var cellValue = reader.GetValue(0)?.ToString(); // Get value from first column
+            //        if (!string.IsNullOrEmpty(cellValue))
+            //        {
+            //            ProcessText(new List<string> { cellValue }, foundCommands);
+            //        }
+            //    }
+            //}
+
+            SaveReport(foundCommands);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred while processing the Excel file: {ex.Message}");
+        }
+    }
+
+    private static HashSet<string> ProcessText(IEnumerable<string> texts, HashSet<string> existingCommands = null)
+    {
+        var latexCommands = existingCommands ?? new HashSet<string>();
+        foreach (var text in texts)
+        {
+            if (string.IsNullOrEmpty(text)) continue;
+            var matches = LatexRegex.Matches(text);
+            foreach (Match match in matches)
+            {
+                if (latexCommands.Add(match.Value))
+                {
+                    Console.WriteLine(match.Value);
+                }
+            }
+        }
+        return latexCommands;
+    }
+
+    private static void SaveReport(HashSet<string> commands)
+    {
+        var sortedCommands = commands.ToList();
+        sortedCommands.Sort();
+
+        var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+        var outputFileName = $"found_commands_{timestamp}.txt";
+        var outputPath = Path.Combine(OutputDirectory, outputFileName);
+
+        File.WriteAllLines(outputPath, sortedCommands);
+        Console.WriteLine($"\nResults saved to {Path.GetFullPath(outputPath)}");
     }
 }

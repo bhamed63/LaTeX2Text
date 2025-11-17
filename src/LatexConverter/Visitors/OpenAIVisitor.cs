@@ -41,6 +41,10 @@ namespace LatexConverter
             }
             switch (node.Command)
             {
+                case CommandNames.LeftParen:
+                case CommandNames.RightParen:
+                case @"\":
+                    return "";
                 case CommandNames.Sum:
                 case CommandNames.Int:
                 case CommandNames.Prod:

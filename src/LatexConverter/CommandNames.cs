@@ -152,6 +152,9 @@ namespace LatexConverter
         public const string Ddots = @"\ddots";
         public const string Thinspace = @"\,";
 
+        public const string LeftParen = @"\(";
+        public const string RightParen = @"\)";
+
         public const string Big = "Big";
         public const string Bigg = "Bigg";
     }
