@@ -19,12 +19,34 @@ class Program
 
     static void Main(string[] args)
     {
-        // To process Excel files, comment out the line below and uncomment the one after
-        // ProcessXmlFiles();
-
-        // ProcessExcelFile();
-
-        ExportDataToExcel();
+        if (args.Length > 0)
+        {
+            switch (args[0])
+            {
+                case "--export":
+                    ExportDataToExcel();
+                    break;
+                case "--import":
+                    if (args.Length > 1)
+                    {
+                        var converter = new LatexConverter.LaTexConverter();
+                        converter.LoadExternalData(args[1]);
+                        Console.WriteLine("Data loaded successfully.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Please provide a file path for the --import command.");
+                    }
+                    break;
+                default:
+                    Console.WriteLine("Invalid command. Use --export or --import <filepath>.");
+                    break;
+            }
+        }
+        else
+        {
+            ProcessXmlFiles();
+        }
     }
 
     private static void ProcessXmlFiles()
@@ -171,9 +193,9 @@ class Program
             var row = 2;
             foreach (var font in RawData.FontLibrary)
             {
-                fontLibrarySheet.Cells[$"A{row}"].Value = font.Character;
-                fontLibrarySheet.Cells[$"B{row}"].Value = font.Command;
-                fontLibrarySheet.Cells[$"C{row}"].Value = font.UnicodeCharacter;
+                fontLibrarySheet.Cells[$"A{row}"].Value = font.BaseChar;
+                fontLibrarySheet.Cells[$"B{row}"].Value = font.FontCommand;
+                fontLibrarySheet.Cells[$"C{row}"].Value = font.UnicodeChar;
                 row++;
             }
 
@@ -184,7 +206,7 @@ class Program
             row = 2;
             foreach (var script in RawData.ScriptLibrary)
             {
-                scriptLibrarySheet.Cells[$"A{row}"].Value = script.Character;
+                scriptLibrarySheet.Cells[$"A{row}"].Value = script.BaseChar;
                 scriptLibrarySheet.Cells[$"B{row}"].Value = script.Superscript;
                 scriptLibrarySheet.Cells[$"C{row}"].Value = script.Subscript;
                 row++;
@@ -214,18 +236,18 @@ class Program
 
             var operatorMapSheet = package.Workbook.Worksheets.Add("OperatorMap");
             operatorMapSheet.Cells["A1"].Value = "Key";
-            operatorMapSheet.Cells["B1"].Value = "PlainText";
+            operatorMapSheet.Cells["B1"].Value = "OpenAIFriendly";
             operatorMapSheet.Cells["C1"].Value = "HumanFriendly";
-            operatorMapSheet.Cells["D1"].Value = "ScreenReader";
-            operatorMapSheet.Cells["E1"].Value = "OpenAI";
+            operatorMapSheet.Cells["D1"].Value = "ScreenReaderFriendly";
+            operatorMapSheet.Cells["E1"].Value = "ScreenReaderFriendlySuperscript";
             row = 2;
             foreach (var op in RawData.OperatorMap)
             {
                 operatorMapSheet.Cells[$"A{row}"].Value = op.Key;
-                operatorMapSheet.Cells[$"B{row}"].Value = op.Value.PlainText;
-                operatorMapSheet.Cells[$"C{row}"].Value = op.Value.HumanFriendly;
-                operatorMapSheet.Cells[$"D{row}"].Value = op.Value.ScreenReader;
-                operatorMapSheet.Cells[$"E{row}"].Value = op.Value.OpenAI;
+                operatorMapSheet.Cells[$"B{row}"].Value = op.Value.openAiFriendly;
+                operatorMapSheet.Cells[$"C{row}"].Value = op.Value.humanFriendly;
+                operatorMapSheet.Cells[$"D{row}"].Value = op.Value.screenReaderFriendly;
+                operatorMapSheet.Cells[$"E{row}"].Value = op.Value.screenReaderFriendlySuperscript;
                 row++;
             }
 
