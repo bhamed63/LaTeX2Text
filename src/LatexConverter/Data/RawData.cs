@@ -326,6 +326,8 @@ namespace LatexConverter.Data
             { CommandNames.Ddots, new SymbolDefinition { PlainText = "...", ScreenReader = "diagonal dots", HumanFriendly = "⋱" , OpenAI = "ddots" } },
             { CommandNames.Thinspace, new SymbolDefinition { PlainText = " ", ScreenReader = " ", HumanFriendly = " " } },
 
+            { CommandNames.LeftParen, new SymbolDefinition { PlainText = "(", ScreenReader = "", HumanFriendly = "" } },
+            { CommandNames.RightParen, new SymbolDefinition { PlainText = ")", ScreenReader = "", HumanFriendly = "" } },
 
             { CommandNames.Mathcal, new SymbolDefinition { PlainText = "mathcal", ScreenReader = "{0}}", HumanFriendly = "{0}" , OpenAI = "mathcal({0})" } },
             { CommandNames.Mathbb, new SymbolDefinition { PlainText = "mathbb", ScreenReader = "the set of real numbers", HumanFriendly = "{0}" , OpenAI = "mathbb({0})" } },

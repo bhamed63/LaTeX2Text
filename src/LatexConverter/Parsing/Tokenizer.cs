@@ -130,14 +130,15 @@ namespace LatexConverter
             char currentChar = text[pos];
             if (currentChar == '\\')
             {
-                if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')'))
-                {
-                    pos += 2;
-                    return true;
-                }
                 if (pos + 1 < text.Length && text[pos + 1] == ';')
                 {
                     tokens.Add(new Token(TokenType.Space, " "));
+                    pos += 2;
+                    return true;
+                }
+                if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')'))
+                {
+                    tokens.Add(new Token(TokenType.Command, text.Substring(pos, 2)));
                     pos += 2;
                     return true;
                 }

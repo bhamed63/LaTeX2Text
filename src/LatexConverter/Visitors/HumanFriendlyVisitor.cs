@@ -15,7 +15,8 @@ namespace LatexConverter
 
         public override string VisitGroup(GroupNode node)
         {
-            return $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
+            var content = $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
+            return content;
         }
 
         public override string VisitScript(ScriptNode node)

@@ -18,13 +18,28 @@ class Program
     private static readonly string SecondXmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbs";
     private static readonly string ExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\FilesCreated\\f004093e-0158-4ce8-a0a0-fe944ef531f0.xlsx";
     private static readonly Regex LatexRegex = new Regex(@"\\([a-zA-Z]+|.)");
-    private static readonly string rawDataExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\Files\\RawData.xlsx";
 
     static void Main(string[] args)
     {
-        //ExportDataToExcel();
-        GenerateSymbolLibraryFile();
-        //ProcessXmlFiles();
+        if (args.Length > 0)
+        {
+            switch (args[0])
+            {
+                case "--export":
+                    ExportDataToExcel();
+                    break;
+                case "--generate-code":
+                    GenerateSymbolLibraryFile();
+                    break;
+                default:
+                    Console.WriteLine("Invalid command. Use --export or --generate-code.");
+                    break;
+            }
+        }
+        else
+        {
+            ProcessXmlFiles();
+        }
     }
 
     private static void GenerateSymbolLibraryFile([CallerFilePath] string sourceFilePath = "")
@@ -37,7 +52,6 @@ class Program
             Console.WriteLine($"File not found at: {filePath}");
             return;
         }
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
         var symbolsByType = new Dictionary<string, List<string>>();
 
@@ -268,20 +282,20 @@ class Program
         {
             var foundCommands = new HashSet<string>();
             using (var stream = File.Open(ExcelFilePath, FileMode.Open, FileAccess.Read))
-            //using (var reader = ExcelReaderFactory.CreateReader(stream))
-            //{
-            //    // Skip header row
-            //    reader.Read();
+            using (var reader = ExcelReaderFactory.CreateReader(stream))
+            {
+                // Skip header row
+                reader.Read();
 
-            //    while (reader.Read()) // Read one row at a time
-            //    {
-            //        var cellValue = reader.GetValue(0)?.ToString(); // Get value from first column
-            //        if (!string.IsNullOrEmpty(cellValue))
-            //        {
-            //            ProcessText(new List<string> { cellValue }, foundCommands);
-            //        }
-            //    }
-            //}
+                while (reader.Read()) // Read one row at a time
+                {
+                    var cellValue = reader.GetValue(0)?.ToString(); // Get value from first column
+                    if (!string.IsNullOrEmpty(cellValue))
+                    {
+                        ProcessText(new List<string> { cellValue }, foundCommands);
+                    }
+                }
+            }
 
             SaveReport(foundCommands);
         }
@@ -289,13 +303,6 @@ class Program
         {
             Console.WriteLine($"An error occurred while processing the Excel file: {ex.Message}");
         }
-    }
-
-    private static void ImportDataFromExternalResource()
-    {
-        var converter = new LatexConverter.LaTexConverter();
-        converter.LoadExternalData(rawDataExcelFilePath);
-        Console.WriteLine("Data loaded successfully.");
     }
 
     private static HashSet<string> ProcessText(IEnumerable<string> texts, HashSet<string> existingCommands = null)
