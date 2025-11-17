@@ -121,7 +121,9 @@ namespace LatexConverter.Data
                     HumanFriendly = worksheet.Cells[row, 4].Value?.ToString(),
                     HumanFriendlyKey = worksheet.Cells[row, 5].Value?.ToString(),
                     OpenAI = worksheet.Cells[row, 6].Value?.ToString(),
-                    ExceptionalScreenReader = worksheet.Cells[row, 7].Value?.ToString()
+                    ExceptionalScreenReader = worksheet.Cells[row, 7].Value?.ToString(),
+                    CommandType = Enum.TryParse<CommandType>(worksheet.Cells[row, 8].Value?.ToString(), true, out var type) ? type : CommandType.Unknown,
+                    ArgsNumber = int.TryParse(worksheet.Cells[row, 9].Value?.ToString(), out var num) ? num : 0
                 };
 
                 if (symbolLibrary.ContainsKey(key))
