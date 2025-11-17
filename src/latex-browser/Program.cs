@@ -15,38 +15,22 @@ class Program
     private static readonly string XmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbSol";
     private static readonly string SecondXmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbs";
     private static readonly string ExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\FilesCreated\\f004093e-0158-4ce8-a0a0-fe944ef531f0.xlsx";
+    private static readonly string rawDataExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\Files\\RawData.xlsx";
     private static readonly Regex LatexRegex = new Regex(@"\\([a-zA-Z]+|.)");
 
     static void Main(string[] args)
     {
-        if (args.Length > 0)
-        {
-            switch (args[0])
-            {
-                case "--export":
-                    ExportDataToExcel();
-                    break;
-                case "--import":
-                    if (args.Length > 1)
-                    {
-                        var converter = new LatexConverter.LaTexConverter();
-                        converter.LoadExternalData(args[1]);
-                        Console.WriteLine("Data loaded successfully.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Please provide a file path for the --import command.");
-                    }
-                    break;
-                default:
-                    Console.WriteLine("Invalid command. Use --export or --import <filepath>.");
-                    break;
-            }
-        }
-        else
-        {
-            ProcessXmlFiles();
-        }
+        //ImportDataFromExternalResource();
+        ExportDataToExcel();
+        //ProcessXmlFiles();
+        //ProcessExcelFile();
+    }
+
+    private static void ImportDataFromExternalResource()
+    {
+        var converter = new LatexConverter.LaTexConverter();
+        converter.LoadExternalData(rawDataExcelFilePath);
+        Console.WriteLine("Data loaded successfully.");
     }
 
     private static void ProcessXmlFiles()
@@ -168,7 +152,7 @@ class Program
         var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
         var outputFileName = $"latex_data_{timestamp}.xlsx";
         var outputPath = Path.Combine(OutputDirectory, outputFileName);
-
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using (var package = new ExcelPackage())
         {
             var descriptionSheet = package.Workbook.Worksheets.Add("Description");
