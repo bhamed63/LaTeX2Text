@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ExcelDataReader;
+using LatexConverter.Data;
+using OfficeOpenXml;
 
 class Program
 {
@@ -13,6 +15,7 @@ class Program
     private static readonly string XmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbSol";
     private static readonly string SecondXmlFilePath = "G:\\Minihub\\ContentBackup2025124_155117\\AllProbs";
     private static readonly string ExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\FilesCreated\\f004093e-0158-4ce8-a0a0-fe944ef531f0.xlsx";
+    private static readonly string rawDataExcelFilePath = "G:\\Minihub\\Projects\\open-ai-project-backend\\test_project\\Files\\RawData.xlsx";
     private static readonly Regex LatexRegex = new Regex(@"\\([a-zA-Z]+|.)");
     private static readonly HashSet<char> UsualChars = new HashSet<char>(
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ,.?!\"'()[]{}<>:;-_=+|\\/"
@@ -20,10 +23,17 @@ class Program
 
     static void Main(string[] args)
     {
-        // To process Excel files, comment out the line below and uncomment the one after
-        ProcessXmlFiles();
-
+        //ImportDataFromExternalResource();
+        ExportDataToExcel();
+        //ProcessXmlFiles();
         //ProcessExcelFile();
+    }
+
+    private static void ImportDataFromExternalResource()
+    {
+        var converter = new LatexConverter.LaTexConverter();
+        converter.LoadExternalData(rawDataExcelFilePath);
+        Console.WriteLine("Data loaded successfully.");
     }
 
     private static void ProcessXmlFiles()
@@ -167,5 +177,108 @@ class Program
         var freqOutputPath = Path.Combine(OutputDirectory, freqOutputFileName);
         File.WriteAllLines(freqOutputPath, freqSortedCommands);
         Console.WriteLine($"Frequency report saved to {Path.GetFullPath(freqOutputPath)}");
+    }
+
+    private static void ExportDataToExcel()
+    {
+        var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+        var outputFileName = $"latex_data_{timestamp}.xlsx";
+        var outputPath = Path.Combine(OutputDirectory, outputFileName);
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using (var package = new ExcelPackage())
+        {
+            var descriptionSheet = package.Workbook.Worksheets.Add("Description");
+            descriptionSheet.Cells["A1"].Value = "Sheet";
+            descriptionSheet.Cells["B1"].Value = "Description";
+
+            descriptionSheet.Cells["A2"].Value = "FontLibrary";
+            descriptionSheet.Cells["B2"].Value = "Contains mappings for different font styles like mathbb, mathcal, etc.";
+            descriptionSheet.Cells["A3"].Value = "ScriptLibrary";
+            descriptionSheet.Cells["B3"].Value = "Contains mappings for superscript and subscript characters.";
+            descriptionSheet.Cells["A4"].Value = "SymbolLibrary";
+            descriptionSheet.Cells["B4"].Value = "Contains definitions for LaTeX symbols and their conversions.";
+            descriptionSheet.Cells["A5"].Value = "OperatorMap";
+            descriptionSheet.Cells["B5"].Value = "Contains mappings for operators like +, -, etc.";
+            descriptionSheet.Cells["A6"].Value = "DeniedConvertWithoutSlash";
+            descriptionSheet.Cells["B6"].Value = "Contains a list of commands that are not converted from plain text to LaTeX without a leading slash.";
+
+            var fontLibrarySheet = package.Workbook.Worksheets.Add("FontLibrary");
+            fontLibrarySheet.Cells["A1"].Value = "Character";
+            fontLibrarySheet.Cells["B1"].Value = "Command";
+            fontLibrarySheet.Cells["C1"].Value = "UnicodeCharacter";
+            var row = 2;
+            foreach (var font in RawData.FontLibrary)
+            {
+                fontLibrarySheet.Cells[$"A{row}"].Value = font.BaseChar;
+                fontLibrarySheet.Cells[$"B{row}"].Value = font.FontCommand;
+                fontLibrarySheet.Cells[$"C{row}"].Value = font.UnicodeChar;
+                row++;
+            }
+
+            var scriptLibrarySheet = package.Workbook.Worksheets.Add("ScriptLibrary");
+            scriptLibrarySheet.Cells["A1"].Value = "Character";
+            scriptLibrarySheet.Cells["B1"].Value = "Superscript";
+            scriptLibrarySheet.Cells["C1"].Value = "Subscript";
+            row = 2;
+            foreach (var script in RawData.ScriptLibrary)
+            {
+                scriptLibrarySheet.Cells[$"A{row}"].Value = script.BaseChar;
+                scriptLibrarySheet.Cells[$"B{row}"].Value = script.Superscript;
+                scriptLibrarySheet.Cells[$"C{row}"].Value = script.Subscript;
+                row++;
+            }
+
+            var symbolLibrarySheet = package.Workbook.Worksheets.Add("SymbolLibrary");
+            symbolLibrarySheet.Cells["A1"].Value = "Key";
+            symbolLibrarySheet.Cells["B1"].Value = "PlainText";
+            symbolLibrarySheet.Cells["C1"].Value = "ScreenReader";
+            symbolLibrarySheet.Cells["D1"].Value = "HumanFriendly";
+            symbolLibrarySheet.Cells["E1"].Value = "HumanFriendlyKey";
+            symbolLibrarySheet.Cells["F1"].Value = "OpenAI";
+            symbolLibrarySheet.Cells["G1"].Value = "ExceptionalScreenReader";
+
+            row = 2;
+            foreach (var symbol in RawData.SymbolLibrary)
+            {
+                symbolLibrarySheet.Cells[$"A{row}"].Value = symbol.Key;
+                symbolLibrarySheet.Cells[$"B{row}"].Value = symbol.Value.PlainText;
+                symbolLibrarySheet.Cells[$"C{row}"].Value = symbol.Value.ScreenReader;
+                symbolLibrarySheet.Cells[$"D{row}"].Value = symbol.Value.HumanFriendly;
+                symbolLibrarySheet.Cells[$"E{row}"].Value = symbol.Value.HumanFriendlyKey;
+                symbolLibrarySheet.Cells[$"F{row}"].Value = symbol.Value.OpenAI;
+                symbolLibrarySheet.Cells[$"G{row}"].Value = symbol.Value.ExceptionalScreenReader;
+                row++;
+            }
+
+            var operatorMapSheet = package.Workbook.Worksheets.Add("OperatorMap");
+            operatorMapSheet.Cells["A1"].Value = "Key";
+            operatorMapSheet.Cells["B1"].Value = "OpenAIFriendly";
+            operatorMapSheet.Cells["C1"].Value = "HumanFriendly";
+            operatorMapSheet.Cells["D1"].Value = "ScreenReaderFriendly";
+            operatorMapSheet.Cells["E1"].Value = "ScreenReaderFriendlySuperscript";
+            row = 2;
+            foreach (var op in RawData.OperatorMap)
+            {
+                operatorMapSheet.Cells[$"A{row}"].Value = op.Key;
+                operatorMapSheet.Cells[$"B{row}"].Value = op.Value.openAiFriendly;
+                operatorMapSheet.Cells[$"C{row}"].Value = op.Value.humanFriendly;
+                operatorMapSheet.Cells[$"D{row}"].Value = op.Value.screenReaderFriendly;
+                operatorMapSheet.Cells[$"E{row}"].Value = op.Value.screenReaderFriendlySuperscript;
+                row++;
+            }
+
+            var deniedConvertSheet = package.Workbook.Worksheets.Add("DeniedConvertWithoutSlash");
+            deniedConvertSheet.Cells["A1"].Value = "Command";
+            row = 2;
+            foreach (var command in RawData.DeniedConvertWithoutSlash)
+            {
+                deniedConvertSheet.Cells[$"A{row}"].Value = command;
+                row++;
+            }
+
+            package.SaveAs(new FileInfo(outputPath));
+        }
+
+        Console.WriteLine($"\nData exported to {Path.GetFullPath(outputPath)}");
     }
 }

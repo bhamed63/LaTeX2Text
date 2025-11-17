@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace LatexConverter.Data
 {
-    internal static class RawData
+    public static class RawData
     {
-        internal static readonly List<FontCharacter> FontLibrary = new()
+        public static List<FontCharacter> FontLibrary { get; private set; } = new()
         {
             // mathbb
             new('A', CommandNames.Mathbb, "𝔸"),
@@ -179,7 +179,7 @@ namespace LatexConverter.Data
             new('Y', CommandNames.Mathscr, "𝒴"),
             new('Z', CommandNames.Mathscr, "𝒵")
         };
-        internal static readonly List<ScriptCharacter> ScriptLibrary = new()
+        public static List<ScriptCharacter> ScriptLibrary { get; private set; } = new()
         {
             new('0', '⁰', '₀'), new('1', '¹', '₁'), new('2', '²', '₂'), new('3', '³', '₃'), new('4', '⁴', '₄'),
             new('5', '⁵', '₅'), new('6', '⁶', '₆'), new('7', '⁷', '₇'), new('8', '⁸', '₈'), new('9', '⁹', '₉'),
@@ -194,7 +194,7 @@ namespace LatexConverter.Data
             new('M', 'ᴹ', null), new('N', 'ᴺ', null), new('O', 'ᴼ', null), new('P', 'ᴾ', null), new('R', 'ᴿ', null),
             new('T', 'ᵀ', null), new('U', 'ᵁ', null), new('V', 'ⱽ', null), new('W', 'ᵂ', null), new('γ', null, 'ᵧ')
         };
-        internal static readonly Dictionary<string, SymbolDefinition> SymbolLibrary = new()
+        public static Dictionary<string, SymbolDefinition> SymbolLibrary { get; private set; } = new()
         {
             { CommandNames.Alpha, new SymbolDefinition { PlainText = "alpha", ScreenReader = "alpha", HumanFriendly = "α" } },
             { CommandNames.Beta, new SymbolDefinition { PlainText = "beta", ScreenReader = "beta", HumanFriendly = "β" } },
@@ -345,7 +345,7 @@ namespace LatexConverter.Data
             { CommandNames.Matrix, new SymbolDefinition { PlainText = "for_matrix", ScreenReader = "a {0}-by-{1} matrix with {2}", HumanFriendly = "matrix[{0}]" , OpenAI = "{0}" } },
 
            };
-        internal static readonly Dictionary<string, OperatorMapping> OperatorMap = new()
+        public static Dictionary<string, OperatorMapping> OperatorMap { get; private set; } = new()
         {
             { "+", new OperatorMapping("+", "+", "plus","{0} plus") },
             { "-", new OperatorMapping("-", "-", "minus","{0} minus") },
@@ -358,6 +358,6 @@ namespace LatexConverter.Data
             { "°", new OperatorMapping("°", "°", "degrees","{0} degrees") },
         };
 
-        internal static readonly List<string> DeniedConvertWithoutSlash = new() { CommandNames.Bullet, CommandNames.In, CommandNames.Times, CommandNames.Sum, CommandNames.Exists, CommandNames.To, CommandNames.Angle, CommandNames.Triangle, CommandNames.Natural, CommandNames.Sharp, CommandNames.Parallel, CommandNames.Prod, CommandNames.Flat, CommandNames.Lim };
+        public static List<string> DeniedConvertWithoutSlash { get; private set; } = new() { CommandNames.Bullet, CommandNames.In, CommandNames.Times, CommandNames.Sum, CommandNames.Exists, CommandNames.To, CommandNames.Angle, CommandNames.Triangle, CommandNames.Natural, CommandNames.Sharp, CommandNames.Parallel, CommandNames.Prod, CommandNames.Flat, CommandNames.Lim };
     }
 }
