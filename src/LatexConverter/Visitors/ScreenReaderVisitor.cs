@@ -193,6 +193,7 @@ namespace LatexConverter
 
         public override string GetPreProcessedResult(string text)
         {
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\(\s+", "(");
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\)", ")");
             return text;

@@ -116,5 +116,10 @@ namespace LatexConverter
             var bottom = node.Bottom.Accept(this);
             return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.OpenAITemplateMap);
         }
+
+        public override string GetPreProcessedResult(string text)
+        {
+            return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
+        }
     }
 }

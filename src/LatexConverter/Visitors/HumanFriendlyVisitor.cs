@@ -96,6 +96,7 @@ namespace LatexConverter
 
         public override string GetPreProcessedResult(string text)
         {
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*([\[\]])\s*", "$1");
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*√\s*\((.*?)\)", "√($1)");
             text = System.Text.RegularExpressions.Regex.Replace(text, @"(sin⁻¹|cos⁻¹|tan⁻¹)\s+\(", "$1(");
