@@ -14,8 +14,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LatexConverter\LatexConverter.csproj" />
-  </ItemGroup>
-
 </Project>

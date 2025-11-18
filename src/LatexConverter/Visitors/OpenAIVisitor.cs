@@ -43,6 +43,10 @@ namespace LatexConverter
             {
                 case CommandNames.LeftParen:
                 case CommandNames.RightParen:
+                case CommandNames.LeftBracket:
+                case CommandNames.RightBracket:
+                case CommandNames.Dollar:
+                case CommandNames.DoubleDollar:
                 case @"\":
                     return "";
                 case CommandNames.Sum:

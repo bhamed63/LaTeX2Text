@@ -155,6 +155,12 @@ namespace LatexConverter
         public const string LeftParen = @"\(";
         public const string RightParen = @"\)";
 
+        public const string LeftBracket = @"\[";
+        public const string RightBracket = @"\]";
+
+        public const string Dollar = "$";
+        public const string DoubleDollar = "$$";
+
         public const string Big = "Big";
         public const string Bigg = "Bigg";
     }

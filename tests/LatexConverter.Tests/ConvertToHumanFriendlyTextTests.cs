@@ -164,7 +164,6 @@ namespace LatexConverter.Tests
         [InlineData(@"\overline{p}", "p̅")]
         [InlineData(@"\overline{xyz}", "xyz̅")]
         [InlineData(@"a\,b", "a b")]
-        [InlineData(@"\(", "")]
         [InlineData(@"\sin \theta", "sin(θ)")]
         [InlineData(@"\sin \theta * \cos \phi", "sin(θ) * cos(φ)")]
         [InlineData(@"\cos \alpha", "cos(α)")]

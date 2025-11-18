@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Collections.Generic;
-using LatexConverter.Data;
 
 namespace LatexConverter
 {
@@ -11,15 +10,6 @@ namespace LatexConverter
     /// </summary>
     public class LaTexConverter
     {
-        /// <summary>
-        /// Loads data from an external Excel file, merging it with the default data.
-        /// </summary>
-        /// <param name="filePath">The full path to the Excel file.</param>
-        public void LoadExternalData(string filePath)
-        {
-            DataLoader.LoadDataFromExcel(filePath);
-        }
-
         /// <summary>
         /// Converts a LaTeX string to a format suitable for OpenAI.
         /// </summary>

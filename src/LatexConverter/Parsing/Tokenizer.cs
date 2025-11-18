@@ -136,7 +136,7 @@ namespace LatexConverter
                     pos += 2;
                     return true;
                 }
-                if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')'))
+                if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')' || text[pos + 1] == '[' || text[pos + 1] == ']'))
                 {
                     tokens.Add(new Token(TokenType.Command, text.Substring(pos, 2)));
                     pos += 2;
@@ -180,6 +180,18 @@ namespace LatexConverter
                     else
                     {
                         tokens.Add(new Token(TokenType.Subscript));
+                        pos++;
+                    }
+                    return true;
+                case '$':
+                    if (pos + 1 < text.Length && text[pos + 1] == '$')
+                    {
+                        tokens.Add(new Token(TokenType.Command, "$$"));
+                        pos += 2;
+                    }
+                    else
+                    {
+                        tokens.Add(new Token(TokenType.Command, "$"));
                         pos++;
                     }
                     return true;
