@@ -161,6 +161,8 @@ namespace LatexConverter
         public const string Dollar = "$";
         public const string DoubleDollar = "$$";
 
+        public const string Comment = "%";
+
         public const string Big = "Big";
         public const string Bigg = "Bigg";
     }

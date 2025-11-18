@@ -195,6 +195,19 @@ namespace LatexConverter
                         pos++;
                     }
                     return true;
+                case '%':
+                    tokens.Add(new Token(TokenType.Command, "%"));
+                    pos++;
+                    var comment = "";
+                    while (pos < text.Length && text[pos] != '\n')
+                    {
+                        comment += text[pos];
+                        pos++;
+                    }
+                    tokens.Add(new Token(TokenType.LBrace, "{"));
+                    tokens.Add(new Token(TokenType.Text, comment));
+                    tokens.Add(new Token(TokenType.RBrace, "}"));
+                    return true;
                 default:
                     tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
                     pos++;

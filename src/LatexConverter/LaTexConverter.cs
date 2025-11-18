@@ -109,7 +109,6 @@ namespace LatexConverter
             {
                 return "";
             }
-            text = Regex.Replace(text, $@"\\({CommandNames.Big}|{CommandNames.Big.ToLower()}|{CommandNames.Bigg.ToLower()}|{CommandNames.Bigg})[l|r]?\s*[\(\)]", "");
 
             var parts = Regex.Split(text, @"(\r?\n)");
             var resultBuilder = new StringBuilder();
@@ -117,17 +116,33 @@ namespace LatexConverter
             for (int i = 0; i < parts.Length; i++)
             {
                 var part = parts[i];
-
                 if (i % 2 == 0)
                 {
-                    if (!string.IsNullOrEmpty(part))
+                    var line = part.Replace(@"\bigg(", "").Replace(@"\bigg)", "");
+                    var hadTrailingSpace = false;
+                    var commentIndex = line.IndexOf('%');
+                    if (commentIndex != -1)
                     {
-                        var tokens = Tokenizer.Tokenize(part);
+                        line = line.Substring(0, commentIndex);
+                    }
+                    if (line.Length > 0 && char.IsWhiteSpace(line[line.Length - 1]))
+                    {
+                        hadTrailingSpace = true;
+                    }
+                    line = line.Trim();
+
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        var tokens = Tokenizer.Tokenize(line);
                         var parser = new Parser(tokens);
                         var nodes = parser.Parse();
                         var processedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
                         processedPart = Regex.Replace(processedPart, @"[ \t]+", " ").Trim();
                         processedPart = (visitor as BaseVisitor<string>).GetPreProcessedResult(processedPart);
+                        if (hadTrailingSpace)
+                        {
+                            processedPart += " ";
+                        }
                         resultBuilder.Append(processedPart);
                     }
                 }

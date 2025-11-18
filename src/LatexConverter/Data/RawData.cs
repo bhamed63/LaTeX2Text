@@ -335,6 +335,8 @@ namespace LatexConverter.Data
             { CommandNames.Dollar, new SymbolDefinition { PlainText = "$", ScreenReader = "", HumanFriendly = "" } },
             { CommandNames.DoubleDollar, new SymbolDefinition { PlainText = "$$", ScreenReader = "", HumanFriendly = "" } },
 
+            { CommandNames.Comment, new SymbolDefinition { PlainText = "", ScreenReader = "", HumanFriendly = "" } },
+
             { CommandNames.Mathcal, new SymbolDefinition { PlainText = "mathcal", ScreenReader = "{0}}", HumanFriendly = "{0}" , OpenAI = "mathcal({0})" } },
             { CommandNames.Mathbb, new SymbolDefinition { PlainText = "mathbb", ScreenReader = "the set of real numbers", HumanFriendly = "{0}" , OpenAI = "mathbb({0})" } },
             { CommandNames.Mathfrak, new SymbolDefinition { PlainText = "mathfrak", ScreenReader = "frak {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },

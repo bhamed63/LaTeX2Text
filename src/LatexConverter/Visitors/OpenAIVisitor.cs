@@ -47,6 +47,7 @@ namespace LatexConverter
                 case CommandNames.RightBracket:
                 case CommandNames.Dollar:
                 case CommandNames.DoubleDollar:
+                case CommandNames.Comment:
                 case @"\":
                     return "";
                 case CommandNames.Sum:
