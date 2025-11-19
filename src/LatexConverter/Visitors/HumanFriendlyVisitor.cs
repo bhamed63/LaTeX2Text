@@ -32,10 +32,11 @@ namespace LatexConverter
 
             if (!node.IsSuperscript && !_allSubscriptsAreConvertible)
             {
-                return $"{baseText}_{scriptContent}";
+                return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.SubscriptExceptional, new string[] { baseText , scriptContent }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
 
-            return $"{baseText}{ToUnicode(scriptContent, node.IsSuperscript, node.Script)}";
+            var commandName = node.IsSuperscript ? CommandNames.Superscript : CommandNames.Subscript;
+            return BaseVisitor<string>.ProcessTemplateCommand(commandName, new string[] { baseText, ToUnicode(scriptContent, node.IsSuperscript, node.Script) }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
 
         public override string VisitCommand(CommandNode node)
