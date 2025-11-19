@@ -146,9 +146,9 @@ class Program
             var row = 2;
             foreach (var font in RawData.FontLibrary)
             {
-                fontLibrarySheet.Cells[$"A{row}"].Value = font.BaseChar;
-                fontLibrarySheet.Cells[$"B{row}"].Value = font.FontCommand;
-                fontLibrarySheet.Cells[$"C{row}"].Value = font.UnicodeChar;
+                //fontLibrarySheet.Cells[$"A{row}"].Value = font.BaseChar;
+                //fontLibrarySheet.Cells[$"B{row}"].Value = font.FontCommand;
+                //fontLibrarySheet.Cells[$"C{row}"].Value = font.UnicodeChar;
                 row++;
             }
 
