@@ -120,14 +120,21 @@ namespace LatexConverter
 
                 if (i % 2 == 0)
                 {
-                    if (!string.IsNullOrEmpty(part))
+                    var processedPart = part;
+                    var commentIndex = processedPart.IndexOf('%');
+                    if (commentIndex != -1)
                     {
-                        var tokens = Tokenizer.Tokenize(part);
+                        processedPart = processedPart.Substring(0, commentIndex);
+                    }
+
+                    if (!string.IsNullOrEmpty(processedPart))
+                    {
+                        var tokens = Tokenizer.Tokenize(processedPart);
                         var parser = new Parser(tokens);
                         var nodes = parser.Parse();
-                        var processedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
-                        processedPart = (visitor as BaseVisitor<string>).GetPreProcessedResult(processedPart);
-                        resultBuilder.Append(processedPart);
+                        var convertedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
+                        convertedPart = (visitor as BaseVisitor<string>).GetPreProcessedResult(convertedPart);
+                        resultBuilder.Append(convertedPart);
                     }
                 }
                 else

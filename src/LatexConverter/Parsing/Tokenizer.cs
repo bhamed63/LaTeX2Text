@@ -204,9 +204,7 @@ namespace LatexConverter
                         comment += text[pos];
                         pos++;
                     }
-                    tokens.Add(new Token(TokenType.LBrace));
                     tokens.Add(new Token(TokenType.Text, comment));
-                    tokens.Add(new Token(TokenType.RBrace));
                     return true;
                 default:
                     tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
