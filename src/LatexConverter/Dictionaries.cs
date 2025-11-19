@@ -16,6 +16,8 @@ namespace LatexConverter
         public string? HumanFriendlyKey { get; set; }
         //public string? HumanFriendlyTemplate { get; set; }
         public string? OpenAI { get; set; }
+        public CommandType CommandType { get; set; }
+        public int ArgsNumber { get; set; }
     }
 
     public record FontCharacter(char BaseChar, string FontCommand, string UnicodeChar);

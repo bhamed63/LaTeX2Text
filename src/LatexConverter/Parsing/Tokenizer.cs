@@ -130,14 +130,15 @@ namespace LatexConverter
             char currentChar = text[pos];
             if (currentChar == '\\')
             {
-                if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')'))
-                {
-                    pos += 2;
-                    return true;
-                }
                 if (pos + 1 < text.Length && text[pos + 1] == ';')
                 {
                     tokens.Add(new Token(TokenType.Space, " "));
+                    pos += 2;
+                    return true;
+                }
+                if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')' || text[pos + 1] == '[' || text[pos + 1] == ']'))
+                {
+                    tokens.Add(new Token(TokenType.Command, text.Substring(pos, 2)));
                     pos += 2;
                     return true;
                 }
@@ -182,6 +183,33 @@ namespace LatexConverter
                         pos++;
                     }
                     return true;
+                case '$':
+                    if (pos + 1 < text.Length && text[pos + 1] == '$')
+                    {
+                        tokens.Add(new Token(TokenType.Command, "$$"));
+                        pos += 2;
+                    }
+                    else
+                    {
+                        tokens.Add(new Token(TokenType.Command, "$"));
+                        pos++;
+                    }
+                    return true;
+                case '%':
+                    tokens.Add(new Token(TokenType.Command, "%"));
+                    pos++;
+                    var comment = "";
+                    while (pos < text.Length && text[pos] != '\n')
+                    {
+                        comment += text[pos];
+                        pos++;
+                    }
+                    //tokens.Add(new Token(TokenType.LBrace));
+                    tokens.Add(new Token(TokenType.Text, comment));
+                    //tokens.Add(new Token(TokenType.RBrace));
+                    return true;
+                case '[': tokens.Add(new Token(TokenType.Text, "[")); pos++; return true;
+                case ']': tokens.Add(new Token(TokenType.Text, "]")); pos++; return true;
                 default:
                     tokens.Add(new Token(TokenType.Text, currentChar.ToString()));
                     pos++;

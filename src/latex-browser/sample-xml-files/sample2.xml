@@ -1,0 +1,6 @@
+<data>
+  <item>A command: \sum</item>
+  <item>Another command: \int</item>
+  <item>A duplicate command: \sum</item>
+  <item>A command with arguments: \sqrt{x}</item>
+</data>

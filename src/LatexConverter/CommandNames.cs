@@ -4,9 +4,13 @@ namespace LatexConverter
     {
         public const string Superscript = @"\for_superscript";
         public const string Subscript = @"\for_subscript";
+        public const string SubscriptExceptional = @"\for_subscript_exceptional";
         public const string Matrix = @"\for_matrix";
 
         public const string Sqrt = @"\sqrt";
+        public const string Cbrt = @"\cbrt";
+        public const string Frthrt = @"\frthrt";
+        public const string Nthrt = @"\nthrt";
         public const string Frac = @"\frac";
         public const string Binom = @"\binom";
 
@@ -29,6 +33,7 @@ namespace LatexConverter
         public const string Vec = @"\vec";
         public const string Hat = @"\hat";
         public const string Overline = @"\overline";
+        public const string Bar = @"\bar";
         public const string Prime = @"\prime";
         public const string Circ = @"\circ";
 
@@ -150,6 +155,17 @@ namespace LatexConverter
         public const string Vdots = @"\vdots";
         public const string Ddots = @"\ddots";
         public const string Thinspace = @"\,";
+
+        public const string LeftParen = @"\(";
+        public const string RightParen = @"\)";
+
+        public const string LeftBracket = @"\[";
+        public const string RightBracket = @"\]";
+
+        public const string Dollar = "$";
+        public const string DoubleDollar = "$$";
+
+        public const string Comment = "%";
 
         public const string Big = "Big";
         public const string Bigg = "Bigg";

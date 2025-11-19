@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace LatexConverter.Data
 {
-    internal static class RawData
+    public static class RawData
     {
-        internal static readonly List<FontCharacter> FontLibrary = new()
+        public static List<FontCharacter> FontLibrary { get; private set; } = new()
         {
             // mathbb
             new('A', CommandNames.Mathbb, "𝔸"),
@@ -179,7 +179,7 @@ namespace LatexConverter.Data
             new('Y', CommandNames.Mathscr, "𝒴"),
             new('Z', CommandNames.Mathscr, "𝒵")
         };
-        internal static readonly List<ScriptCharacter> ScriptLibrary = new()
+        public static List<ScriptCharacter> ScriptLibrary { get; private set; } = new()
         {
             new('0', '⁰', '₀'), new('1', '¹', '₁'), new('2', '²', '₂'), new('3', '³', '₃'), new('4', '⁴', '₄'),
             new('5', '⁵', '₅'), new('6', '⁶', '₆'), new('7', '⁷', '₇'), new('8', '⁸', '₈'), new('9', '⁹', '₉'),
@@ -194,7 +194,7 @@ namespace LatexConverter.Data
             new('M', 'ᴹ', null), new('N', 'ᴺ', null), new('O', 'ᴼ', null), new('P', 'ᴾ', null), new('R', 'ᴿ', null),
             new('T', 'ᵀ', null), new('U', 'ᵁ', null), new('V', 'ⱽ', null), new('W', 'ᵂ', null), new('γ', null, 'ᵧ')
         };
-        internal static readonly Dictionary<string, SymbolDefinition> SymbolLibrary = new()
+        public static Dictionary<string, SymbolDefinition> SymbolLibrary { get; private set; } = new()
         {
             { CommandNames.Alpha, new SymbolDefinition { PlainText = "alpha", ScreenReader = "alpha", HumanFriendly = "α" } },
             { CommandNames.Beta, new SymbolDefinition { PlainText = "beta", ScreenReader = "beta", HumanFriendly = "β" } },
@@ -213,6 +213,7 @@ namespace LatexConverter.Data
             { CommandNames.Nu, new SymbolDefinition { PlainText = "nu", ScreenReader = "nu", HumanFriendly = "ν" } },
             { CommandNames.Xi, new SymbolDefinition { PlainText = "xi", ScreenReader = "xi", HumanFriendly = "ξ" } },
             { CommandNames.Omicron, new SymbolDefinition { PlainText = "omicron", ScreenReader = "omicron", HumanFriendly = "ο" } },
+            { CommandNames.Bar, new SymbolDefinition { PlainText = "bar", ScreenReader = "{0} bar", HumanFriendly = "{0}̅", OpenAI = "bar({0})" } },
             { CommandNames.Pi, new SymbolDefinition { PlainText = "pi", ScreenReader = "pi", HumanFriendly = "π" } },
             { CommandNames.Varpi, new SymbolDefinition { PlainText = "varpi", ScreenReader = "varpi", HumanFriendly = "ϖ" } },
             { CommandNames.Rho, new SymbolDefinition { PlainText = "rho", ScreenReader = "rho", HumanFriendly = "ρ" } },
@@ -239,14 +240,14 @@ namespace LatexConverter.Data
             { CommandNames.BigOmega, new SymbolDefinition { PlainText = "Omega", ScreenReader = "Omega", HumanFriendly = "Ω" } },
             { CommandNames.Times, new SymbolDefinition { PlainText = "times", ScreenReader = "times", HumanFriendly = "×" } },
             { CommandNames.Div, new SymbolDefinition { PlainText = "div", ScreenReader = "divided by", HumanFriendly = "÷" } },
-            { CommandNames.Pm, new SymbolDefinition { PlainText = "pm", ScreenReader = "plus-minus", HumanFriendly = "±" } },
+            { CommandNames.Pm, new SymbolDefinition { PlainText = "pm", ScreenReader = "plus-minus", HumanFriendly = "±" , OpenAI="±" } },
             { CommandNames.Mp, new SymbolDefinition { PlainText = "mp", ScreenReader = "minus-plus", HumanFriendly = "∓" } },
             { CommandNames.Cdot, new SymbolDefinition { PlainText = "cdot", ScreenReader = "cdot", HumanFriendly = "·" } },
             { CommandNames.Circ, new SymbolDefinition { PlainText = "circ", ScreenReader = "{0} degrees", HumanFriendly = "{0}°" , HumanFriendlyKey = "°", OpenAI ="{0} degrees" } },
             { CommandNames.Bullet, new SymbolDefinition { PlainText = "bullet", ScreenReader = "bullet", HumanFriendly = "•" } },
             { CommandNames.Oplus, new SymbolDefinition { PlainText = "oplus", ScreenReader = "oplus", HumanFriendly = "⊕" } },
             { CommandNames.Ominus, new SymbolDefinition { PlainText = "ominus", ScreenReader = "ominus", HumanFriendly = "⊖" } },
-            { CommandNames.Otimes, new SymbolDefinition { PlainText = "otimes", ScreenReader = "tensor product", HumanFriendly = "⊗" } },
+            { CommandNames.Otimes, new SymbolDefinition { PlainText = "otimes", ScreenReader = "tensor product", HumanFriendly = "⊗", OpenAI = "otimes" } },
             { CommandNames.Oslash, new SymbolDefinition { PlainText = "oslash", ScreenReader = "oslash", HumanFriendly = "⊘" } },
             { CommandNames.Odot, new SymbolDefinition { PlainText = "odot", ScreenReader = "circled dot", HumanFriendly = "⊙" } },
             { CommandNames.Parallel, new SymbolDefinition { PlainText = "parallel", ScreenReader = "parallel to", HumanFriendly = "∥" } },
@@ -273,10 +274,13 @@ namespace LatexConverter.Data
             { CommandNames.Int, new SymbolDefinition { PlainText = "integral", ScreenReader = "integral from {0} to {1}", HumanFriendly = "∫{0}{1}" , HumanFriendlyKey = "∫"} },
             { CommandNames.Sum, new SymbolDefinition { PlainText = "summation", ScreenReader = "summation from {0} to {1}", HumanFriendly = "∑{0}{1}" , HumanFriendlyKey = "∑"} },
             { CommandNames.Prod, new SymbolDefinition { PlainText = "product", ScreenReader = "prod from {0} to {1}", HumanFriendly = "∏{0}{1}" , HumanFriendlyKey = "∏"} },
-            { CommandNames.Lim, new SymbolDefinition { PlainText = "limit", ScreenReader = "limit as {0} of", HumanFriendly = "lim_{{{0}}}" , HumanFriendlyKey = "lim"} },
-            { CommandNames.Sqrt, new SymbolDefinition { PlainText = "sqrt", ScreenReader = "the square root of {0}", HumanFriendly ="√({0})", OpenAI ="sqrt({0})" } },
+            { CommandNames.Lim, new SymbolDefinition { PlainText = "limit", ScreenReader = "limit as {0} of", HumanFriendly = "lim {0}" , HumanFriendlyKey = "lim"} },
+            { CommandNames.Sqrt, new SymbolDefinition { PlainText = "sqrt", ScreenReader = "square root of {0}", HumanFriendly ="√{0}", OpenAI ="sqrt({0})" } },
+            { CommandNames.Cbrt, new SymbolDefinition { PlainText = "cbrt", ScreenReader = "cube root of {0}", HumanFriendly = "∛{0}" } },
+            { CommandNames.Frthrt, new SymbolDefinition { PlainText = "frthrt", ScreenReader = "fourth root of {0}", HumanFriendly = "∜{0}" } },
+            { CommandNames.Nthrt, new SymbolDefinition { PlainText = "nthrt", ScreenReader = "{1} root of {0}", HumanFriendly = "{1}√{0}" } },
             { CommandNames.Frac, new SymbolDefinition { PlainText = "fraction with numerator", OpenAI = "{0}/{1}" , HumanFriendly  = "{0} / {1}", ScreenReader = "fraction with numerator {0} and denominator {1}"  } },
-            { CommandNames.Binom, new SymbolDefinition { PlainText = "binom", OpenAI = "binom({0},{1})" , HumanFriendly = "({0} {1})" , ScreenReader = "{0} choose {1}" } },
+            { CommandNames.Binom, new SymbolDefinition { PlainText = "binom", OpenAI = "binom({0},{1})" , HumanFriendly = "({0} choose {1})" , ScreenReader = "{0} choose {1}" } },
             { CommandNames.Hbar, new SymbolDefinition { PlainText = "hbar", ScreenReader = "h bar", HumanFriendly = "ħ" } },
             { CommandNames.Ell, new SymbolDefinition { PlainText = "ell", ScreenReader = "ell", HumanFriendly = "ℓ" } },
             { CommandNames.Wp, new SymbolDefinition { PlainText = "wp", ScreenReader = "Weierstrass p", HumanFriendly = "wp" } },
@@ -286,8 +290,8 @@ namespace LatexConverter.Data
             { CommandNames.Exists, new SymbolDefinition { PlainText = "exists", ScreenReader = "there exists", HumanFriendly = "∃" } },
             { CommandNames.In, new SymbolDefinition { PlainText = "in", ScreenReader = "in", HumanFriendly = "∈" } },
             { CommandNames.To, new SymbolDefinition { PlainText = "->", ScreenReader = "approaches", HumanFriendly = "→" } },
-            { CommandNames.Vec, new SymbolDefinition { PlainText = "vector", ScreenReader = "vector {0}", HumanFriendly = "{0}⃗", OpenAI = "{0}" } },
-            { CommandNames.Hat, new SymbolDefinition { PlainText = "hat", ScreenReader = "{0} hat", HumanFriendly = "{0}̂", OpenAI = "hat {0}" } },
+            { CommandNames.Vec, new SymbolDefinition { PlainText = "vector", ScreenReader = "vector {0}", HumanFriendly = "{0}⃗", OpenAI = "vec({0})" } },
+            { CommandNames.Hat, new SymbolDefinition { PlainText = "hat", ScreenReader = "{0} hat", HumanFriendly = "{0}̂", OpenAI = "hat({0})" } },
             { CommandNames.Overline, new SymbolDefinition { PlainText = "bar", ScreenReader = "{0} bar", HumanFriendly = "{0}̅", OpenAI = "overline({0})" } },
             { CommandNames.Sin, new SymbolDefinition { PlainText = "sine of", ScreenReader ="sine of {0}",  HumanFriendly ="sin({0})" ,  OpenAI ="sin({0})" } },
             { CommandNames.Cos, new SymbolDefinition { PlainText = "cosine of", ScreenReader ="cosine of {0}", HumanFriendly ="cos({0})" ,  OpenAI ="cos({0})"} },
@@ -299,13 +303,13 @@ namespace LatexConverter.Data
             { CommandNames.Arcsin, new SymbolDefinition { PlainText = "arcsin", ScreenReader = "arcsin", HumanFriendly = "sin⁻¹" } },
             { CommandNames.Arccos, new SymbolDefinition { PlainText = "arccos", ScreenReader = "arccos", HumanFriendly = "cos⁻¹" } },
             { CommandNames.Arctan, new SymbolDefinition { PlainText = "arctan", ScreenReader = "arctan", HumanFriendly = "tan⁻¹" } },
-            { CommandNames.Cup, new SymbolDefinition { PlainText = "cup", ScreenReader = "union", HumanFriendly = "∪" } },
-            { CommandNames.Cap, new SymbolDefinition { PlainText = "cap", ScreenReader = "intersection", HumanFriendly = "∩" } },
-            { CommandNames.Subset, new SymbolDefinition { PlainText = "subset", ScreenReader = "subset of", HumanFriendly = "⊂" } },
-            { CommandNames.Supset, new SymbolDefinition { PlainText = "supset", ScreenReader = "superset of", HumanFriendly = "⊃" } },
-            { CommandNames.Neg, new SymbolDefinition { PlainText = "neg", ScreenReader = "not", HumanFriendly = "¬" } },
-            { CommandNames.Land, new SymbolDefinition { PlainText = "land", ScreenReader = "and", HumanFriendly = "∧" } },
-            { CommandNames.Lor, new SymbolDefinition { PlainText = "lor", ScreenReader = "or", HumanFriendly = "∨" } },
+            { CommandNames.Cup, new SymbolDefinition { PlainText = "cup", ScreenReader = "union", HumanFriendly = "∪", OpenAI = "cup" } },
+            { CommandNames.Cap, new SymbolDefinition { PlainText = "cap", ScreenReader = "intersection", HumanFriendly = "∩", OpenAI = "cap" } },
+            { CommandNames.Subset, new SymbolDefinition { PlainText = "subset", ScreenReader = "subset of", HumanFriendly = "⊂", OpenAI = "subset" } },
+            { CommandNames.Supset, new SymbolDefinition { PlainText = "supset", ScreenReader = "superset of", HumanFriendly = "⊃", OpenAI = "supset" } },
+            { CommandNames.Neg, new SymbolDefinition { PlainText = "neg", ScreenReader = "not", HumanFriendly = "¬", OpenAI = "neg" } },
+            { CommandNames.Land, new SymbolDefinition { PlainText = "land", ScreenReader = "and", HumanFriendly = "∧" , OpenAI = "land" } },
+            { CommandNames.Lor, new SymbolDefinition { PlainText = "lor", ScreenReader = "or", HumanFriendly = "∨", OpenAI = "lor" } },
             { CommandNames.Prime, new SymbolDefinition { PlainText = "prime", ScreenReader = "{0} prime", HumanFriendly = "{0}′", HumanFriendlyKey="′", OpenAI="{0} prime" } },
             { CommandNames.Blacksquare, new SymbolDefinition { PlainText = "blacksquare", ScreenReader = "black square", HumanFriendly = "■" } },
             { CommandNames.Heartsuit, new SymbolDefinition { PlainText = "heartsuit", ScreenReader = "heart suit", HumanFriendly = "♥" } },
@@ -319,15 +323,25 @@ namespace LatexConverter.Data
             { CommandNames.Triangledown, new SymbolDefinition { PlainText = "triangledown", ScreenReader = "downward triangle", HumanFriendly = "▽" } },
             { CommandNames.Angle, new SymbolDefinition { PlainText = "angle", ScreenReader = "angle", HumanFriendly = "∠" } },
             { CommandNames.Measuredangle, new SymbolDefinition { PlainText = "measuredangle", ScreenReader = "measured angle", HumanFriendly = "∡" } },
-            { CommandNames.Dots, new SymbolDefinition { PlainText = "...", ScreenReader = "dots", HumanFriendly = "…" } },
-            { CommandNames.Cdots, new SymbolDefinition { PlainText = "...", ScreenReader = "centered dots", HumanFriendly = "⋯" } },
-            { CommandNames.Vdots, new SymbolDefinition { PlainText = "...", ScreenReader = "vertical dots", HumanFriendly = "⋮" } },
-            { CommandNames.Ddots, new SymbolDefinition { PlainText = "...", ScreenReader = "diagonal dots", HumanFriendly = "⋱" } },
+            { CommandNames.Dots, new SymbolDefinition { PlainText = "...", ScreenReader = "dots", HumanFriendly = "…", OpenAI = "dots" } },
+            { CommandNames.Cdots, new SymbolDefinition { PlainText = "...", ScreenReader = "centered dots", HumanFriendly = "⋯", OpenAI = "cdots" } },
+            { CommandNames.Vdots, new SymbolDefinition { PlainText = "...", ScreenReader = "vertical dots", HumanFriendly = "⋮" , OpenAI = "vdots" } },
+            { CommandNames.Ddots, new SymbolDefinition { PlainText = "...", ScreenReader = "diagonal dots", HumanFriendly = "⋱" , OpenAI = "ddots" } },
             { CommandNames.Thinspace, new SymbolDefinition { PlainText = " ", ScreenReader = " ", HumanFriendly = " " } },
 
+            { CommandNames.LeftParen, new SymbolDefinition { PlainText = "(", ScreenReader = "", HumanFriendly = "" } },
+            { CommandNames.RightParen, new SymbolDefinition { PlainText = ")", ScreenReader = "", HumanFriendly = "" } },
 
-            { CommandNames.Mathcal, new SymbolDefinition { PlainText = "mathcal", ScreenReader = "{0}}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
-            { CommandNames.Mathbb, new SymbolDefinition { PlainText = "mathbb", ScreenReader = "the set of real numbers", HumanFriendly = "{0}" , OpenAI = "{0}" } },
+            { CommandNames.LeftBracket, new SymbolDefinition { PlainText = "[", ScreenReader = "", HumanFriendly = "" } },
+            { CommandNames.RightBracket, new SymbolDefinition { PlainText = "]", ScreenReader = "", HumanFriendly = "" } },
+
+            { CommandNames.Dollar, new SymbolDefinition { PlainText = "$", ScreenReader = "", HumanFriendly = "" } },
+            { CommandNames.DoubleDollar, new SymbolDefinition { PlainText = "$$", ScreenReader = "", HumanFriendly = "" } },
+
+            { CommandNames.Comment, new SymbolDefinition { PlainText = "", ScreenReader = "", HumanFriendly = "", OpenAI="", } },
+
+            { CommandNames.Mathcal, new SymbolDefinition { PlainText = "mathcal", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "mathcal({0})" } },
+            { CommandNames.Mathbb, new SymbolDefinition { PlainText = "mathbb", ScreenReader = "the set of real numbers", HumanFriendly = "{0}" , OpenAI = "mathbb({0})" } },
             { CommandNames.Mathfrak, new SymbolDefinition { PlainText = "mathfrak", ScreenReader = "frak {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
             { CommandNames.Mathscr, new SymbolDefinition { PlainText = "mathscr", ScreenReader = "scr {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
 
@@ -339,24 +353,25 @@ namespace LatexConverter.Data
             { CommandNames.Mathrm, new SymbolDefinition { PlainText = "mathrm", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
             { CommandNames.Mathtt, new SymbolDefinition { PlainText = "mathtt", ScreenReader = "tt {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
 
-            { CommandNames.Superscript, new SymbolDefinition { PlainText = "for_superscript", ScreenReader = "{0} to the power of {1}", HumanFriendly = "{0}^{1}}" , OpenAI ="{0}^{1}" } },
-            { CommandNames.Subscript, new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}_{1}" , OpenAI =  "{0}_{1}" } },
-            { CommandNames.Matrix, new SymbolDefinition { PlainText = "for_matrix", ScreenReader = "a {0}x{1} matrix with rows {2}", HumanFriendly = "matrix[{0}]" , OpenAI = "{0}" } },
+            { CommandNames.Superscript, new SymbolDefinition { PlainText = "for_superscript", ScreenReader = "{0} to the power of {1}", HumanFriendly = "{0}{1}" , OpenAI ="{0}^{1}" } },
+            { CommandNames.Subscript, new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}{1}" , OpenAI =  "{0}_{1}" } },
+            { CommandNames.SubscriptExceptional, new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}_{1}" , OpenAI =  "{0}_{1}" } },
+            { CommandNames.Matrix, new SymbolDefinition { PlainText = "for_matrix", ScreenReader = "a {0}-by-{1} matrix with {2}", HumanFriendly = "matrix[{0}]" , OpenAI = "{0}" } },
 
            };
-        internal static readonly Dictionary<string, OperatorMapping> OperatorMap = new()
+        public static Dictionary<string, OperatorMapping> OperatorMap { get; private set; } = new()
         {
-            { "+", new OperatorMapping("+", "+", "plus","{0} plus") },
-            { "-", new OperatorMapping("-", "-", "minus","{0} minus") },
-            { "=", new OperatorMapping("=", "=", "equals","{0} equals") },
-            { "*", new OperatorMapping("*", "*", "times","{0} star") },
-            { "/", new OperatorMapping("/", "/", "divided by","{0} divided by") },
-            { "′", new OperatorMapping("′", "′", "prime","{0} prime") },
-            { "2", new OperatorMapping("2", "2", "squared","{0} squared") },
-            { "3", new OperatorMapping("3", "3", "cubed","{0} cubed") },
-            { "°", new OperatorMapping("°", "°", "degrees","{0} degrees") },
-        };
+            { "+", new OperatorMapping("+", "+", " plus ","{0} plus") },
+            { "-", new OperatorMapping("-", "-", " minus ","{0} minus") },
+            { "=", new OperatorMapping("=", "=", " equals ","{0} equals") },
+            { "*", new OperatorMapping("*", "*", " times ","{0} star") },
+            { "/", new OperatorMapping("/", "/", " divided by ","{0} divided by") },
+            { "′", new OperatorMapping("′", "′", " prime ","{0} prime") },
+            { "2", new OperatorMapping("2", "2", " squared ","{0} squared") },
+            { "3", new OperatorMapping("3", "3", " cubed ","{0} cubed") },
+            { "°", new OperatorMapping("°", "°", " degrees ","{0} degrees") },
+         };
 
-        internal static readonly List<string> DeniedConvertWithoutSlash = new() { CommandNames.Bullet, CommandNames.In, CommandNames.Times, CommandNames.Sum, CommandNames.Exists, CommandNames.To, CommandNames.Angle, CommandNames.Triangle, CommandNames.Natural, CommandNames.Sharp, CommandNames.Parallel, CommandNames.Prod, CommandNames.Flat, CommandNames.Lim };
+        public static List<string> DeniedConvertWithoutSlash { get; private set; } = new() { CommandNames.Bullet, CommandNames.In, CommandNames.Times, CommandNames.Sum, CommandNames.Exists, CommandNames.To, CommandNames.Angle, CommandNames.Triangle, CommandNames.Natural, CommandNames.Sharp, CommandNames.Parallel, CommandNames.Prod, CommandNames.Flat, CommandNames.Lim };
     }
 }

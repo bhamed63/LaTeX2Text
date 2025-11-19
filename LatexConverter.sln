@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LatexConverter", "src\Latex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LatexConverter.Tests", "tests\LatexConverter.Tests\LatexConverter.Tests.csproj", "{297CBAFA-7FEE-4D7E-9979-CBE67EC8D9C2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1550758D-0B11-44DD-962E-72AE83706074}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "latex-browser", "src\latex-browser\latex-browser.csproj", "{C990E26E-9886-43E4-98A3-6E01662C6F63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +25,15 @@ Global
 		{297CBAFA-7FEE-4D7E-9979-CBE67EC8D9C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{297CBAFA-7FEE-4D7E-9979-CBE67EC8D9C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{297CBAFA-7FEE-4D7E-9979-CBE67EC8D9C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C990E26E-9886-43E4-98A3-6E01662C6F63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C990E26E-9886-43E4-98A3-6E01662C6F63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C990E26E-9886-43E4-98A3-6E01662C6F63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C990E26E-9886-43E4-98A3-6E01662C6F63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C990E26E-9886-43E4-98A3-6E01662C6F63} = {1550758D-0B11-44DD-962E-72AE83706074}
 	EndGlobalSection
 EndGlobal
