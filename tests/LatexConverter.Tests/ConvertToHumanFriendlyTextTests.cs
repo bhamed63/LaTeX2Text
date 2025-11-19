@@ -171,6 +171,11 @@ namespace LatexConverter.Tests
         [InlineData(@"The vertical component of the vector is labeled as (|v_y| = v \sin \theta). The angle (\theta) is marked between the vector and the horizontal axis.", @"The vertical component of the vector is labeled as (|v_y| = v sin(θ)). The angle (θ) is marked between the vector and the horizontal axis.")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         [InlineData(@"K^+", "K⁺")]
+        [InlineData(@"\sqrt[3]{x}", "∛x")]
+        [InlineData(@"\sqrt[4]{y^2 + z^3}", "∜(y² + z³)")]
+        [InlineData(@"\sqrt[2]{m}", "√m")]
+        [InlineData(@"\sqrt{q}", "√q")]
+        [InlineData(@"\sqrt[31]{y^2 + z^3}", "³¹√(y² + z³)")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);

@@ -38,7 +38,7 @@ namespace LatexConverter.Data
         {
             if (worksheet == null) return;
 
-            var fontLibrary = RawData.FontLibrary.ToDictionary(f => (f.BaseChar, f.FontCommand));
+            var fontLibrary = RawData.FontLibrary.ToDictionary(f => (f.Key, f.Value));
 
             for (var row = 2; row <= worksheet.Dimension.End.Row; row++)
             {
@@ -65,7 +65,7 @@ namespace LatexConverter.Data
                 RawData.FontLibrary[command][character] = fontDef;
             }
             RawData.FontLibrary.Clear();
-            RawData.FontLibrary.AddRange(fontLibrary.Values);
+            //RawData.FontLibrary.AddRange(fontLibrary.Values);
         }
 
         private static void LoadScriptLibrary(ExcelWorksheet worksheet)

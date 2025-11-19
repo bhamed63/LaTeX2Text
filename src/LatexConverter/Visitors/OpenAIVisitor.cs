@@ -147,44 +147,6 @@ namespace LatexConverter
         public override string GetPreProcessedResult(string text)
         {
             return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
-        }
-
-        public override string VisitRoot(RootNode node)
-        {
-            var radicand = node.Radicand.Accept(this);
-            var degree = node.Degree.Accept(this);
-
-            return degree switch
-            {
-                "2" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
-                "3" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Cbrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
-                "4" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frthrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
-                _ => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Nthrt, new[] { radicand, degree }, this, Dictionaries.OpenAITemplateMap),
-            };
-        }
-
-        public override string ExceptionalVisitRoot(RootNode node)
-        {
-            return VisitRoot(node);
-        }
-
-        public override string VisitFrac(FracNode node)
-        {
-            var numerator = node.Numerator.Accept(this);
-            var denominator = node.Denominator.Accept(this);
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.OpenAITemplateMap);
-        }
-
-        public override string VisitBinom(BinomNode node)
-        {
-            var top = node.Top.Accept(this);
-            var bottom = node.Bottom.Accept(this);
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.OpenAITemplateMap);
-        }
-
-        public override string GetPreProcessedResult(string text)
-        {
-            return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
-        }
+        } 
     }
 }
