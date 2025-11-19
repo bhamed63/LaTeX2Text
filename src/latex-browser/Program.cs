@@ -282,20 +282,20 @@ class Program
         {
             var foundCommands = new HashSet<string>();
             using (var stream = File.Open(ExcelFilePath, FileMode.Open, FileAccess.Read))
-            using (var reader = ExcelReaderFactory.CreateReader(stream))
-            {
-                // Skip header row
-                reader.Read();
+            //using (var reader = ExcelReaderFactory.CreateReader(stream))
+            //{
+            //    // Skip header row
+            //    reader.Read();
 
-                while (reader.Read()) // Read one row at a time
-                {
-                    var cellValue = reader.GetValue(0)?.ToString(); // Get value from first column
-                    if (!string.IsNullOrEmpty(cellValue))
-                    {
-                        ProcessText(new List<string> { cellValue }, foundCommands);
-                    }
-                }
-            }
+            //    while (reader.Read()) // Read one row at a time
+            //    {
+            //        var cellValue = reader.GetValue(0)?.ToString(); // Get value from first column
+            //        if (!string.IsNullOrEmpty(cellValue))
+            //        {
+            //            ProcessText(new List<string> { cellValue }, foundCommands);
+            //        }
+            //    }
+            //}
 
             SaveReport(foundCommands);
         }
