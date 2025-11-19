@@ -329,7 +329,15 @@ namespace LatexConverter.Data
             { CommandNames.LeftParen, new SymbolDefinition { PlainText = "(", ScreenReader = "", HumanFriendly = "" } },
             { CommandNames.RightParen, new SymbolDefinition { PlainText = ")", ScreenReader = "", HumanFriendly = "" } },
 
-            { CommandNames.Mathcal, new SymbolDefinition { PlainText = "mathcal", ScreenReader = "{0}}", HumanFriendly = "{0}" , OpenAI = "mathcal({0})" } },
+            { CommandNames.LeftBracket, new SymbolDefinition { PlainText = "[", ScreenReader = "", HumanFriendly = "" } },
+            { CommandNames.RightBracket, new SymbolDefinition { PlainText = "]", ScreenReader = "", HumanFriendly = "" } },
+
+            { CommandNames.Dollar, new SymbolDefinition { PlainText = "$", ScreenReader = "", HumanFriendly = "" } },
+            { CommandNames.DoubleDollar, new SymbolDefinition { PlainText = "$$", ScreenReader = "", HumanFriendly = "" } },
+
+            { CommandNames.Comment, new SymbolDefinition { PlainText = "", ScreenReader = "", HumanFriendly = "", OpenAI="", } },
+
+            { CommandNames.Mathcal, new SymbolDefinition { PlainText = "mathcal", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "mathcal({0})" } },
             { CommandNames.Mathbb, new SymbolDefinition { PlainText = "mathbb", ScreenReader = "the set of real numbers", HumanFriendly = "{0}" , OpenAI = "mathbb({0})" } },
             { CommandNames.Mathfrak, new SymbolDefinition { PlainText = "mathfrak", ScreenReader = "frak {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
             { CommandNames.Mathscr, new SymbolDefinition { PlainText = "mathscr", ScreenReader = "scr {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
@@ -342,22 +350,23 @@ namespace LatexConverter.Data
             { CommandNames.Mathrm, new SymbolDefinition { PlainText = "mathrm", ScreenReader = "{0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
             { CommandNames.Mathtt, new SymbolDefinition { PlainText = "mathtt", ScreenReader = "tt {0}", HumanFriendly = "{0}" , OpenAI = "{0}" } },
 
-            { CommandNames.Superscript, new SymbolDefinition { PlainText = "for_superscript", ScreenReader = "{0} to the power of {1}", HumanFriendly = "{0}^{1}}" , OpenAI ="{0}^{1}" } },
-            { CommandNames.Subscript, new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}_{1}" , OpenAI =  "{0}_{1}" } },
+            { CommandNames.Superscript, new SymbolDefinition { PlainText = "for_superscript", ScreenReader = "{0} to the power of {1}", HumanFriendly = "{0}{1}" , OpenAI ="{0}^{1}" } },
+            { CommandNames.Subscript, new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}{1}" , OpenAI =  "{0}_{1}" } },
+            { CommandNames.SubscriptExceptional, new SymbolDefinition { PlainText = "for_subscript", ScreenReader = "{0} subscript {1}", HumanFriendly = "{0}_{1}" , OpenAI =  "{0}_{1}" } },
             { CommandNames.Matrix, new SymbolDefinition { PlainText = "for_matrix", ScreenReader = "a {0}-by-{1} matrix with {2}", HumanFriendly = "matrix[{0}]" , OpenAI = "{0}" } },
 
            };
         public static Dictionary<string, OperatorMapping> OperatorMap { get; private set; } = new()
         {
-            { "+", new OperatorMapping("+", "+", "plus","{0} plus") },
-            { "-", new OperatorMapping("-", "-", "minus","{0} minus") },
-            { "=", new OperatorMapping("=", "=", "equals","{0} equals") },
-            { "*", new OperatorMapping("*", "*", "times","{0} star") },
-            { "/", new OperatorMapping("/", "/", "divided by","{0} divided by") },
-            { "′", new OperatorMapping("′", "′", "prime","{0} prime") },
-            { "2", new OperatorMapping("2", "2", "squared","{0} squared") },
-            { "3", new OperatorMapping("3", "3", "cubed","{0} cubed") },
-            { "°", new OperatorMapping("°", "°", "degrees","{0} degrees") },
+            { "+", new OperatorMapping("+", "+", " plus ","{0} plus") },
+            { "-", new OperatorMapping("-", "-", " minus ","{0} minus") },
+            { "=", new OperatorMapping("=", "=", " equals ","{0} equals") },
+            { "*", new OperatorMapping("*", "*", " times ","{0} star") },
+            { "/", new OperatorMapping("/", "/", " divided by ","{0} divided by") },
+            { "′", new OperatorMapping("′", "′", " prime ","{0} prime") },
+            { "2", new OperatorMapping("2", "2", " squared ","{0} squared") },
+            { "3", new OperatorMapping("3", "3", " cubed ","{0} cubed") },
+            { "°", new OperatorMapping("°", "°", " degrees ","{0} degrees") },
         };
 
         public static List<string> DeniedConvertWithoutSlash { get; private set; } = new() { CommandNames.Bullet, CommandNames.In, CommandNames.Times, CommandNames.Sum, CommandNames.Exists, CommandNames.To, CommandNames.Angle, CommandNames.Triangle, CommandNames.Natural, CommandNames.Sharp, CommandNames.Parallel, CommandNames.Prod, CommandNames.Flat, CommandNames.Lim };

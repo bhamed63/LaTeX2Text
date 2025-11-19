@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Collections.Generic;
-using LatexConverter.Data;
 
 namespace LatexConverter
 {
@@ -11,15 +10,6 @@ namespace LatexConverter
     /// </summary>
     public class LaTexConverter
     {
-        /// <summary>
-        /// Loads data from an external Excel file, merging it with the default data.
-        /// </summary>
-        /// <param name="filePath">The full path to the Excel file.</param>
-        public void LoadExternalData(string filePath)
-        {
-            DataLoader.LoadDataFromExcel(filePath);
-        }
-
         /// <summary>
         /// Converts a LaTeX string to a format suitable for OpenAI.
         /// </summary>
@@ -130,15 +120,17 @@ namespace LatexConverter
 
                 if (i % 2 == 0)
                 {
-                    if (!string.IsNullOrEmpty(part))
+                    var processedPart = part;
+ 
+
+                    if (!string.IsNullOrEmpty(processedPart))
                     {
-                        var tokens = Tokenizer.Tokenize(part);
+                        var tokens = Tokenizer.Tokenize(processedPart);
                         var parser = new Parser(tokens);
                         var nodes = parser.Parse();
-                        var processedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
-                        processedPart = Regex.Replace(processedPart, @"[ \t]+", " ").Trim();
-                        processedPart = (visitor as BaseVisitor<string>).GetPreProcessedResult(processedPart);
-                        resultBuilder.Append(processedPart);
+                        var convertedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
+                        convertedPart = (visitor as BaseVisitor<string>).GetPreProcessedResult(convertedPart);
+                        resultBuilder.Append(convertedPart);
                     }
                 }
                 else

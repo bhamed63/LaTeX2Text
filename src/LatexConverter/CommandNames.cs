@@ -4,6 +4,7 @@ namespace LatexConverter
     {
         public const string Superscript = @"\for_superscript";
         public const string Subscript = @"\for_subscript";
+        public const string SubscriptExceptional = @"\for_subscript_exceptional";
         public const string Matrix = @"\for_matrix";
 
         public const string Sqrt = @"\sqrt";
@@ -154,6 +155,14 @@ namespace LatexConverter
 
         public const string LeftParen = @"\(";
         public const string RightParen = @"\)";
+
+        public const string LeftBracket = @"\[";
+        public const string RightBracket = @"\]";
+
+        public const string Dollar = "$";
+        public const string DoubleDollar = "$$";
+
+        public const string Comment = "%";
 
         public const string Big = "Big";
         public const string Bigg = "Bigg";

@@ -102,6 +102,13 @@ namespace LatexConverter
                     return ParseFracCommand();
                 case CommandNames.Binom:
                     return ParseBinomCommand();
+                case CommandNames.Comment:
+                    var commentArgs = new List<AstNode>();
+                    if (CurrentToken.Type == TokenType.Text)
+                    {
+                        commentArgs.Add(ParsePrimary());
+                    }
+                    return new CommandNode(token.Value, commentArgs, null, null);
             }
 
             var args = new List<AstNode>();

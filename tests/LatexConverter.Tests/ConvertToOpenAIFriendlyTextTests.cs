@@ -150,5 +150,20 @@ namespace LatexConverter.Tests
             var result = _converter.ConvertToOpenAIFriendlyText(input);
             Assert.Equal(expected, result);
         }
+
+        [Theory]
+        [InlineData(@"\[x_f\]", "x_f")]
+        [InlineData(@"\[x_i = 0\]", "x_i = 0")]
+        [InlineData(@"$x_f$", "x_f")]
+        [InlineData(@"$x_i = 0$", "x_i = 0")]
+        [InlineData(@"$$x_f$$", "x_f")]
+        [InlineData(@"$$x_i = 0$$", "x_i = 0")]
+        [InlineData(@"% this is a comment", "")]
+        [InlineData(@"\alpha % this is a comment", "alpha")]
+        public void ConvertToOpenAIFriendlyText_HandlesDelimitersAndComments(string input, string expected)
+        {
+            var result = _converter.ConvertToOpenAIFriendlyText(input);
+            Assert.Equal(expected, result);
+        }
     }
 }

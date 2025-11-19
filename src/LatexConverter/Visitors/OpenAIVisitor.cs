@@ -43,6 +43,11 @@ namespace LatexConverter
             {
                 case CommandNames.LeftParen:
                 case CommandNames.RightParen:
+                case CommandNames.LeftBracket:
+                case CommandNames.RightBracket:
+                case CommandNames.Dollar:
+                case CommandNames.DoubleDollar:
+                case CommandNames.Comment:
                 case @"\":
                     return "";
                 case CommandNames.Sum:
@@ -110,6 +115,11 @@ namespace LatexConverter
             var top = node.Top.Accept(this);
             var bottom = node.Bottom.Accept(this);
             return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.OpenAITemplateMap);
+        }
+
+        public override string GetPreProcessedResult(string text)
+        {
+            return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
         }
     }
 }

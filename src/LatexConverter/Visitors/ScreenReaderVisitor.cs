@@ -16,7 +16,7 @@ namespace LatexConverter
                 case "=":
                 case "*":
                 case "/":
-                    return " " + BaseVisitor<string>.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap) + " ";
+                    return BaseVisitor<string>.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap);
                 default:
                     return node.Text;
             }
@@ -55,7 +55,7 @@ namespace LatexConverter
                     case "2":
                     case "3":
                     case "°":
-                        return " " + BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
+                        return  BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
 
                     default:
                         return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Superscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
@@ -164,12 +164,6 @@ namespace LatexConverter
             var num_rows = rows.Length;
             var num_cols = rows[0].Split('&').Length;
 
-            //var matrix_desc = rows.Select(row =>
-            //{
-            //    var elements = row.Split('&').Select(e => e.Trim());
-            //    return $"({string.Join(", ", elements)})";
-            //});
-
             StringBuilder matrix_desc = new StringBuilder();
             for (int i = 0; i < rows.Length; i++)
             {
@@ -193,6 +187,7 @@ namespace LatexConverter
 
         public override string GetPreProcessedResult(string text)
         {
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\(\s+", "(");
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\)", ")");
             return text;
