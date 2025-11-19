@@ -9,7 +9,7 @@ namespace LatexConverter.Tests
 {
     public class NumberToOrdinalWordConverterTests
     {
-        [Theory] 
+        [Theory]
         // Tens with units
         [InlineData(21, "twenty first")]
         [InlineData(22, "twenty second")]
@@ -18,7 +18,7 @@ namespace LatexConverter.Tests
         // Numbers > 31 (fallback)
         [InlineData(32, "thirty second")]
         [InlineData(100, "one hundredth")]
-         
+
         // Special powers
         [InlineData(2, "square")]
         [InlineData(3, "cube")]
@@ -41,11 +41,11 @@ namespace LatexConverter.Tests
         [InlineData(30, "thirtieth")]
         [InlineData(40, "fortieth")]
 
-        // Tens with units 
+        // Tens with units
         [InlineData(33, "thirty third")]
         [InlineData(45, "forty fifth")]
 
-        // Hundreds 
+        // Hundreds
         [InlineData(101, "one hundred first")]
         [InlineData(342, "three hundred forty second")]
 

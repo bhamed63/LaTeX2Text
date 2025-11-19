@@ -120,7 +120,7 @@ namespace LatexConverter
 
                 if (i % 2 == 0)
                 {
-                    var processedPart = part; 
+                    var processedPart = part;
 
                     if (!string.IsNullOrEmpty(processedPart))
                     {

@@ -46,22 +46,23 @@ namespace LatexConverter.Data
                 var command = worksheet.Cells[row, 2].Value?.ToString();
                 var unicodeCharacter = worksheet.Cells[row, 3].Value?.ToString();
 
-                if (character == default || string.IsNullOrEmpty(command) || string.IsNullOrEmpty(unicodeCharacter))
+                if (character == default || string.IsNullOrEmpty(command))
                 {
                     continue;
                 }
 
-                var key = (character, command);
-                var newFont = new FontCharacter(character, command, unicodeCharacter);
+                var fontDef = new FontDefinition
+                {
+                    HumanFriendly = worksheet.Cells[row, 3].Value?.ToString(),
+                    ScreenReader = worksheet.Cells[row, 4].Value?.ToString(),
+                    OpenAI = worksheet.Cells[row, 5].Value?.ToString()
+                };
 
-                if (fontLibrary.ContainsKey(key))
+                if (!RawData.FontLibrary.ContainsKey(command))
                 {
-                    fontLibrary[key] = newFont;
+                    RawData.FontLibrary[command] = new Dictionary<char, FontDefinition>();
                 }
-                else
-                {
-                    fontLibrary.Add(key, newFont);
-                }
+                RawData.FontLibrary[command][character] = fontDef;
             }
             RawData.FontLibrary.Clear();
             RawData.FontLibrary.AddRange(fontLibrary.Values);

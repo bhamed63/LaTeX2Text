@@ -7,6 +7,13 @@ namespace LatexConverter
     /// </summary>
     public class ScreenReaderVisitor : BaseVisitor<string>
     {
+        private readonly TemplateProcessor _templateProcessor;
+
+        public ScreenReaderVisitor()
+        {
+            _templateProcessor = new TemplateProcessor();
+        }
+
         public override string VisitText(TextNode node)
         {
             switch (node.Text)
@@ -16,7 +23,7 @@ namespace LatexConverter
                 case "=":
                 case "*":
                 case "/":
-                    return BaseVisitor<string>.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap);
+                    return _templateProcessor.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap);
                 default:
                     return node.Text;
             }
@@ -43,7 +50,7 @@ namespace LatexConverter
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
                 if (cmdNode.Command == CommandNames.Circ || cmdNode.Command == CommandNames.Prime)
-                    return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+                    return _templateProcessor.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
 
             }
 
@@ -59,14 +66,14 @@ namespace LatexConverter
                     case "2":
                     case "3":
                     case "°":
-                        return BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
+                        return _templateProcessor.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
 
                     default:
-                        return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Superscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+                        return _templateProcessor.ProcessTemplateCommand(CommandNames.Superscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
 
                 }
             }
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Subscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap) + " ";
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Subscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap) + " ";
 
         }
 
@@ -75,7 +82,12 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case CommandNames.Mathbb:
-                    return HandleMathbb(node);
+                    var arg = node.Args[0].Accept(new PlainTextVisitor());
+                    if (arg.Length == 1 && Dictionaries.ScreenReaderMathbbMap.TryGetValue(arg[0], out var screenReaderText))
+                    {
+                        return screenReaderText;
+                    }
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
                 case CommandNames.Sum:
                 case CommandNames.Int:
                 case CommandNames.Prod:
@@ -85,7 +97,7 @@ namespace LatexConverter
                 default:
                     if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
                     {
-                        return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
+                        return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
                     }
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     return Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -97,7 +109,12 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case CommandNames.Mathbb:
-                    return HandleMathbb(node);
+                    var arg = node.Args[0].Accept(new PlainTextVisitor());
+                    if (arg.Length == 1 && Dictionaries.ScreenReaderMathbbMap.TryGetValue(arg[0], out var screenReaderText))
+                    {
+                        return screenReaderText;
+                    }
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
                 case CommandNames.Sum:
                 case CommandNames.Int:
                 case CommandNames.Prod:
@@ -107,7 +124,7 @@ namespace LatexConverter
                 default:
                     if (Dictionaries.ScreenReaderTemplateMap.ContainsKey(node.Command))
                     {
-                        return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
+                        return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
                     }
                     string baseVal = Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
                     string screenReaderSymbolVal = Dictionaries.ScreenReaderSymbolMap.GetValueOrDefault(node.Command, baseVal);
@@ -122,10 +139,10 @@ namespace LatexConverter
 
             return degree switch
             {
-                "2" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { radicand }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap),
-                "3" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Cbrt, new[] { radicand }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap),
-                "4" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frthrt, new[] { radicand }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap),
-                _ => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Nthrt, new[] { radicand, ToOrdinal(degree) }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap),
+                "2" => _templateProcessor.ProcessTemplateCommand(CommandNames.Sqrt, new[] { radicand }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap),
+                "3" => _templateProcessor.ProcessTemplateCommand(CommandNames.Cbrt, new[] { radicand }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap),
+                "4" => _templateProcessor.ProcessTemplateCommand(CommandNames.Frthrt, new[] { radicand }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap),
+                _ => _templateProcessor.ProcessTemplateCommand(CommandNames.Nthrt, new[] { radicand, ToOrdinal(degree) }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap),
             };
         }
 
@@ -145,30 +162,20 @@ namespace LatexConverter
         {
             var numerator = node.Numerator.Accept(this);
             var denominator = node.Denominator.Accept(this);
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         public override string VisitBinom(BinomNode node)
         {
             var top = node.Top.Accept(this);
             var bottom = node.Bottom.Accept(this);
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
-        }
-
-        private string HandleMathbb(CommandNode node)
-        {
-            //TODO: Need to extend Mathbb based on the accept result
-            if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R")
-            {
-                return "the set of real numbers";
-            }
-            return node.Args[0].Accept(this);
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         private string HandleLimitCommands(CommandNode node)
         {
             var sub_lim = node.Subscript != null ? node.Subscript.ExceptionalAccept(this) : "";
-            return BaseVisitor<string>.ProcessTemplateCommand(node.Command, new string[] { sub_lim }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+            return _templateProcessor.ProcessTemplateCommand(node.Command, new string[] { sub_lim }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         private string HandleLimitStyleCommands(CommandNode node)
@@ -177,7 +184,7 @@ namespace LatexConverter
             var sup = node.Superscript != null ? node.Superscript.Accept(this) : "";
 
             var args = new string[] { sub, sup };
-            return BaseVisitor<string>.ProcessTemplateCommand(node.Command, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+            return _templateProcessor.ProcessTemplateCommand(node.Command, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         public override string VisitMatrix(MatrixNode node)
@@ -204,7 +211,7 @@ namespace LatexConverter
             }
 
             var args = new string[] { num_rows.ToString(), num_cols.ToString(), matrix_desc.ToString() };
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
         public override string GetPreProcessedResult(string text)

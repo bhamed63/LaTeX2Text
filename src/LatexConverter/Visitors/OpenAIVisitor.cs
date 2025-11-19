@@ -7,6 +7,13 @@ namespace LatexConverter
     /// </summary>
     public class OpenAIVisitor : BaseVisitor<string>
     {
+        private readonly TemplateProcessor _templateProcessor;
+
+        public OpenAIVisitor()
+        {
+            _templateProcessor = new TemplateProcessor();
+        }
+
         public override string VisitText(TextNode node) => node.Text;
 
         public override string VisitGroup(GroupNode node)
@@ -24,23 +31,26 @@ namespace LatexConverter
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
                 if (cmdNode.Command == CommandNames.Circ || cmdNode.Command == CommandNames.Prime)
-                    return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.OpenAITemplateMap);
+                    return _templateProcessor.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.OpenAITemplateMap);
             }
 
             string commandName = node.IsSuperscript ? CommandNames.Superscript : CommandNames.Subscript;
             if (node.NeedsParentheses())
                 scriptText = $"({scriptText})";
-            return BaseVisitor<string>.ProcessTemplateCommand(commandName, new string[] { baseText, scriptText }, this, Dictionaries.OpenAITemplateMap);
+            return _templateProcessor.ProcessTemplateCommand(commandName, new string[] { baseText, scriptText }, this, Dictionaries.OpenAITemplateMap);
         }
 
         public override string VisitCommand(CommandNode node)
         {
-            if (Dictionaries.OpenAITemplateMap.ContainsKey(node.Command))
-            {
-                return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
-            }
             switch (node.Command)
             {
+                case CommandNames.Mathbb:
+                    var arg = node.Args[0].Accept(new PlainTextVisitor());
+                    if (arg.Length == 1 && Dictionaries.OpenAIMathbbMap.TryGetValue(arg[0], out var openAIText))
+                    {
+                        return openAIText;
+                    }
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
                 case CommandNames.LeftParen:
                 case CommandNames.RightParen:
                 case CommandNames.LeftBracket:
@@ -56,6 +66,10 @@ namespace LatexConverter
                 case CommandNames.Lim:
                     return HandleLimitStyleCommands(node);
                 default:
+                    if (Dictionaries.OpenAITemplateMap.ContainsKey(node.Command))
+                    {
+                        return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
+                    }
                     return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
             }
         }
@@ -94,7 +108,45 @@ namespace LatexConverter
                 return $"[{string.Join(", ", elements)}]";
             });
             var args = new string[] { string.Join(", ", matrix) };
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+        }
+
+        public override string VisitRoot(RootNode node)
+        {
+            var radicand = node.Radicand.Accept(this);
+            var degree = node.Degree.Accept(this);
+
+            return degree switch
+            {
+                "2" => _templateProcessor.ProcessTemplateCommand(CommandNames.Sqrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
+                "3" => _templateProcessor.ProcessTemplateCommand(CommandNames.Cbrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
+                "4" => _templateProcessor.ProcessTemplateCommand(CommandNames.Frthrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
+                _ => _templateProcessor.ProcessTemplateCommand(CommandNames.Nthrt, new[] { radicand, degree }, this, Dictionaries.OpenAITemplateMap),
+            };
+        }
+
+        public override string ExceptionalVisitRoot(RootNode node)
+        {
+            return VisitRoot(node);
+        }
+
+        public override string VisitFrac(FracNode node)
+        {
+            var numerator = node.Numerator.Accept(this);
+            var denominator = node.Denominator.Accept(this);
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.OpenAITemplateMap);
+        }
+
+        public override string VisitBinom(BinomNode node)
+        {
+            var top = node.Top.Accept(this);
+            var bottom = node.Bottom.Accept(this);
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.OpenAITemplateMap);
+        }
+
+        public override string GetPreProcessedResult(string text)
+        {
+            return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
         }
 
         public override string VisitRoot(RootNode node)

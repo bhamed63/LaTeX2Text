@@ -119,7 +119,7 @@ namespace LatexConverter.Tests
         [InlineData(@"A \leftrightarrow B \Leftrightarrow C.", "A left right arrow B if and only if C.")]
         [InlineData(@"The vector is \perp the plane.", "The vector is perpendicular to the plane.")]
         [InlineData(@"The lines are \parallel.", "The lines are parallel to.")]
-        [InlineData(@"This is a \odot operation.", "This is a circled dot operation.")] 
+        [InlineData(@"This is a \odot operation.", "This is a circled dot operation.")]
         [InlineData(@"The \Re and the \Im.", "The Real part and the Imaginary part.")]
         [InlineData(@"A \cup B and C \cap D", "A union B and C intersection D")]
         [InlineData(@"E \subset F and G \supset H", "E subset of F and G superset of H")]

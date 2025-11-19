@@ -6,10 +6,12 @@ namespace LatexConverter
     public class HumanFriendlyVisitor : BaseVisitor<string>
     {
         private readonly bool _allSubscriptsAreConvertible;
+        private readonly TemplateProcessor _templateProcessor;
 
         public HumanFriendlyVisitor(bool allSubscriptsAreConvertible = true)
         {
             _allSubscriptsAreConvertible = allSubscriptsAreConvertible;
+            _templateProcessor = new TemplateProcessor();
         }
         public override string VisitText(TextNode node) => node.Text;
 
@@ -27,42 +29,47 @@ namespace LatexConverter
             if (node.IsSuperscript && node.Script is CommandNode cmdNode)
             {
                 if (cmdNode.Command == CommandNames.Circ || cmdNode.Command == CommandNames.Prime)
-                    return BaseVisitor<string>.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+                    return _templateProcessor.ProcessTemplateCommand(cmdNode.Command, new string[] { baseText }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
 
             var scriptContent = node.Script.Accept(this);
 
             if (!node.IsSuperscript && !_allSubscriptsAreConvertible)
             {
-                return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.SubscriptExceptional, new string[] { baseText, scriptContent }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+                return _templateProcessor.ProcessTemplateCommand(CommandNames.SubscriptExceptional, new string[] { baseText, scriptContent }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
 
             var commandName = node.IsSuperscript ? CommandNames.Superscript : CommandNames.Subscript;
-            return BaseVisitor<string>.ProcessTemplateCommand(commandName, new string[] { baseText, ToUnicode(scriptContent, node.IsSuperscript, node.Script) }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+            return _templateProcessor.ProcessTemplateCommand(commandName, new string[] { baseText, _templateProcessor.ToUnicode(scriptContent, node.IsSuperscript, node.Script) }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
 
         public override string VisitCommand(CommandNode node)
         {
+            var arg = node.Args.Count > 0 ? node.Args[0].Accept(new PlainTextVisitor()) : "";
             switch (node.Command)
             {
                 case CommandNames.Mathfrak:
-                    return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.MathfrakMap);
+                    if (arg.Length == 1 && Dictionaries.HumanFriendlyMathfrakMap.TryGetValue(arg[0], out var frak)) return frak;
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
                 case CommandNames.Mathscr:
-                    return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.MathscrMap);
+                    if (arg.Length == 1 && Dictionaries.HumanFriendlyMathscrMap.TryGetValue(arg[0], out var scr)) return scr;
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
                 case CommandNames.Mathcal:
-                    return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.MathcalMap);
+                    if (arg.Length == 1 && Dictionaries.HumanFriendlyMathcalMap.TryGetValue(arg[0], out var cal)) return cal;
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
                 case CommandNames.Mathbb:
-                    return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.MathbbMap);
+                    if (arg.Length == 1 && Dictionaries.HumanFriendlyMathbbMap.TryGetValue(arg[0], out var bb)) return bb;
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
                 case CommandNames.Exp:
-                    return BaseVisitor<string>.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap);
+                    return _templateProcessor.ToUnicodeProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap);
                 case CommandNames.Sum:
                 case CommandNames.Int:
                 case CommandNames.Prod:
-                    return BaseVisitor<string>.ToUnicodeProcessTemplateCommandSubscriptSuperscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
+                    return _templateProcessor.ToUnicodeProcessTemplateCommandSubscriptSuperscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
                 case CommandNames.Lim:
-                    return BaseVisitor<string>.ProcessTemplateCommandSubscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
+                    return _templateProcessor.ProcessTemplateCommandSubscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
                 default:
-                    return BaseVisitor<string>.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
         }
 
@@ -84,10 +91,10 @@ namespace LatexConverter
 
             return degree switch
             {
-                "2" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
-                "3" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Cbrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
-                "4" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frthrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
-                _ => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Nthrt, new[] { radicand, ToUnicode(degree, true, node.Degree) }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
+                "2" => _templateProcessor.ProcessTemplateCommand(CommandNames.Sqrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
+                "3" => _templateProcessor.ProcessTemplateCommand(CommandNames.Cbrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
+                "4" => _templateProcessor.ProcessTemplateCommand(CommandNames.Frthrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
+                _ => _templateProcessor.ProcessTemplateCommand(CommandNames.Nthrt, new[] { radicand, _templateProcessor.ToUnicode(degree, true, node.Degree) }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
             };
         }
 
@@ -100,14 +107,14 @@ namespace LatexConverter
         {
             var numerator = node.Numerator.Accept(this);
             var denominator = node.Denominator.Accept(this);
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Frac, new[] { numerator, denominator }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
 
         public override string VisitBinom(BinomNode node)
         {
             var top = node.Top.Accept(this);
             var bottom = node.Bottom.Accept(this);
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+            return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
 
         public override string GetPreProcessedResult(string text)

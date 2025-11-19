@@ -176,7 +176,7 @@ namespace LatexConverter
             if (i + 1 < text.Length)
             {
                 char next_c = text[i + 1];
-                if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) && 
+                if (!Dictionaries.ReverseSubMap.ContainsKey(next_c) &&
                     !Dictionaries.ReverseSupMap.ContainsKey(next_c) &&
                     next_c != '}' &&
                     next_c != ')' &&
