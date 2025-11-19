@@ -15,8 +15,8 @@ namespace LatexConverter
         T ExceptionalVisitScript(ScriptNode node);
         T VisitMatrix(MatrixNode node);
         T ExceptionalVisitMatrix(MatrixNode node);
-        T VisitSqrt(SqrtNode node);
-        T ExceptionalVisitSqrt(SqrtNode node);
+        T VisitRoot(RootNode node);
+        T ExceptionalVisitRoot(RootNode node);
         T VisitFrac(FracNode node);
         T ExceptionalVisitFrac(FracNode node);
         T VisitBinom(BinomNode node);

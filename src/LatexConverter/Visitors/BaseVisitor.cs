@@ -13,7 +13,7 @@ namespace LatexConverter
         public abstract T VisitGroup(GroupNode node);
         public abstract T VisitScript(ScriptNode node);
         public abstract T VisitMatrix(MatrixNode node);
-        public abstract T VisitSqrt(SqrtNode node);
+        public abstract T VisitRoot(RootNode node);
         public abstract T VisitFrac(FracNode node);
         public abstract T VisitBinom(BinomNode node);
 
@@ -41,10 +41,7 @@ namespace LatexConverter
             return VisitMatrix(node);
         }
 
-        public virtual T ExceptionalVisitSqrt(SqrtNode node)
-        {
-            return VisitSqrt(node);
-        }
+        public abstract T ExceptionalVisitRoot(RootNode node);
 
         public virtual T ExceptionalVisitFrac(FracNode node)
         {

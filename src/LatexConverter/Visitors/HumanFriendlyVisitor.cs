@@ -16,8 +16,6 @@ namespace LatexConverter
         public override string VisitGroup(GroupNode node)
         {
             var content = $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
-            if (node.Body.Count > 1)
-                return $"({content})";
             return content;
         }
 
@@ -34,11 +32,10 @@ namespace LatexConverter
 
             if (!node.IsSuperscript && !_allSubscriptsAreConvertible)
             {
-                return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.SubscriptExceptional, new string[] { baseText, scriptContent }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+                return $"{baseText}_{scriptContent}";
             }
 
-            var commandName = node.IsSuperscript ? CommandNames.Superscript : CommandNames.Subscript;
-            return BaseVisitor<string>.ProcessTemplateCommand(commandName, new string[] { baseText, ToUnicode(scriptContent, node.IsSuperscript, node.Script) }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+            return $"{baseText}{ToUnicode(scriptContent, node.IsSuperscript, node.Script)}";
         }
 
         public override string VisitCommand(CommandNode node)
@@ -77,10 +74,23 @@ namespace LatexConverter
             return string.Join("\n", matrix);
         }
 
-        public override string VisitSqrt(SqrtNode node)
+        public override string VisitRoot(RootNode node)
         {
-            var arg = node.Argument.Accept(this);
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { arg }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+            var radicand = node.Radicand.Accept(this);
+            var degree = node.Degree.Accept(this);
+
+            return degree switch
+            {
+                "2" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
+                "3" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Cbrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
+                "4" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frthrt, new[] { radicand }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
+                _ => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Nthrt, new[] { radicand, ToUnicode(degree, true, node.Degree) }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap),
+            };
+        }
+
+        public override string ExceptionalVisitRoot(RootNode node)
+        {
+            return VisitRoot(node);
         }
 
         public override string VisitFrac(FracNode node)

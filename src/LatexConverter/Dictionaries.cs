@@ -27,7 +27,7 @@ namespace LatexConverter
     /// <summary>
     /// Provides centralized storage for symbol and character mappings used in LaTeX conversion.
     /// </summary>
-    public static class Dictionaries
+    internal static class Dictionaries
     {
         static Dictionaries()
         {

@@ -97,18 +97,11 @@ namespace LatexConverter
             switch (token.Value)
             {
                 case CommandNames.Sqrt:
-                    return ParseSqrtCommand();
+                    return ParseRootCommand();
                 case CommandNames.Frac:
                     return ParseFracCommand();
                 case CommandNames.Binom:
                     return ParseBinomCommand();
-                case CommandNames.Comment:
-                    var commentArgs = new List<AstNode>();
-                    if (CurrentToken.Type == TokenType.Text)
-                    {
-                        commentArgs.Add(ParsePrimary());
-                    }
-                    return new CommandNode(token.Value, commentArgs, null, null);
             }
 
             var args = new List<AstNode>();
@@ -122,11 +115,40 @@ namespace LatexConverter
             return new CommandNode(token.Value, args, null, null);
         }
 
-        private AstNode ParseSqrtCommand()
+        private AstNode ParseRootCommand()
         {
             SkipSpaces();
-            var arg = ParsePrimary();
-            return new SqrtNode(arg);
+            var degree = ParseOptionalArgument();
+            SkipSpaces();
+            var radicand = ParsePrimary();
+
+            if (degree == null)
+            {
+                return new RootNode(radicand, new TextNode("2"));
+            }
+            else
+            {
+                return new RootNode(radicand, degree);
+            }
+        }
+
+        private AstNode ParseOptionalArgument()
+        {
+            if (CurrentToken.Type == TokenType.Text && CurrentToken.Value == "[")
+            {
+                _pos++; // Consume '['
+                var nodes = new List<AstNode>();
+                while (!(CurrentToken.Type == TokenType.Text && CurrentToken.Value == "]") && CurrentToken.Type != TokenType.Eof)
+                {
+                    nodes.Add(ParseExpression());
+                }
+                if (CurrentToken.Type == TokenType.Text && CurrentToken.Value == "]")
+                {
+                    _pos++; // Consume ']'
+                }
+                return new GroupNode(nodes);
+            }
+            return null;
         }
 
         private AstNode ParseFracCommand()

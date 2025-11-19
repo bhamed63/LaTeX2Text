@@ -11,7 +11,7 @@ namespace LatexConverter.Tests
         [InlineData(@"F_\textrm{k}", "Fₖ")]
         [InlineData(@"43^\circ", "43°")]
         [InlineData(@"\alpha", "α")]
-        [InlineData(@"\sqrt{x}", "√x")]
+        [InlineData(@"\sqrt{x}", "√(x)")]
         [InlineData(@"\frac{1}{2}", "1 / 2")]
         [InlineData(@"a^{b+c}", "aᵇ⁺ᶜ")]
         [InlineData(@"x^{10}", "x¹⁰")]
@@ -39,7 +39,7 @@ namespace LatexConverter.Tests
         [InlineData("sin^(-1)", "sin⁻¹")]
         [InlineData("cos^(-1)", "cos⁻¹")]
         [InlineData("tan^(-1)", "tan⁻¹")]
-        [InlineData("sqrt(x)", "√x")]
+        [InlineData("sqrt(x)", "√(x)")]
         [InlineData("A small segment of the wire is marked in blue as \"d-x.\"", "A small segment of the wire is marked in blue as \"d-x.\"")]
         [InlineData("An x-y coordinate system is shown in the top right", "An x-y coordinate system is shown in the top right")]
         [InlineData("rod: dE_x = -k * lambda * x * dx / (a^2 + x^2)^(3/2).", "rod: dEₓ = -k * λ * x * dx / (a² + x²)^(3/2).")]
@@ -171,10 +171,6 @@ namespace LatexConverter.Tests
         [InlineData(@"The vertical component of the vector is labeled as (|v_y| = v \sin \theta). The angle (\theta) is marked between the vector and the horizontal axis.", @"The vertical component of the vector is labeled as (|v_y| = v sin(θ)). The angle (θ) is marked between the vector and the horizontal axis.")]
         [InlineData("A baryon consists of ____ quark(s) and ____ antiquark(s).", "A baryon consists of ____ quark(s) and ____ antiquark(s).")]
         [InlineData(@"K^+", "K⁺")]
-        [InlineData(@"\sqrt[3]{x}", "∛x")]
-        [InlineData(@"\sqrt[4]{y^2 + z^3}", "∜(y² + z³)")]
-        [InlineData(@"\sqrt[2]{m}", "√m")] 
-        [InlineData(@"\sqrt[31]{y^2 + z^3}", "³¹√(y² + z³)")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);

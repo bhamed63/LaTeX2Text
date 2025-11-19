@@ -48,7 +48,7 @@ namespace LatexConverter.Tests
         [InlineData("∑ᵢ₌₁ⁿ i²", "summation from i equals 1 to n i squared")]
         [InlineData("λ₁", "lambda subscript 1")]
         [InlineData("λ₁ + λ₂ = 1", "lambda subscript 1 plus lambda subscript 2 equals 1")]
-        [InlineData("√(ω₁ / ω₂)", "square root of omega subscript 1 divided by omega subscript 2")]
+        [InlineData("√(ω₁ / ω₂)", "the square root of (omega subscript 1 divided by omega subscript 2)")]
         [InlineData("α² + β² = γ²", "alpha squared plus beta squared equals gamma squared")]
         [InlineData("F⃗ᵢ", "vector F subscript i")]
         [InlineData("This is the sum: ∑ᵢ₌₁ⁿ i.", "This is the sum: summation from i equals 1 to n i.")]

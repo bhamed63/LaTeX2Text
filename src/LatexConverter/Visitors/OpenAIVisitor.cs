@@ -97,10 +97,23 @@ namespace LatexConverter
             return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
 
-        public override string VisitSqrt(SqrtNode node)
+        public override string VisitRoot(RootNode node)
         {
-            var arg = node.Argument.Accept(this);
-            return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { arg }, this, Dictionaries.OpenAITemplateMap);
+            var radicand = node.Radicand.Accept(this);
+            var degree = node.Degree.Accept(this);
+
+            return degree switch
+            {
+                "2" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
+                "3" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Cbrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
+                "4" => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Frthrt, new[] { radicand }, this, Dictionaries.OpenAITemplateMap),
+                _ => BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Nthrt, new[] { radicand, degree }, this, Dictionaries.OpenAITemplateMap),
+            };
+        }
+
+        public override string ExceptionalVisitRoot(RootNode node)
+        {
+            return VisitRoot(node);
         }
 
         public override string VisitFrac(FracNode node)

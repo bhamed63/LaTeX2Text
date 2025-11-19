@@ -4,10 +4,12 @@ namespace LatexConverter
     {
         public const string Superscript = @"\for_superscript";
         public const string Subscript = @"\for_subscript";
-        public const string SubscriptExceptional = @"\for_subscript_exceptional";
         public const string Matrix = @"\for_matrix";
 
         public const string Sqrt = @"\sqrt";
+        public const string Cbrt = @"\cbrt";
+        public const string Frthrt = @"\frthrt";
+        public const string Nthrt = @"\nthrt";
         public const string Frac = @"\frac";
         public const string Binom = @"\binom";
 
