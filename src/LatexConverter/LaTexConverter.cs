@@ -120,16 +120,7 @@ namespace LatexConverter
 
                 if (i % 2 == 0)
                 {
-                    var processedPart = part;
-                    var commentIndex = processedPart.IndexOf('%');
-                    if (commentIndex != -1)
-                    {
-                        processedPart = processedPart.Substring(0, commentIndex);
-                        if (commentIndex > 0)
-                        {
-                            processedPart += " ";
-                        }
-                    }
+                    var processedPart = part; 
 
                     if (!string.IsNullOrEmpty(processedPart))
                     {

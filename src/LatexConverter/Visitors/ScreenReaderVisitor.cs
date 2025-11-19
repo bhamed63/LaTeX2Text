@@ -16,7 +16,7 @@ namespace LatexConverter
                 case "=":
                 case "*":
                 case "/":
-                    return " " + BaseVisitor<string>.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap) + " ";
+                    return BaseVisitor<string>.ProcessTemplateCommand(node.Text, new string[] { }, this, new Dictionary<string, string>(), Dictionaries.ScreenReaderOperatorMap);
                 default:
                     return node.Text;
             }
@@ -24,8 +24,12 @@ namespace LatexConverter
 
         public override string VisitGroup(GroupNode node)
         {
-            return string.Join(" ", node.Body.Select(n => n.Accept(this)));
+            string content = string.Join(" ", node.Body.Select(n => n.Accept(this)));
+            //if (node.Body.Count > 1)
+            //    return $"({content})";
+            return content;
         }
+
 
         public override string ExceptionalVisitGroup(GroupNode node)
         {
@@ -55,7 +59,7 @@ namespace LatexConverter
                     case "2":
                     case "3":
                     case "°":
-                        return " " + BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
+                        return BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
 
                     default:
                         return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Superscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
@@ -114,8 +118,6 @@ namespace LatexConverter
         public override string VisitRoot(RootNode node)
         {
             var radicand = node.Radicand.Accept(this);
-            if (node.Radicand is GroupNode)
-                radicand = $"({radicand})";
             var degree = node.Degree.Accept(this);
 
             return degree switch
@@ -129,26 +131,8 @@ namespace LatexConverter
 
         private string ToOrdinal(string number)
         {
-            if (int.TryParse(number, out int num))
-            {
-                if (num <= 0) return number;
-
-                if (num == 31) return "thirty-first";
-
-                // Handle special cases for teens
-                if ((num % 100) >= 11 && (num % 100) <= 13)
-                {
-                    return num + "th";
-                }
-
-                switch (num % 10)
-                {
-                    case 1: return num + "st";
-                    case 2: return num + "nd";
-                    case 3: return num + "rd";
-                    default: return num + "th";
-                }
-            }
+            if (int.TryParse(number, out int numberInt))
+                return NumberToOrdinalWordConverter.NumberToOrdinalWord(numberInt);
             return number;
         }
 

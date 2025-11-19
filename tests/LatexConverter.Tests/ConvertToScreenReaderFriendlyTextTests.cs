@@ -162,7 +162,12 @@ namespace LatexConverter.Tests
         [InlineData(@"A^{*}", "A star")]
         [InlineData(@"\bar{a}", "a bar")]
         [InlineData(@"\bar{w}", "w bar")]
-        [InlineData(@"a sample \bar{l} for updating the \bar{p} + \sqrt{p}", "a sample l bar for updating the p bar plus the square root of (p)")]
+        [InlineData(@"a sample \bar{l} for updating the \bar{p} + \sqrt{p}", "a sample l bar for updating the p bar plus square root of p")]
+        [InlineData(@"\sqrt[3]{x}", "cube root of x")]
+        [InlineData(@"\sqrt[4]{y^2 + z^3}", "fourth root of y squared plus z cubed")]
+        [InlineData(@"\sqrt[2]{m}", "square root of m")]
+        [InlineData(@"\sqrt{x}", "square root of x")]
+        [InlineData(@"\sqrt[31]{y^2 + z^3}", "thirty first root of y squared plus z cubed")]
         public void ConvertToScreenReaderFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToScreenReaderFriendlyText(input);
