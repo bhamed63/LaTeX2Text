@@ -38,33 +38,29 @@ namespace LatexConverter.Data
         {
             if (worksheet == null) return;
 
-            var fontLibrary = RawData.FontLibrary.ToDictionary(f => (f.BaseChar, f.FontCommand));
-
             for (var row = 2; row <= worksheet.Dimension.End.Row; row++)
             {
                 var character = worksheet.Cells[row, 1].Value?.ToString()?[0] ?? default;
                 var command = worksheet.Cells[row, 2].Value?.ToString();
-                var unicodeCharacter = worksheet.Cells[row, 3].Value?.ToString();
 
-                if (character == default || string.IsNullOrEmpty(command) || string.IsNullOrEmpty(unicodeCharacter))
+                if (character == default || string.IsNullOrEmpty(command))
                 {
                     continue;
                 }
 
-                var key = (character, command);
-                var newFont = new FontCharacter(character, command, unicodeCharacter);
+                var fontDef = new FontDefinition
+                {
+                    HumanFriendly = worksheet.Cells[row, 3].Value?.ToString(),
+                    ScreenReader = worksheet.Cells[row, 4].Value?.ToString(),
+                    OpenAI = worksheet.Cells[row, 5].Value?.ToString()
+                };
 
-                if (fontLibrary.ContainsKey(key))
+                if (!RawData.FontLibrary.ContainsKey(command))
                 {
-                    fontLibrary[key] = newFont;
+                    RawData.FontLibrary[command] = new Dictionary<char, FontDefinition>();
                 }
-                else
-                {
-                    fontLibrary.Add(key, newFont);
-                }
+                RawData.FontLibrary[command][character] = fontDef;
             }
-            RawData.FontLibrary.Clear();
-            RawData.FontLibrary.AddRange(fontLibrary.Values);
         }
 
         private static void LoadScriptLibrary(ExcelWorksheet worksheet)

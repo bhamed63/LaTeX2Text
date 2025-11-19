@@ -20,7 +20,13 @@ namespace LatexConverter
         public int ArgsNumber { get; set; }
     }
 
-    public record FontCharacter(char BaseChar, string FontCommand, string UnicodeChar);
+    public class FontDefinition
+    {
+        public string? HumanFriendly { get; set; }
+        public string? ScreenReader { get; set; }
+        public string? OpenAI { get; set; }
+    }
+
     public record ScriptCharacter(char BaseChar, char? Superscript, char? Subscript);
     public record OperatorMapping(string openAiFriendly, string humanFriendly, string screenReaderFriendly, string screenReaderFriendlySuperscript);
 
@@ -41,8 +47,6 @@ namespace LatexConverter
             HumanFriendlySymbolMap = Data.RawData.SymbolLibrary
                 .Where(kvp => kvp.Value.HumanFriendly != null)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
-            //ReverseHumanFriendlySymbolMap = HumanFriendlySymbolMap.GroupBy(kvp => kvp.Value).ToDictionary(g => g.Key, g => g.First().Key.Substring(1));
-
 
             ReverseHumanFriendlySymbolMap = Data.RawData.SymbolLibrary
                 .Where(kvp => kvp.Value.HumanFriendly != null)
@@ -69,25 +73,26 @@ namespace LatexConverter
                 .Where(kvp => kvp.Value.screenReaderFriendlySuperscript != null && kvp.Value.screenReaderFriendlySuperscript.Contains("{0}"))
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.screenReaderFriendlySuperscript!);
 
-            MathbbMap = Data.RawData.FontLibrary
-                .Where(fc => fc.FontCommand == CommandNames.Mathbb)
-                .ToDictionary(fc => fc.BaseChar, fc => fc.UnicodeChar);
+            HumanFriendlyMathbbMap = RawData.FontLibrary[CommandNames.Mathbb].ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
+            ScreenReaderMathbbMap = RawData.FontLibrary[CommandNames.Mathbb].Where(kvp => kvp.Value.ScreenReader != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ScreenReader!);
+            OpenAIMathbbMap = RawData.FontLibrary[CommandNames.Mathbb].Where(kvp => kvp.Value.OpenAI != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value.OpenAI!);
 
-            MathcalMap = Data.RawData.FontLibrary
-                .Where(fc => fc.FontCommand == CommandNames.Mathcal)
-                .ToDictionary(fc => fc.BaseChar, fc => fc.UnicodeChar);
+            HumanFriendlyMathcalMap = RawData.FontLibrary[CommandNames.Mathcal].ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
+            HumanFriendlyMathfrakMap = RawData.FontLibrary[CommandNames.Mathfrak].ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
+            HumanFriendlyMathscrMap = RawData.FontLibrary[CommandNames.Mathscr].ToDictionary(kvp => kvp.Key, kvp => kvp.Value.HumanFriendly!);
 
-            MathfrakMap = Data.RawData.FontLibrary
-                .Where(fc => fc.FontCommand == CommandNames.Mathfrak)
-                .ToDictionary(fc => fc.BaseChar, fc => fc.UnicodeChar);
-
-            MathscrMap = Data.RawData.FontLibrary
-                .Where(fc => fc.FontCommand == CommandNames.Mathscr)
-                .ToDictionary(fc => fc.BaseChar, fc => fc.UnicodeChar);
-
-            ReverseMathFontMap = Data.RawData.FontLibrary
-                .GroupBy(fc => fc.UnicodeChar)
-                .ToDictionary(g => g.Key, g => $"{g.First().FontCommand}{{{g.First().BaseChar}}}");
+            var reverseMap = new Dictionary<string, string>();
+            foreach (var fontCommand in RawData.FontLibrary)
+            {
+                foreach (var fontChar in fontCommand.Value)
+                {
+                    if (fontChar.Value.HumanFriendly != null && !reverseMap.ContainsKey(fontChar.Value.HumanFriendly))
+                    {
+                        reverseMap.Add(fontChar.Value.HumanFriendly, $"{fontCommand.Key}{{{fontChar.Key}}}");
+                    }
+                }
+            }
+            ReverseMathFontMap = reverseMap;
 
             SupMap = Data.RawData.ScriptLibrary
                 .Where(sc => sc.Superscript.HasValue)
@@ -180,24 +185,14 @@ namespace LatexConverter
         /// A map of subscript Unicode characters to their base character representations.
         /// </summary>
         public static readonly Dictionary<char, char> ReverseSubMap;
-        /// <summary>
-        /// A map of characters to their math blackboard bold Unicode representations.
-        /// </summary>
-        public static readonly Dictionary<char, string> MathbbMap;
-        /// <summary>
-        /// A map of characters to their math calligraphic Unicode representations.
-        /// </summary>
-        public static readonly Dictionary<char, string> MathcalMap;
 
-        /// <summary>
-        /// A map of characters to their math Fraktur Unicode representations.
-        /// </summary>
-        public static readonly Dictionary<char, string> MathfrakMap;
+        public static readonly Dictionary<char, string> HumanFriendlyMathbbMap;
+        public static readonly Dictionary<char, string> ScreenReaderMathbbMap;
+        public static readonly Dictionary<char, string> OpenAIMathbbMap;
 
-        /// <summary>
-        /// A map of characters to their math script Unicode representations.
-        /// </summary>
-        public static readonly Dictionary<char, string> MathscrMap;
+        public static readonly Dictionary<char, string> HumanFriendlyMathcalMap;
+        public static readonly Dictionary<char, string> HumanFriendlyMathfrakMap;
+        public static readonly Dictionary<char, string> HumanFriendlyMathscrMap;
 
         public static readonly Dictionary<string, string> ReverseMathFontMap;
     }

@@ -42,12 +42,15 @@ namespace LatexConverter
 
         public override string VisitCommand(CommandNode node)
         {
-            if (Dictionaries.OpenAITemplateMap.ContainsKey(node.Command))
-            {
-                return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
-            }
             switch (node.Command)
             {
+                case CommandNames.Mathbb:
+                    var arg = node.Args[0].Accept(new PlainTextVisitor());
+                    if (arg.Length == 1 && Dictionaries.OpenAIMathbbMap.TryGetValue(arg[0], out var openAIText))
+                    {
+                        return openAIText;
+                    }
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
                 case CommandNames.LeftParen:
                 case CommandNames.RightParen:
                 case CommandNames.LeftBracket:
@@ -63,6 +66,10 @@ namespace LatexConverter
                 case CommandNames.Lim:
                     return HandleLimitStyleCommands(node);
                 default:
+                    if (Dictionaries.OpenAITemplateMap.ContainsKey(node.Command))
+                    {
+                        return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.OpenAITemplateMap);
+                    }
                     return Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command);
             }
         }

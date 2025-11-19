@@ -82,7 +82,12 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case CommandNames.Mathbb:
-                    return HandleMathbb(node);
+                    var arg = node.Args[0].Accept(new PlainTextVisitor());
+                    if (arg.Length == 1 && Dictionaries.ScreenReaderMathbbMap.TryGetValue(arg[0], out var screenReaderText))
+                    {
+                        return screenReaderText;
+                    }
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
                 case CommandNames.Sum:
                 case CommandNames.Int:
                 case CommandNames.Prod:
@@ -104,7 +109,12 @@ namespace LatexConverter
             switch (node.Command)
             {
                 case CommandNames.Mathbb:
-                    return HandleMathbb(node);
+                    var arg = node.Args[0].Accept(new PlainTextVisitor());
+                    if (arg.Length == 1 && Dictionaries.ScreenReaderMathbbMap.TryGetValue(arg[0], out var screenReaderText))
+                    {
+                        return screenReaderText;
+                    }
+                    return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.ScreenReaderTemplateMap);
                 case CommandNames.Sum:
                 case CommandNames.Int:
                 case CommandNames.Prod:
@@ -160,16 +170,6 @@ namespace LatexConverter
             var top = node.Top.Accept(this);
             var bottom = node.Bottom.Accept(this);
             return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
-        }
-
-        private string HandleMathbb(CommandNode node)
-        {
-            //TODO: Need to extend Mathbb based on the accept result
-            if (node.Args[0].Accept(this).Replace("(", "").Replace(")", "") == "R")
-            {
-                return "the set of real numbers";
-            }
-            return node.Args[0].Accept(this);
         }
 
         private string HandleLimitCommands(CommandNode node)
