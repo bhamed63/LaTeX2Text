@@ -24,7 +24,10 @@ namespace LatexConverter
 
         public override string VisitGroup(GroupNode node)
         {
-            return string.Join(" ", node.Body.Select(n => n.Accept(this)));
+            string content = string.Join(" ", node.Body.Select(n => n.Accept(this)));
+            //if (node.Body.Count > 1)
+            //    return $"({content})";
+            return content;
         }
 
         public override string ExceptionalVisitGroup(GroupNode node)
@@ -55,7 +58,7 @@ namespace LatexConverter
                     case "2":
                     case "3":
                     case "°":
-                        return  BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
+                        return BaseVisitor<string>.ProcessTemplateCommand(scriptText, new string[] { baseText }, this, Dictionaries.ScreenReaderOperatorSuperscriptTemplateMap, Dictionaries.ScreenReaderOperatorMap);
 
                     default:
                         return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Superscript, new string[] { baseText, node.Script.Accept(this).Trim() }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
@@ -114,8 +117,6 @@ namespace LatexConverter
         public override string VisitSqrt(SqrtNode node)
         {
             var content = node.Argument.Accept(this);
-            if (node.Argument is GroupNode)
-                content = $"({content})";
             return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.Sqrt, new[] { content }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 

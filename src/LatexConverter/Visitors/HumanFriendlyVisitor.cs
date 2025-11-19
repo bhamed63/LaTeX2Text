@@ -16,6 +16,8 @@ namespace LatexConverter
         public override string VisitGroup(GroupNode node)
         {
             var content = $"{string.Join("", node.Body.Select(n => n.Accept(this)))}";
+            if (node.Body.Count > 1)
+                return $"({content})";
             return content;
         }
 
@@ -32,7 +34,7 @@ namespace LatexConverter
 
             if (!node.IsSuperscript && !_allSubscriptsAreConvertible)
             {
-                return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.SubscriptExceptional, new string[] { baseText , scriptContent }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+                return BaseVisitor<string>.ProcessTemplateCommand(CommandNames.SubscriptExceptional, new string[] { baseText, scriptContent }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
 
             var commandName = node.IsSuperscript ? CommandNames.Superscript : CommandNames.Subscript;
