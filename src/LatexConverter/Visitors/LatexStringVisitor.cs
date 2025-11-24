@@ -3,7 +3,7 @@ using System.Text;
 
 namespace LatexConverter.Visitors
 {
-    public class SimplifiedLatexVisitor : BaseVisitor<string>
+    public class LatexStringVisitor : BaseVisitor<string>
     {
         public override string VisitText(TextNode textNode)
         {

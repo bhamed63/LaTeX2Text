@@ -63,29 +63,37 @@ namespace LatexConverter
             return converter.Convert(humanFriendlyText);
         }
 
-        public ExtractedComponents ExtractComponents(string latex_input)
+        public List<string> ExtractVariables(string latex_input)
         {
-            var components = new ExtractedComponents();
             if (string.IsNullOrEmpty(latex_input))
             {
-                return components;
+                return new List<string>();
             }
 
             var tokens = Tokenizer.Tokenize(latex_input);
             var parser = new Parser(tokens);
             var nodes = parser.Parse();
 
-            var visitor = new ComponentExtractionVisitor(components);
+            var visitor = new VariableExtractionVisitor();
+            var variables = new List<string>();
+            var isMathContext = false;
             foreach (var node in nodes)
             {
-                node.Accept(visitor);
+                if (node is CommandNode cmd && cmd.Command == CommandNames.LeftParen)
+                {
+                    isMathContext = true;
+                }
+                else if (node is CommandNode cmd2 && cmd2.Command == CommandNames.RightParen)
+                {
+                    isMathContext = false;
+                }
+                else if (isMathContext || node is CommandNode || node is ScriptNode)
+                {
+                    variables.AddRange(node.Accept(visitor));
+                }
             }
 
-            // Return unique components
-            var uniqueComponents = new ExtractedComponents();
-            uniqueComponents.Variables.AddRange(components.Variables.Distinct());
-            uniqueComponents.FunctionsAndCommands.AddRange(components.FunctionsAndCommands.Distinct());
-            return uniqueComponents;
+            return variables.Distinct().ToList();
         }
 
         /// <summary>
