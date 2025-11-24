@@ -188,8 +188,8 @@ namespace LatexConverter.Data
         };
         public static Dictionary<string, SymbolDefinition> SymbolLibrary { get; private set; } = new()
         {
-            { CommandNames.Alpha, new SymbolDefinition { PlainText = "alpha", ScreenReader = "alpha", HumanFriendly = "α" } },
-            { CommandNames.Beta, new SymbolDefinition { PlainText = "beta", ScreenReader = "beta", HumanFriendly = "β" } },
+            { CommandNames.Alpha, new SymbolDefinition { PlainText = "alpha", ScreenReader = "alpha", HumanFriendly = "α", CommandType = CommandType.Symbol } },
+            { CommandNames.Beta, new SymbolDefinition { PlainText = "beta", ScreenReader = "beta", HumanFriendly = "β" , CommandType = CommandType.Symbol} },
             { CommandNames.Gamma, new SymbolDefinition { PlainText = "gamma", ScreenReader = "gamma", HumanFriendly = "γ" } },
             { CommandNames.Delta, new SymbolDefinition { PlainText = "delta", ScreenReader = "delta", HumanFriendly = "δ" } },
             { CommandNames.Epsilon, new SymbolDefinition { PlainText = "epsilon", ScreenReader = "epsilon", HumanFriendly = "ε" } },

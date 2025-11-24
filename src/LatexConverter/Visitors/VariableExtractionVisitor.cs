@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace LatexConverter.Visitors
 {
@@ -56,8 +57,8 @@ namespace LatexConverter.Visitors
                     case CommandType.Formatting:
                         if (commandNode.Command == CommandNames.Textrm)
                         {
-                             var text = commandNode.Args.FirstOrDefault()?.Accept(new PlainTextVisitor()) ?? "";
-                             return text.Split('/').ToList();
+                            var text = commandNode.Args.FirstOrDefault()?.Accept(new PlainTextVisitor()) ?? "";
+                            return text.Split('/').ToList();
                         }
                         return commandNode.Args.SelectMany(arg => arg.Accept(this)).ToList();
 
@@ -73,6 +74,19 @@ namespace LatexConverter.Visitors
         public override List<string> VisitScript(ScriptNode scriptNode)
         {
             return new List<string> { scriptNode.Accept(_latexVisitor) };
+            var result = new List<string>();
+            if (scriptNode.Base is TextNode)
+                result.AddRange(scriptNode.Base.Accept(this));
+
+            var sb = new StringBuilder();
+            sb.Append(scriptNode.Base.Accept(this));
+            sb.Append(scriptNode.IsSuperscript ? "^" : "_");
+            if (!scriptNode.IsSuperscript)
+                sb.Append("{");
+            sb.Append(scriptNode.Script.Accept(this));
+            if (!scriptNode.IsSuperscript)
+                sb.Append("}");
+            return new List<string>() { sb.ToString() };
         }
 
         public override List<string> VisitMatrix(MatrixNode matrixNode)
