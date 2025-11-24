@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Collections.Generic;
+using LatexConverter.Visitors;
 
 namespace LatexConverter
 {
@@ -60,6 +61,31 @@ namespace LatexConverter
         {
             var converter = new HumanToLatexConverter();
             return converter.Convert(humanFriendlyText);
+        }
+
+        public ExtractedComponents ExtractComponents(string latex_input)
+        {
+            var components = new ExtractedComponents();
+            if (string.IsNullOrEmpty(latex_input))
+            {
+                return components;
+            }
+
+            var tokens = Tokenizer.Tokenize(latex_input);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+
+            var visitor = new ComponentExtractionVisitor(components);
+            foreach (var node in nodes)
+            {
+                node.Accept(visitor);
+            }
+
+            // Return unique components
+            var uniqueComponents = new ExtractedComponents();
+            uniqueComponents.Variables.AddRange(components.Variables.Distinct());
+            uniqueComponents.FunctionsAndCommands.AddRange(components.FunctionsAndCommands.Distinct());
+            return uniqueComponents;
         }
 
         /// <summary>
