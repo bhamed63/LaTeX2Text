@@ -19,8 +19,23 @@ namespace LatexConverter.Visitors
         {
             if (_isMathContext && !string.IsNullOrWhiteSpace(textNode.Text))
             {
-                var parts = textNode.Text.Split(' ');
-                return parts.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+                var variables = new List<string>();
+                var spaceParts = textNode.Text.Split(' ');
+                foreach (var spacePart in spaceParts)
+                {
+                    var slashParts = spacePart.Split('/');
+                    foreach (var part in slashParts)
+                    {
+                        var trimmedPart = part.Trim();
+                        if (!string.IsNullOrEmpty(trimmedPart) &&
+                            !double.TryParse(trimmedPart, out _) &&
+                            trimmedPart != "=")
+                        {
+                            variables.Add(trimmedPart);
+                        }
+                    }
+                }
+                return variables;
             }
             return new List<string>();
         }
@@ -65,12 +80,7 @@ namespace LatexConverter.Visitors
                         return variables;
 
                     case CommandType.Formatting:
-                        if (commandNode.Command == CommandNames.Textrm)
-                        {
-                            var text = commandNode.Args.FirstOrDefault()?.Accept(new PlainTextVisitor()) ?? "";
-                            return text.Split('/').ToList();
-                        }
-                        return commandNode.Args.SelectMany(arg => Visit(arg, _isMathContext)).ToList();
+                        return commandNode.Args.SelectMany(arg => Visit(arg, true)).ToList();
 
                     case CommandType.Symbol:
                     default:
