@@ -7,30 +7,40 @@ namespace LatexConverter.Visitors
     public class VariableExtractionVisitor : BaseVisitor<List<string>>
     {
         private readonly LatexStringVisitor _latexVisitor = new LatexStringVisitor();
+        private bool _isMathContext = false;
 
+        public List<string> Visit(AstNode node, bool isMathContext)
+        {
+            var visitor = new VariableExtractionVisitor();
+            visitor._isMathContext = isMathContext;
+            return node.Accept(visitor);
+        }
         public override List<string> VisitText(TextNode textNode)
         {
-            if (!string.IsNullOrWhiteSpace(textNode.Text))
+            if (_isMathContext && !string.IsNullOrWhiteSpace(textNode.Text))
             {
-                return new List<string> { textNode.Text };
+                var parts = textNode.Text.Split(' ');
+                return parts.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
             }
             return new List<string>();
         }
 
         public override List<string> VisitGroup(GroupNode groupNode)
         {
-            return groupNode.Body.SelectMany(node => node.Accept(this)).ToList();
+            return groupNode.Body.SelectMany(node => Visit(node, _isMathContext)).ToList();
         }
 
         public override List<string> VisitCommand(CommandNode commandNode)
         {
             if (commandNode.Command == CommandNames.LeftParen)
             {
+                _isMathContext = true;
                 return new List<string>();
             }
 
             if (commandNode.Command == CommandNames.RightParen)
             {
+                _isMathContext = false;
                 return new List<string>();
             }
 
@@ -42,15 +52,15 @@ namespace LatexConverter.Visitors
                         var variables = new List<string>();
                         foreach (var arg in commandNode.Args)
                         {
-                            variables.AddRange(arg.Accept(this));
+                            variables.AddRange(Visit(arg, true));
                         }
                         if (commandNode.Superscript != null)
                         {
-                            variables.AddRange(commandNode.Superscript.Accept(this));
+                            variables.AddRange(Visit(commandNode.Superscript, true));
                         }
                         if (commandNode.Subscript != null)
                         {
-                            variables.AddRange(commandNode.Subscript.Accept(this));
+                            variables.AddRange(Visit(commandNode.Subscript, true));
                         }
                         return variables;
 
@@ -60,7 +70,7 @@ namespace LatexConverter.Visitors
                             var text = commandNode.Args.FirstOrDefault()?.Accept(new PlainTextVisitor()) ?? "";
                             return text.Split('/').ToList();
                         }
-                        return commandNode.Args.SelectMany(arg => arg.Accept(this)).ToList();
+                        return commandNode.Args.SelectMany(arg => Visit(arg, _isMathContext)).ToList();
 
                     case CommandType.Symbol:
                     default:
@@ -74,19 +84,6 @@ namespace LatexConverter.Visitors
         public override List<string> VisitScript(ScriptNode scriptNode)
         {
             return new List<string> { scriptNode.Accept(_latexVisitor) };
-            var result = new List<string>();
-            if (scriptNode.Base is TextNode)
-                result.AddRange(scriptNode.Base.Accept(this));
-
-            var sb = new StringBuilder();
-            sb.Append(scriptNode.Base.Accept(this));
-            sb.Append(scriptNode.IsSuperscript ? "^" : "_");
-            if (!scriptNode.IsSuperscript)
-                sb.Append("{");
-            sb.Append(scriptNode.Script.Accept(this));
-            if (!scriptNode.IsSuperscript)
-                sb.Append("}");
-            return new List<string>() { sb.ToString() };
         }
 
         public override List<string> VisitMatrix(MatrixNode matrixNode)
@@ -94,12 +91,12 @@ namespace LatexConverter.Visitors
             var tokens = Tokenizer.Tokenize(matrixNode.Content);
             var parser = new Parser(tokens);
             var nodes = parser.Parse();
-            return nodes.SelectMany(node => node.Accept(this)).ToList();
+            return nodes.SelectMany(node => Visit(node, true)).ToList();
         }
 
         public override List<string> VisitRoot(RootNode rootNode)
         {
-            return rootNode.Radicand.Accept(this);
+            return Visit(rootNode.Radicand, true);
         }
 
         public override List<string> ExceptionalVisitRoot(RootNode node)
@@ -110,16 +107,16 @@ namespace LatexConverter.Visitors
         public override List<string> VisitFrac(FracNode fracNode)
         {
             var variables = new List<string>();
-            variables.AddRange(fracNode.Numerator.Accept(this));
-            variables.AddRange(fracNode.Denominator.Accept(this));
+            variables.AddRange(Visit(fracNode.Numerator, true));
+            variables.AddRange(Visit(fracNode.Denominator, true));
             return variables;
         }
 
         public override List<string> VisitBinom(BinomNode binomNode)
         {
             var variables = new List<string>();
-            variables.AddRange(binomNode.Top.Accept(this));
-            variables.AddRange(binomNode.Bottom.Accept(this));
+            variables.AddRange(Visit(binomNode.Top, true));
+            variables.AddRange(Visit(binomNode.Bottom, true));
             return variables;
         }
     }

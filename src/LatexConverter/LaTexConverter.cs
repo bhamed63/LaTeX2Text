@@ -79,8 +79,6 @@ namespace LatexConverter
             var isMathContext = false;
             foreach (var node in nodes)
             {
-                if (!node.IsVariableIndependently())
-                    continue;
                 if (node is CommandNode cmd && cmd.Command == CommandNames.LeftParen)
                 {
                     isMathContext = true;
@@ -89,9 +87,9 @@ namespace LatexConverter
                 {
                     isMathContext = false;
                 }
-                else  
+                else
                 {
-                    variables.AddRange(node.Accept(visitor));
+                    variables.AddRange(visitor.Visit(node, isMathContext));
                 }
             }
 
