@@ -32,6 +32,7 @@ namespace LatexConverter.Tests
         [InlineData("skydiver d_1 then t_1 and v_\\mathrm{avg}", new string[] { "d_{1}", "t_{1}", "v_{avg}" })]
         //[InlineData("\\(F\\)", new string[] { "F" })]
         [InlineData("A skydiver falls \\(d_1 = 302 \\;\\mathrm{m}\\) in \\(t_1 = 8.9\\;\\mathrm{s}\\) before pening her parachute. After the chute opens, she falls an additional \\(d_2 = 896 \\;\\mathrm{m}\\) in \\(t_2 = 139.5\\;\\mathrm{s}\\). A coordinate system is indicated in the figure.", new string[] { "d_{1}", "t_{1}", "d_{2}", "t_{2}", "m", "s" })]
+        [InlineData("your body is squished to 92 % of its original volume. The entire process of your being tossed", new string[] { })]
         public void ExtractVariables_ShouldReturnCorrectVariables(string input, string[] expectedVariables)
         {
             var variables = _converter.ExtractVariables(input);
