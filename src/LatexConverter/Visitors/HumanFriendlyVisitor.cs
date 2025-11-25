@@ -1,12 +1,13 @@
 using LatexConverter.Visitors;
 using LatexConverter.Ast;
+using System.Linq;
 
 namespace LatexConverter
 {
     /// <summary>
     /// A visitor that converts the AST to a human-friendly format with Unicode symbols.
     /// </summary>
-    public class HumanFriendlyVisitor : BaseVisitor
+    public class HumanFriendlyVisitor : BaseVisitor<string>
     {
         private readonly bool _allSubscriptsAreConvertible;
         private readonly TemplateProcessor _templateProcessor;
@@ -118,6 +119,11 @@ namespace LatexConverter
             var top = node.Top.Accept(this);
             var bottom = node.Bottom.Accept(this);
             return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+        }
+
+        public override string VisitMath(MathNode node)
+        {
+            return string.Join("", node.Content.Select(n => n.Accept(this)));
         }
 
         public override string GetPreProcessedResult(string text)
