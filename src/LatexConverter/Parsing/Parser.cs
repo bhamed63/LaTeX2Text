@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using LatexConverter.Ast;
 
 namespace LatexConverter
 {
@@ -44,6 +45,7 @@ namespace LatexConverter
         private AstNode ParsePrimary()
         {
             if (CurrentToken.Type == TokenType.LBrace) return ParseGroup();
+            if (CurrentToken.Type == TokenType.BeginInlineMath || CurrentToken.Type == TokenType.BeginDisplayMath) return ParseMathBlock();
             if (CurrentToken.Type == TokenType.Command) return ParseCommand();
             if (CurrentToken.Type == TokenType.Matrix)
             {
@@ -59,6 +61,23 @@ namespace LatexConverter
             }
             _pos++;
             return new TextNode("");
+        }
+
+        private AstNode ParseMathBlock()
+        {
+            var startTokenType = CurrentToken.Type;
+            var endTokenType = startTokenType == TokenType.BeginInlineMath ? TokenType.EndInlineMath : TokenType.EndDisplayMath;
+            _pos++; // Consume Begin token
+            var nodes = new List<AstNode>();
+            while (CurrentToken.Type != endTokenType && CurrentToken.Type != TokenType.Eof)
+            {
+                nodes.Add(ParseExpression());
+            }
+            if (CurrentToken.Type == endTokenType)
+            {
+                _pos++; // Consume End token
+            }
+            return new MathNode(nodes);
         }
 
         private AstNode ParseGroup()

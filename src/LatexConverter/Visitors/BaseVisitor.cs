@@ -1,4 +1,6 @@
-namespace LatexConverter
+using LatexConverter.Ast;
+
+namespace LatexConverter.Visitors
 {
     /// <summary>
     /// An abstract base class for visitors.
@@ -13,6 +15,7 @@ namespace LatexConverter
         public abstract T VisitRoot(RootNode node);
         public abstract T VisitFrac(FracNode node);
         public abstract T VisitBinom(BinomNode node);
+        public abstract T VisitMath(MathNode node);
 
         public virtual T ExceptionalVisitText(TextNode node)
         {
@@ -48,6 +51,11 @@ namespace LatexConverter
         public virtual T ExceptionalVisitBinom(BinomNode node)
         {
             return VisitBinom(node);
+        }
+
+        public virtual T ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
         }
 
         public virtual string GetPreProcessedResult(string text)
