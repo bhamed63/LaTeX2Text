@@ -1,11 +1,12 @@
 using System.Linq;
+using LatexConverter.Visitors;
 
 namespace LatexConverter
 {
     /// <summary>
     /// A visitor that extracts the plain text from the AST, without any formatting.
     /// </summary>
-    public class PlainTextVisitor : BaseVisitor<string>
+    public class PlainTextVisitor : BaseVisitor
     {
         public override string VisitText(TextNode node) => node.Text;
 

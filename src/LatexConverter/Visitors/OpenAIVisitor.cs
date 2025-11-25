@@ -1,11 +1,12 @@
 using System.Text;
+using LatexConverter.Visitors;
 
 namespace LatexConverter
 {
     /// <summary>
     /// A visitor that converts the AST to an OpenAI-friendly format.
     /// </summary>
-    public class OpenAIVisitor : BaseVisitor<string>
+    public class OpenAIVisitor : BaseVisitor
     {
         private readonly TemplateProcessor _templateProcessor;
 
@@ -147,6 +148,6 @@ namespace LatexConverter
         public override string GetPreProcessedResult(string text)
         {
             return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
-        } 
+        }
     }
 }

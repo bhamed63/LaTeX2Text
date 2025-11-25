@@ -2,6 +2,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Collections.Generic;
+using LatexConverter.Visitors;
+using LatexConverter.Ast;
 
 namespace LatexConverter
 {
@@ -128,7 +130,7 @@ namespace LatexConverter
                         var parser = new Parser(tokens);
                         var nodes = parser.Parse();
                         var convertedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
-                        convertedPart = (visitor as BaseVisitor<string>).GetPreProcessedResult(convertedPart);
+                        convertedPart = (visitor as BaseVisitor).GetPreProcessedResult(convertedPart);
                         resultBuilder.Append(convertedPart);
                     }
                 }
@@ -187,6 +189,27 @@ namespace LatexConverter
                     if (!TraverseAndCheckSubscripts(commandNode.Args)) return false;
                     if (commandNode.Subscript != null && !TraverseAndCheckSubscripts(new[] { commandNode.Subscript })) return false;
                     if (commandNode.Superscript != null && !TraverseAndCheckSubscripts(new[] { commandNode.Superscript })) return false;
+                }
+                else if (node is MathNode mathNode)
+                {
+                    if (!TraverseAndCheckSubscripts(mathNode.Content)) return false;
+                }
+                else if (node is RootNode rootNode)
+                {
+                    if (!TraverseAndCheckSubscripts(new[] { rootNode.Radicand })) return false;
+                    if (rootNode.Degree != null && !TraverseAndCheckSubscripts(new[] { rootNode.Degree })) return false;
+                }
+                else if (node is FracNode fracNode)
+                {
+                    if (!TraverseAndCheckSubscripts(new[] { fracNode.Numerator, fracNode.Denominator })) return false;
+                }
+                else if (node is BinomNode binomNode)
+                {
+                    if (!TraverseAndCheckSubscripts(new[] { binomNode.Top, binomNode.Bottom })) return false;
+                }
+                else if (node is ScriptNode sn)
+                {
+                    if (!TraverseAndCheckSubscripts(new[] { sn.Base, sn.Script })) return false;
                 }
             }
             return true;

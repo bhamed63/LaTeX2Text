@@ -1,11 +1,12 @@
 using System.Text;
+using LatexConverter.Visitors;
 
 namespace LatexConverter
 {
     /// <summary>
     /// A visitor that converts the AST to a screen reader-friendly format.
     /// </summary>
-    public class ScreenReaderVisitor : BaseVisitor<string>
+    public class ScreenReaderVisitor : BaseVisitor
     {
         private readonly TemplateProcessor _templateProcessor;
 

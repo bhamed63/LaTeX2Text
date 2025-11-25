@@ -1,9 +1,11 @@
+using LatexConverter.Visitors;
+
 namespace LatexConverter
 {
     /// <summary>
     /// A visitor that converts the AST to a human-friendly format with Unicode symbols.
     /// </summary>
-    public class HumanFriendlyVisitor : BaseVisitor<string>
+    public class HumanFriendlyVisitor : BaseVisitor
     {
         private readonly bool _allSubscriptsAreConvertible;
         private readonly TemplateProcessor _templateProcessor;
