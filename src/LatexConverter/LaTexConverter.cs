@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Collections.Generic;
 using LatexConverter.Visitors;
-using LatexConverter.Ast;
 
 namespace LatexConverter
 {
@@ -62,6 +61,40 @@ namespace LatexConverter
         {
             var converter = new HumanToLatexConverter();
             return converter.Convert(humanFriendlyText);
+        }
+
+        public List<string> ExtractVariables(string latex_input)
+        {
+            if (string.IsNullOrEmpty(latex_input))
+            {
+                return new List<string>();
+            }
+
+            var tokens = Tokenizer.Tokenize(latex_input);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+
+            var visitor = new VariableExtractionVisitor();
+            var variables = nodes.SelectMany(node => visitor.Visit(node, false)).ToList();
+
+            return variables.Distinct().ToList();
+        }
+
+        public List<string> ExtractCommands(string latex_input)
+        {
+            if (string.IsNullOrEmpty(latex_input))
+            {
+                return new List<string>();
+            }
+
+            var tokens = Tokenizer.Tokenize(latex_input);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+
+            var visitor = new CommandExtractionVisitor();
+            var commands = nodes.SelectMany(node => node.Accept(visitor)).ToList();
+
+            return commands.Distinct().ToList();
         }
 
         /// <summary>
@@ -130,7 +163,7 @@ namespace LatexConverter
                         var parser = new Parser(tokens);
                         var nodes = parser.Parse();
                         var convertedPart = string.Join("", nodes.Select(n => n.Accept(visitor)));
-                        convertedPart = (visitor as BaseVisitor).GetPreProcessedResult(convertedPart);
+                        convertedPart = (visitor as BaseVisitor<string>).GetPreProcessedResult(convertedPart);
                         resultBuilder.Append(convertedPart);
                     }
                 }
@@ -189,27 +222,6 @@ namespace LatexConverter
                     if (!TraverseAndCheckSubscripts(commandNode.Args)) return false;
                     if (commandNode.Subscript != null && !TraverseAndCheckSubscripts(new[] { commandNode.Subscript })) return false;
                     if (commandNode.Superscript != null && !TraverseAndCheckSubscripts(new[] { commandNode.Superscript })) return false;
-                }
-                else if (node is MathNode mathNode)
-                {
-                    if (!TraverseAndCheckSubscripts(mathNode.Content)) return false;
-                }
-                else if (node is RootNode rootNode)
-                {
-                    if (!TraverseAndCheckSubscripts(new[] { rootNode.Radicand })) return false;
-                    if (rootNode.Degree != null && !TraverseAndCheckSubscripts(new[] { rootNode.Degree })) return false;
-                }
-                else if (node is FracNode fracNode)
-                {
-                    if (!TraverseAndCheckSubscripts(new[] { fracNode.Numerator, fracNode.Denominator })) return false;
-                }
-                else if (node is BinomNode binomNode)
-                {
-                    if (!TraverseAndCheckSubscripts(new[] { binomNode.Top, binomNode.Bottom })) return false;
-                }
-                else if (node is ScriptNode sn)
-                {
-                    if (!TraverseAndCheckSubscripts(new[] { sn.Base, sn.Script })) return false;
                 }
             }
             return true;

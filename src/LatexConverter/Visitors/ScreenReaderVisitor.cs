@@ -1,13 +1,14 @@
 using System.Text;
 using LatexConverter.Visitors;
 using LatexConverter.Ast;
+using System.Linq;
 
 namespace LatexConverter
 {
     /// <summary>
     /// A visitor that converts the AST to a screen reader-friendly format.
     /// </summary>
-    public class ScreenReaderVisitor : BaseVisitor
+    public class ScreenReaderVisitor : BaseVisitor<string>
     {
         private readonly TemplateProcessor _templateProcessor;
 
@@ -214,6 +215,11 @@ namespace LatexConverter
 
             var args = new string[] { num_rows.ToString(), num_cols.ToString(), matrix_desc.ToString() };
             return _templateProcessor.ProcessTemplateCommand(CommandNames.Matrix, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+        }
+
+        public override string VisitMath(MathNode node)
+        {
+            return string.Join(" ", node.Content.Select(n => n.Accept(this)));
         }
 
         public override string GetPreProcessedResult(string text)
