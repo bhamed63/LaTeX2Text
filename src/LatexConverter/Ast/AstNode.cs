@@ -8,6 +8,5 @@ namespace LatexConverter
         public abstract T Accept<T>(IVisitor<T> visitor);
         public abstract T ExceptionalAccept<T>(IVisitor<T> visitor);
         public virtual bool NeedsParentheses() => false;
-        public virtual bool IsVariableIndependently() => true;
     }
 }

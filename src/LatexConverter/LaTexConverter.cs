@@ -75,25 +75,26 @@ namespace LatexConverter
             var nodes = parser.Parse();
 
             var visitor = new VariableExtractionVisitor();
-            var variables = new List<string>();
-            var isMathContext = false;
-            foreach (var node in nodes)
-            {
-                if (node is CommandNode cmd && cmd.Command == CommandNames.LeftParen)
-                {
-                    isMathContext = true;
-                }
-                else if (node is CommandNode cmd2 && cmd2.Command == CommandNames.RightParen)
-                {
-                    isMathContext = false;
-                }
-                else
-                {
-                    variables.AddRange(visitor.Visit(node, isMathContext));
-                }
-            }
+            var variables = nodes.SelectMany(node => visitor.Visit(node, false)).ToList();
 
             return variables.Distinct().ToList();
+        }
+
+        public List<string> ExtractCommands(string latex_input)
+        {
+            if (string.IsNullOrEmpty(latex_input))
+            {
+                return new List<string>();
+            }
+
+            var tokens = Tokenizer.Tokenize(latex_input);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+
+            var visitor = new CommandExtractionVisitor();
+            var commands = nodes.SelectMany(node => node.Accept(visitor)).ToList();
+
+            return commands.Distinct().ToList();
         }
 
         /// <summary>
