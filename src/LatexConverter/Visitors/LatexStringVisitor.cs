@@ -51,7 +51,11 @@ namespace LatexConverter.Visitors
             var sb = new StringBuilder();
             sb.Append(scriptNode.Base.Accept(this));
             sb.Append(scriptNode.IsSuperscript ? "^" : "_");
+            if (!scriptNode.IsSuperscript && scriptNode.Script is not GroupNode)
+                sb.Append("{");
             sb.Append(scriptNode.Script.Accept(this));
+            if (!scriptNode.IsSuperscript && scriptNode.Script is not GroupNode)
+                sb.Append("}");
             return sb.ToString();
         }
 
