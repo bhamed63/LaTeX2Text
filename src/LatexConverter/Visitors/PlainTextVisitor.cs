@@ -1,5 +1,6 @@
 using System.Linq;
 using LatexConverter.Visitors;
+using LatexConverter.Ast;
 
 namespace LatexConverter
 {

@@ -1,4 +1,5 @@
 using LatexConverter.Visitors;
+using LatexConverter.Ast;
 
 namespace LatexConverter
 {
