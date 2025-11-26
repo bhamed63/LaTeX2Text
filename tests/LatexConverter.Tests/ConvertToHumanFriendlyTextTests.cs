@@ -178,7 +178,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\sqrt[31]{y^2 + z^3}", "³¹√(y² + z³)")]
         [InlineData(@"\(F\)", "F")]
         [InlineData(@"\[x^2\]", "x²")]
-        [InlineData(@"\(a_{sub}\)", "a_(sub)")]
+        [InlineData(@"\(a_{sub}\)", "a_sub")]
         [InlineData(@"\[x^-2\]", "x⁻²")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
