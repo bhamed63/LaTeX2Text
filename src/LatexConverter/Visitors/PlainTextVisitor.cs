@@ -1,6 +1,4 @@
 using System.Linq;
-using LatexConverter.Visitors;
-using LatexConverter.Ast;
 
 namespace LatexConverter
 {
@@ -40,7 +38,5 @@ namespace LatexConverter
         public override string VisitBinom(BinomNode node) => node.Top.Accept(this) + node.Bottom.Accept(this);
 
         public override string ExceptionalVisitBinom(BinomNode node) => node.Top.ExceptionalAccept(this) + node.Bottom.ExceptionalAccept(this);
-
-        public override string VisitMath(MathNode node) => string.Concat(node.Content.Select(n => n.Accept(this)));
     }
 }

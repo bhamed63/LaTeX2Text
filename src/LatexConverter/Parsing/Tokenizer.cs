@@ -7,7 +7,7 @@ namespace LatexConverter
     /// <summary>
     /// Defines the types of tokens that can be produced by the Tokenizer.
     /// </summary>
-    public enum TokenType { Command, Text, LBrace, RBrace, Superscript, Subscript, Eof, Space, Matrix, BeginInlineMath, EndInlineMath, BeginDisplayMath, EndDisplayMath }
+    public enum TokenType { Command, Text, LBrace, RBrace, Superscript, Subscript, Eof, Space, Matrix }
 
     /// <summary>
     /// Represents a token with a type and an optional value.
@@ -136,27 +136,11 @@ namespace LatexConverter
                     pos += 2;
                     return true;
                 }
-                if (pos + 1 < text.Length)
+                if (pos + 1 < text.Length && (text[pos + 1] == '(' || text[pos + 1] == ')' || text[pos + 1] == '[' || text[pos + 1] == ']'))
                 {
-                    switch (text[pos + 1])
-                    {
-                        case '(':
-                            tokens.Add(new Token(TokenType.BeginInlineMath, @"\("));
-                            pos += 2;
-                            return true;
-                        case ')':
-                            tokens.Add(new Token(TokenType.EndInlineMath, @"\)"));
-                            pos += 2;
-                            return true;
-                        case '[':
-                            tokens.Add(new Token(TokenType.BeginDisplayMath, @"\["));
-                            pos += 2;
-                            return true;
-                        case ']':
-                            tokens.Add(new Token(TokenType.EndDisplayMath, @"\]"));
-                            pos += 2;
-                            return true;
-                    }
+                    tokens.Add(new Token(TokenType.Command, text.Substring(pos, 2)));
+                    pos += 2;
+                    return true;
                 }
 
                 var match = CommandRegex.Match(text, pos);
