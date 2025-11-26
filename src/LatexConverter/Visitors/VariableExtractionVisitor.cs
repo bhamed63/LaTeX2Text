@@ -133,8 +133,7 @@ namespace LatexConverter.Visitors
 
         public override List<string> VisitMath(MathNode node)
         {
-            _isMathContext = true;
-            return node.Content.SelectMany(n => n.Accept(this)).ToList();
+            return node.Content.SelectMany(n => Visit(n, true)).ToList();
         }
     }
 }

@@ -30,13 +30,31 @@ namespace LatexConverter
 
         private AstNode ParseExpression()
         {
+            if (CurrentToken.Type == TokenType.Command && CurrentToken.Value == "%")
+            {
+                _pos++; // Consume '%'
+                if (CurrentToken.Type == TokenType.Text)
+                {
+                    _pos++; // Consume comment text
+                }
+                return new TextNode(""); // Return an empty node that will be ignored
+            }
+
             var node = ParsePrimary();
             while (CurrentToken.Type == TokenType.Superscript || CurrentToken.Type == TokenType.Subscript)
             {
                 bool isSuperscript = CurrentToken.Type == TokenType.Superscript;
                 _pos++;
                 var script = ParsePrimary();
-
+                if (script is TextNode scriptText && scriptText.Text == "-")
+                {
+                    var nextToken = CurrentToken;
+                    if (nextToken.Type == TokenType.Text)
+                    {
+                        _pos++;
+                        script = new TextNode("-" + nextToken.Value);
+                    }
+                }
                 node = new ScriptNode(node, script, isSuperscript);
             }
             return node;
