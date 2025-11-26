@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 
 namespace LatexConverter.Tests
 {
@@ -16,6 +16,7 @@ namespace LatexConverter.Tests
         [InlineData(@"a^{b+c}", "a to the power of b plus c")]
         [InlineData(@"x^{10}", "x to the power of 10")]
         [InlineData(@"x^{2}", "x squared")]
+        [InlineData(@"x^-2", "x to the power of -2")]
         [InlineData(@"\vec{v}", "vector v")]
         [InlineData(@"\hat{x}", "x hat")]
         // [InlineData(@"\mathcal{E}_1", "calligraphic E subscript 1")]

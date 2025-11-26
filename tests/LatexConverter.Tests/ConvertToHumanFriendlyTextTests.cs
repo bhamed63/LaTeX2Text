@@ -179,6 +179,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\(F\)", "F")]
         [InlineData(@"\[x^2\]", "x²")]
         [InlineData(@"\(a_{sub}\)", "a_(sub)")]
+        [InlineData(@"\[x^-2\]", "x⁻²")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);
