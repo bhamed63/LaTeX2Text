@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace LatexConverter.Visitors
 {
@@ -9,12 +8,37 @@ namespace LatexConverter.Visitors
         private readonly LatexStringVisitor _latexVisitor = new LatexStringVisitor();
         private bool _isMathContext = false;
 
+        // Public entry point. Safe for multiple calls on the same instance (e.g., in a loop).
         public List<string> Visit(AstNode node, bool isMathContext)
         {
-            var visitor = new VariableExtractionVisitor();
-            visitor._isMathContext = isMathContext;
-            return node.Accept(visitor);
+            var originalContext = _isMathContext;
+            _isMathContext = isMathContext;
+            try
+            {
+                return node.Accept(this);
+            }
+            finally
+            {
+                _isMathContext = originalContext;
+            }
         }
+
+        // Private helper for recursive visits that require a specific context,
+        // ensuring the original context is restored afterwards.
+        private List<string> VisitChildWithNewContext(AstNode node, bool newContext)
+        {
+            var originalContext = _isMathContext;
+            _isMathContext = newContext;
+            try
+            {
+                return node.Accept(this);
+            }
+            finally
+            {
+                _isMathContext = originalContext;
+            }
+        }
+
         public override List<string> VisitText(TextNode textNode)
         {
             if (_isMathContext && !string.IsNullOrWhiteSpace(textNode.Text))
@@ -42,7 +66,8 @@ namespace LatexConverter.Visitors
 
         public override List<string> VisitGroup(GroupNode groupNode)
         {
-            return groupNode.Body.SelectMany(node => Visit(node, _isMathContext)).ToList();
+            // The context doesn't change for the children of a group, so we can just accept them.
+            return groupNode.Body.SelectMany(node => node.Accept(this)).ToList();
         }
 
         public override List<string> VisitCommand(CommandNode commandNode)
@@ -67,20 +92,20 @@ namespace LatexConverter.Visitors
                         var variables = new List<string>();
                         foreach (var arg in commandNode.Args)
                         {
-                            variables.AddRange(Visit(arg, true));
+                            variables.AddRange(VisitChildWithNewContext(arg, true));
                         }
                         if (commandNode.Superscript != null)
                         {
-                            variables.AddRange(Visit(commandNode.Superscript, true));
+                            variables.AddRange(VisitChildWithNewContext(commandNode.Superscript, true));
                         }
                         if (commandNode.Subscript != null)
                         {
-                            variables.AddRange(Visit(commandNode.Subscript, true));
+                            variables.AddRange(VisitChildWithNewContext(commandNode.Subscript, true));
                         }
                         return variables;
 
                     case CommandType.Formatting:
-                        return commandNode.Args.SelectMany(arg => Visit(arg, true)).ToList();
+                        return commandNode.Args.SelectMany(arg => VisitChildWithNewContext(arg, true)).ToList();
 
                     case CommandType.Symbol:
                     default:
@@ -101,12 +126,12 @@ namespace LatexConverter.Visitors
             var tokens = Tokenizer.Tokenize(matrixNode.Content);
             var parser = new Parser(tokens);
             var nodes = parser.Parse();
-            return nodes.SelectMany(node => Visit(node, true)).ToList();
+            return nodes.SelectMany(node => VisitChildWithNewContext(node, true)).ToList();
         }
 
         public override List<string> VisitRoot(RootNode rootNode)
         {
-            return Visit(rootNode.Radicand, true);
+            return VisitChildWithNewContext(rootNode.Radicand, true);
         }
 
         public override List<string> ExceptionalVisitRoot(RootNode node)
@@ -117,16 +142,16 @@ namespace LatexConverter.Visitors
         public override List<string> VisitFrac(FracNode fracNode)
         {
             var variables = new List<string>();
-            variables.AddRange(Visit(fracNode.Numerator, true));
-            variables.AddRange(Visit(fracNode.Denominator, true));
+            variables.AddRange(VisitChildWithNewContext(fracNode.Numerator, true));
+            variables.AddRange(VisitChildWithNewContext(fracNode.Denominator, true));
             return variables;
         }
 
         public override List<string> VisitBinom(BinomNode binomNode)
         {
             var variables = new List<string>();
-            variables.AddRange(Visit(binomNode.Top, true));
-            variables.AddRange(Visit(binomNode.Bottom, true));
+            variables.AddRange(VisitChildWithNewContext(binomNode.Top, true));
+            variables.AddRange(VisitChildWithNewContext(binomNode.Bottom, true));
             return variables;
         }
     }
