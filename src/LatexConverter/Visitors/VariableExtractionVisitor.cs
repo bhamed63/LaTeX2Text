@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using LatexConverter.Ast;
 
 namespace LatexConverter.Visitors
 {
@@ -129,11 +128,6 @@ namespace LatexConverter.Visitors
             variables.AddRange(Visit(binomNode.Top, true));
             variables.AddRange(Visit(binomNode.Bottom, true));
             return variables;
-        }
-
-        public override List<string> VisitMath(MathNode node)
-        {
-            return node.Content.SelectMany(n => Visit(n, true)).ToList();
         }
     }
 }

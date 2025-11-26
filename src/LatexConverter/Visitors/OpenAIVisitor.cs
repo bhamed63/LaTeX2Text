@@ -1,7 +1,4 @@
 using System.Text;
-using LatexConverter.Visitors;
-using LatexConverter.Ast;
-using System.Linq;
 
 namespace LatexConverter
 {
@@ -145,11 +142,6 @@ namespace LatexConverter
             var top = node.Top.Accept(this);
             var bottom = node.Bottom.Accept(this);
             return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.OpenAITemplateMap);
-        }
-
-        public override string VisitMath(MathNode node)
-        {
-            return string.Join("", node.Content.Select(n => n.Accept(this)));
         }
 
         public override string GetPreProcessedResult(string text)

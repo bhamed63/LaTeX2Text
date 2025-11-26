@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using LatexConverter.Ast;
 
 namespace LatexConverter
 {
@@ -30,16 +29,6 @@ namespace LatexConverter
 
         private AstNode ParseExpression()
         {
-            if (CurrentToken.Type == TokenType.Command && CurrentToken.Value == "%")
-            {
-                _pos++; // Consume '%'
-                if (CurrentToken.Type == TokenType.Text)
-                {
-                    _pos++; // Consume comment text
-                }
-                return new TextNode(""); // Return an empty node that will be ignored
-            }
-
             var node = ParsePrimary();
             while (CurrentToken.Type == TokenType.Superscript || CurrentToken.Type == TokenType.Subscript)
             {
@@ -55,6 +44,7 @@ namespace LatexConverter
                         script = new TextNode("-" + nextToken.Value);
                     }
                 }
+
                 node = new ScriptNode(node, script, isSuperscript);
             }
             return node;
@@ -63,7 +53,6 @@ namespace LatexConverter
         private AstNode ParsePrimary()
         {
             if (CurrentToken.Type == TokenType.LBrace) return ParseGroup();
-            if (CurrentToken.Type == TokenType.BeginInlineMath || CurrentToken.Type == TokenType.BeginDisplayMath) return ParseMathBlock();
             if (CurrentToken.Type == TokenType.Command) return ParseCommand();
             if (CurrentToken.Type == TokenType.Matrix)
             {
@@ -79,23 +68,6 @@ namespace LatexConverter
             }
             _pos++;
             return new TextNode("");
-        }
-
-        private AstNode ParseMathBlock()
-        {
-            var startTokenType = CurrentToken.Type;
-            var endTokenType = startTokenType == TokenType.BeginInlineMath ? TokenType.EndInlineMath : TokenType.EndDisplayMath;
-            _pos++; // Consume Begin token
-            var nodes = new List<AstNode>();
-            while (CurrentToken.Type != endTokenType && CurrentToken.Type != TokenType.Eof)
-            {
-                nodes.Add(ParseExpression());
-            }
-            if (CurrentToken.Type == endTokenType)
-            {
-                _pos++; // Consume End token
-            }
-            return new MathNode(nodes);
         }
 
         private AstNode ParseGroup()
