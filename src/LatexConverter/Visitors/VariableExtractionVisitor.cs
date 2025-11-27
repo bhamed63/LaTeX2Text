@@ -39,27 +39,22 @@ namespace LatexConverter.Visitors
             }
         }
 
+        private static IEnumerable<string> ParseVariablesFrom(string text)
+        {
+            // This LINQ expression is a direct, functional equivalent of the original nested loops.
+            return text.Split(' ')
+                       .SelectMany(spacePart => spacePart.Split('/'))
+                       .Select(part => part.Trim())
+                       .Where(trimmedPart => !string.IsNullOrEmpty(trimmedPart) &&
+                                             !double.TryParse(trimmedPart, out _) &&
+                                             trimmedPart != "=");
+        }
+
         public override List<string> VisitText(TextNode textNode)
         {
             if (_isMathContext && !string.IsNullOrWhiteSpace(textNode.Text))
             {
-                var variables = new List<string>();
-                var spaceParts = textNode.Text.Split(' ');
-                foreach (var spacePart in spaceParts)
-                {
-                    var slashParts = spacePart.Split('/');
-                    foreach (var part in slashParts)
-                    {
-                        var trimmedPart = part.Trim();
-                        if (!string.IsNullOrEmpty(trimmedPart) &&
-                            !double.TryParse(trimmedPart, out _) &&
-                            trimmedPart != "=")
-                        {
-                            variables.Add(trimmedPart);
-                        }
-                    }
-                }
-                return variables;
+                return ParseVariablesFrom(textNode.Text).ToList();
             }
             return new List<string>();
         }
