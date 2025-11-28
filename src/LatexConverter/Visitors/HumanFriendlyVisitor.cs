@@ -126,5 +126,10 @@ namespace LatexConverter
             text = System.Text.RegularExpressions.Regex.Replace(text, @"(¬)\s+([a-zA-Z0-9])", "$1$2");
             return text;
         }
+
+        public override string VisitMath(MathNode node)
+        {
+            return string.Join("", node.Children.Select(child => child.Accept(this)));
+        }
     }
 }

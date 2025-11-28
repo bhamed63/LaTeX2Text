@@ -21,5 +21,7 @@ namespace LatexConverter
         T ExceptionalVisitFrac(FracNode node);
         T VisitBinom(BinomNode node);
         T ExceptionalVisitBinom(BinomNode node);
+        T VisitMath(MathNode node);
+        T ExceptionalVisitMath(MathNode node);
     }
 }

@@ -87,5 +87,10 @@ namespace LatexConverter.Visitors
         {
             return $"{CommandNames.Binom}{{{binomNode.Top.Accept(this)}}}{{{binomNode.Bottom.Accept(this)}}}";
         }
+
+        public override string VisitMath(MathNode node)
+        {
+            return $"\\({string.Concat(node.Children.Select(n => n.Accept(this)))}\\)";
+        }
     }
 }

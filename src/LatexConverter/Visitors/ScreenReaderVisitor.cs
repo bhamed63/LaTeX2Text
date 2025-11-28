@@ -221,5 +221,10 @@ namespace LatexConverter
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\)", ")");
             return text;
         }
+
+        public override string VisitMath(MathNode node)
+        {
+            return string.Join(" ", node.Children.Select(child => child.Accept(this)));
+        }
     }
 }

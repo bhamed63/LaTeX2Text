@@ -50,6 +50,13 @@ namespace LatexConverter
             return VisitBinom(node);
         }
 
+        public abstract T VisitMath(MathNode node);
+
+        public virtual T ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
+        }
+
         public virtual string GetPreProcessedResult(string text)
         {
             return text;

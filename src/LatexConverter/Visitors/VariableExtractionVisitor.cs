@@ -129,5 +129,11 @@ namespace LatexConverter.Visitors
             variables.AddRange(Visit(binomNode.Bottom, true));
             return variables;
         }
+
+        public override List<string> VisitMath(MathNode node)
+        {
+            _isMathContext = true;
+            return node.Children.SelectMany(child => Visit(child, true)).ToList();
+        }
     }
 }

@@ -65,6 +65,8 @@ namespace LatexConverter
                 case CommandNames.Prod:
                 case CommandNames.Lim:
                     return HandleLimitStyleCommands(node);
+                case CommandNames.Pm:
+                    return "±";
                 default:
                     if (Dictionaries.OpenAITemplateMap.ContainsKey(node.Command))
                     {
@@ -147,6 +149,12 @@ namespace LatexConverter
         public override string GetPreProcessedResult(string text)
         {
             return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
+        }
+
+        public override string VisitMath(MathNode node)
+        {
+            var content = string.Join("", node.Children.Select(child => child.Accept(this)));
+            return content.Trim('$');
         }
     }
 }
