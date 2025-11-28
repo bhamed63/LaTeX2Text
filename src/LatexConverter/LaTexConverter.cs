@@ -97,6 +97,78 @@ namespace LatexConverter
             return commands.Distinct().ToList();
         }
 
+        public ExtractionResult ExtractComponents(string latex_input)
+        {
+            if (string.IsNullOrEmpty(latex_input))
+            {
+                return new ExtractionResult();
+            }
+
+            var tokens = Tokenizer.Tokenize(latex_input);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+            var result = new ExtractionResult();
+            var visitor = new ComponentExtractionVisitor { Result = result };
+            var textNodesContent = new StringBuilder();
+
+            foreach (var node in nodes)
+            {
+                if (node is TextNode textNode)
+                {
+                    textNodesContent.Append(textNode.Text);
+                }
+                else
+                {
+                    node.Accept(visitor);
+                }
+            }
+
+            ProcessTextNodes(textNodesContent.ToString(), result);
+
+            if (result.Commands.Count == 0 && result.Operators.Count == 0)
+            {
+                result.Variables.Clear();
+                result.Numbers.Clear();
+            }
+
+            return result;
+        }
+
+        private void ProcessTextNodes(string text, ExtractionResult result)
+        {
+            var processed_text = AddSpacesAroundOperators(text);
+            var parts = processed_text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                var part = parts[i];
+                if (Data.RawData.Operators.Contains(part))
+                {
+                    result.Operators.Add(part);
+                }
+                else if (decimal.TryParse(part, out _))
+                {
+                    result.Numbers.Add(part);
+                }
+                else
+                {
+                    bool isAdjacentToOperator = (i > 0 && Data.RawData.Operators.Contains(parts[i - 1])) ||
+                                               (i < parts.Length - 1 && Data.RawData.Operators.Contains(parts[i + 1]));
+                    if (isAdjacentToOperator)
+                    {
+                        result.Variables.Add(part);
+                    }
+                }
+            }
+        }
+
+        private string AddSpacesAroundOperators(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return "";
+            var pattern = "(" + string.Join("|", Data.RawData.Operators.Select(Regex.Escape)) + ")";
+            return Regex.Replace(input, pattern, " $1 ");
+        }
+
         /// <summary>
         /// Normalizes structural patterns in the LaTeX input, such as converting `sqrt(x)` to `\sqrt{x}`.
         /// </summary>
