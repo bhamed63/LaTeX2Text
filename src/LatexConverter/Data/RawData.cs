@@ -365,5 +365,10 @@ namespace LatexConverter.Data
          };
 
         public static List<string> DeniedConvertWithoutSlash { get; private set; } = new() { CommandNames.Bullet, CommandNames.In, CommandNames.Times, CommandNames.Sum, CommandNames.Exists, CommandNames.To, CommandNames.Angle, CommandNames.Triangle, CommandNames.Natural, CommandNames.Sharp, CommandNames.Parallel, CommandNames.Prod, CommandNames.Flat, CommandNames.Lim };
+
+        public static List<string> Operators { get; private set; } = new List<string>
+        {
+            "+", "-", "*", "/", "="
+        };
     }
 }
