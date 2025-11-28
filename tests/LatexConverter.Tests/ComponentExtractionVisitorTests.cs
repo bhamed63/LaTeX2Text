@@ -93,5 +93,53 @@ namespace LatexConverter.Tests
             Assert.Contains("c", result.Variables);
             Assert.Contains("d", result.Variables);
         }
+
+        [Fact]
+        public void ExtractComponents_WithSimpleExpression_Include_Operator_ShouldReturnCorrectComponents()
+        {
+            var latex = @"\sqrt{x * \frac{2}{m + 4}}";
+            var result = _converter.ExtractComponents(latex);
+
+            Assert.Equal(2, result.Commands.Count);
+            Assert.Contains(result.Commands, c => c.Item2 == @"\sqrt");
+            Assert.Contains(result.Commands, c => c.Item2 == @"\frac");
+
+            Assert.Equal(2, result.Operators.Count);
+            Assert.Contains("*", result.Operators);
+            Assert.Contains("+", result.Operators);
+
+            Assert.Equal(2, result.Variables.Count);
+            Assert.Contains("x", result.Variables);
+            Assert.Contains("m", result.Variables);
+
+            Assert.Equal(2, result.Numbers.Count);
+            Assert.Contains("2", result.Numbers);
+            Assert.Contains("4", result.Numbers);
+        }
+
+
+        [Fact]
+        public void ExtractComponents_Without_Operator_Without_Space_ShouldReturnCorrectComponents()
+        {
+            var latex = @"abcd";
+            var result = _converter.ExtractComponents(latex);
+
+            Assert.Empty(result.Commands);
+            Assert.Empty(result.Operators);
+            Assert.Empty(result.Variables);
+            Assert.Empty(result.Numbers);
+        }
+
+        [Fact]
+        public void ExtractComponents_Without_Operator_With_Space_ShouldReturnCorrectComponents()
+        {
+            var latex = @"a b c d";
+            var result = _converter.ExtractComponents(latex);
+
+            Assert.Empty(result.Commands);
+            Assert.Empty(result.Operators);
+            Assert.Empty(result.Variables);
+            Assert.Empty(result.Numbers);
+        }
     }
 }

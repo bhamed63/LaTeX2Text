@@ -114,7 +114,14 @@ namespace LatexConverter
                 node.Accept(visitor);
             }
 
-            return visitor.Result;
+            var result = visitor.Result;
+            if (result.Commands.Count == 0 && result.Operators.Count == 0)
+            {
+                result.Variables.Clear();
+                result.Numbers.Clear();
+            }
+
+            return result;
         }
 
         /// <summary>
