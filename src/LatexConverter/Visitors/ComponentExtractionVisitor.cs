@@ -9,6 +9,7 @@ namespace LatexConverter.Visitors
     {
         public ExtractionResult Result { get; set; } = new ExtractionResult();
         private readonly HashSet<AstNode> _visitedNodes = new HashSet<AstNode>();
+        private bool _isMathContext;
 
         public override object VisitText(TextNode textNode)
         {
