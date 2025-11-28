@@ -228,5 +228,20 @@ namespace LatexConverter.Visitors
             }
             return null;
         }
+
+        public override object VisitMath(MathNode node)
+        {
+            var oldContext = _isMathContext;
+            _isMathContext = true;
+            try
+            {
+                node.Children.Select(child => child.Accept(this));
+            }
+            finally
+            {
+                _isMathContext = oldContext;
+            }
+            return null;
+        }
     }
 }
