@@ -1,4 +1,4 @@
-﻿using LatexConverter.Ast;
+using LatexConverter.Ast;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace LatexConverter.Parsing
 {
-
     public class LatexParser
     {
         public List<LatexNode> Parse(string input)
@@ -20,158 +19,144 @@ namespace LatexConverter.Parsing
 
             while (position < input.Length)
             {
-                if (position + 1 < input.Length &&
-                    input[position] == '\\' && (input[position + 1] == '(' || input[position + 1] == '['))
+                char currentChar = input[position];
+
+                if (currentChar == '\\')
                 {
-                    var groupNode = ParseGroup(input, ref position);
-                    if (groupNode != null)
-                        nodes.Add(groupNode);
+                    if (position + 1 < input.Length && (input[position + 1] == '(' || input[position + 1] == '['))
+                    {
+                        var groupNode = ParseGroup(input, ref position);
+                        if (groupNode != null)
+                            nodes.Add(groupNode);
+                    }
+                    else
+                    {
+                        var commandNode = ParseCommand(input, ref position);
+                        if (commandNode != null)
+                            nodes.Add(commandNode);
+                    }
                 }
-                else if (input[position] == '\\')
+                else if (currentChar == '_' || currentChar == '^')
                 {
-                    var commandNode = ParseCommand(input, ref position);
-                    if (commandNode != null)
-                        nodes.Add(commandNode);
+                    if (nodes.Any())
+                    {
+                        var baseNode = nodes.Last();
+                        nodes.RemoveAt(nodes.Count - 1);
+                        var scriptNodes = HandleScript(input, ref position, baseNode);
+                        nodes.AddRange(scriptNodes);
+                    }
+                    else
+                    {
+                        nodes.Add(new LatexTextNode(currentChar.ToString()));
+                        position++;
+                    }
                 }
                 else
                 {
-                    var textNodes = ParseText(input, ref position);
-                    nodes.AddRange(textNodes);
+                    var textNode = ParseText(input, ref position);
+                    if (textNode != null)
+                        nodes.Add(textNode);
                 }
             }
-
             return nodes;
         }
 
-        private List<LatexNode> ParseText(string input, ref int position)
+        private LatexTextNode ParseText(string input, ref int position)
         {
-            var nodes = new List<LatexNode>();
-            int start = position;
-
+            var sb = new StringBuilder();
             while (position < input.Length)
             {
-                if (input[position] == '\\')
+                char c = input[position];
+
+                if (c == '\\')
                 {
                     if (position + 1 < input.Length)
                     {
                         char nextChar = input[position + 1];
-                        if (nextChar == '(' || nextChar == '[' || nextChar == ')' || nextChar == ']' || char.IsLetter(nextChar))
+                        if (char.IsLetter(nextChar) || nextChar == '(' || nextChar == '[')
                         {
                             break;
                         }
-                    }
-                    position += 2;
-                }
-                else if (input[position] == '_' || input[position] == '^')
-                {
-                    // Found script character
-                    if (position == start)
-                    {
-                        // Script at beginning - treat as text
-                        nodes.Add(new LatexTextNode(input.Substring(start, 1)));
-                        position++;
-                        return nodes;
-                    }
-
-                    // Check if there's whitespace immediately before the script
-                    if (char.IsWhiteSpace(input[position - 1]))
-                    {
-                        // Script with whitespace before - treat script char as separate text
-                        if (position > start)
-                        {
-                            nodes.Add(new LatexTextNode(input.Substring(start, position - start)));
-                        }
-                        nodes.Add(new LatexTextNode(input[position].ToString()));
-                        position++;
-                        return nodes;
-                    }
-
-                    // Find the base text (go backwards until whitespace or delimiter)
-                    int baseEnd = position;
-                    int baseStart = baseEnd;
-
-                    // Go backwards to find the start of the base text
-                    while (baseStart > start)
-                    {
-                        if (char.IsWhiteSpace(input[baseStart - 1]) ||
-                            input[baseStart - 1] == '\\' ||
-                            input[baseStart - 1] == '(' || input[baseStart - 1] == '[' ||
-                            input[baseStart - 1] == ')' || input[baseStart - 1] == ']')
-                        {
-                            break;
-                        }
-                        baseStart--;
-                    }
-
-                    if (baseStart >= baseEnd)
-                    {
-                        // No valid base found
-                        nodes.Add(new LatexTextNode(input.Substring(start, position - start + 1)));
-                        position++;
-                        return nodes;
-                    }
-
-                    List<LatexNode> resultNodes = new List<LatexNode>();
-
-                    // Add text before the base
-                    if (baseStart > start)
-                    {
-                        string precedingText = input.Substring(start, baseStart - start);
-                        resultNodes.Add(new LatexTextNode(precedingText));
-                    }
-
-                    // Extract base text (can be multiple characters like "ab")
-                    string baseText = input.Substring(baseStart, baseEnd - baseStart);
-                    var baseNode = new LatexTextNode(baseText);
-
-                    // Parse script
-                    char scriptChar = input[position];
-                    var scriptType = scriptChar == '_' ? ScriptTypeEnum.Subscript : ScriptTypeEnum.Superscript;
-                    position++;
-
-                    var scriptContent = ParseScriptContent(input, ref position);
-
-                    // For empty scripts like x_{}, still create ScriptNode
-                    if (scriptContent == null)
-                    {
-                        scriptContent = new LatexTextNode("");
-                    }
-
-                    var scriptNode = new LatexScriptNode(scriptType, baseNode, scriptContent);
-
-                    // Check for consecutive scripts (like x_i_j or x^{2}_{i})
-                    if (position < input.Length && (input[position] == '_' || input[position] == '^'))
-                    {
-                        // Parse the consecutive script with the current script as base
-                        var consecutiveNodes = ParseConsecutiveScript(input, ref position, scriptNode);
-                        resultNodes.AddRange(consecutiveNodes);
+                        sb.Append(c);
+                        sb.Append(nextChar);
+                        position += 2;
                     }
                     else
                     {
-                        resultNodes.Add(scriptNode);
+                        sb.Append(c);
+                        position++;
                     }
-
-                    return resultNodes;
+                }
+                else if (c == '_' || c == '^')
+                {
+                    break;
                 }
                 else
                 {
+                    sb.Append(c);
                     position++;
                 }
             }
 
-            // Plain text without scripts
-            if (position > start)
+            if (sb.Length > 0)
             {
-                nodes.Add(new LatexTextNode(input.Substring(start, position - start)));
+                return new LatexTextNode(sb.ToString());
             }
 
-            return nodes;
+            return null;
         }
 
-        private List<LatexNode> ParseConsecutiveScript(string input, ref int position, LatexNode currentBase)
+        private List<LatexNode> HandleScript(string input, ref int position, LatexNode baseNode)
         {
-            var nodes = new List<LatexNode>();
+            if (baseNode is not LatexTextNode textBase || string.IsNullOrEmpty(textBase.Text))
+            {
+                var scriptTree = BuildScriptTree(input, ref position, baseNode);
+                return new List<LatexNode> { scriptTree };
+            }
 
+            string baseContent = textBase.Text;
+            if (char.IsWhiteSpace(baseContent.LastOrDefault()))
+            {
+                var result = new List<LatexNode>
+                {
+                    baseNode,
+                    new LatexTextNode(input[position].ToString())
+                };
+                position++;
+                return result;
+            }
+
+            int baseStart = baseContent.Length - 1;
+            while (baseStart > 0)
+            {
+                if (char.IsWhiteSpace(baseContent[baseStart - 1]) ||
+                    baseContent[baseStart - 1] == '\\' ||
+                    baseContent[baseStart - 1] == '(' || baseContent[baseStart - 1] == '[' ||
+                    baseContent[baseStart - 1] == ')' || baseContent[baseStart - 1] == ']')
+                {
+                    break;
+                }
+                baseStart--;
+            }
+
+            var precedingText = baseContent.Substring(0, baseStart);
+            var actualBaseText = baseContent.Substring(baseStart);
+            var newBaseNode = new LatexTextNode(actualBaseText);
+
+            var resultingNodes = new List<LatexNode>();
+            if (!string.IsNullOrEmpty(precedingText))
+            {
+                resultingNodes.Add(new LatexTextNode(precedingText));
+            }
+
+            var builtScriptTree = BuildScriptTree(input, ref position, newBaseNode);
+            resultingNodes.Add(builtScriptTree);
+
+            return resultingNodes;
+        }
+
+        private LatexNode BuildScriptTree(string input, ref int position, LatexNode currentBase)
+        {
             while (position < input.Length && (input[position] == '_' || input[position] == '^'))
             {
                 char scriptChar = input[position];
@@ -179,80 +164,45 @@ namespace LatexConverter.Parsing
                 position++;
 
                 var scriptContent = ParseScriptContent(input, ref position);
-
                 if (scriptContent == null)
                 {
                     scriptContent = new LatexTextNode("");
                 }
-
                 currentBase = new LatexScriptNode(scriptType, currentBase, scriptContent);
             }
-
-            nodes.Add(currentBase);
-            return nodes;
+            return currentBase;
         }
 
         private LatexNode ParseScriptContent(string input, ref int position)
         {
             if (position >= input.Length)
-            {
                 return null;
-            }
-
-            // Handle case where there's no content after script char (like "x_")
-            if (position >= input.Length)
-            {
-                return null;
-            }
 
             if (input[position] == '{')
             {
-                int braceStart = position;
                 position++; // Skip '{'
-
                 var content = ExtractBracedContent(input, ref position);
                 if (content != null)
                 {
                     var contentNodes = Parse(content);
-
-                    // Skip the closing brace
                     if (position < input.Length && input[position] == '}')
-                    {
-                        position++;
-                    }
+                        position++; // Skip '}'
 
                     if (contentNodes.Count == 1)
-                    {
                         return contentNodes[0];
-                    }
-                    else if (contentNodes.Count > 1)
-                    {
+                    if (contentNodes.Count > 1)
                         return new LatexGroupNode("{", "}") { Children = contentNodes };
-                    }
-                    else
-                    {
-                        return new LatexTextNode("");
-                    }
+                    return new LatexTextNode("");
                 }
                 else
                 {
-                    // If extraction failed, return empty content
                     if (position < input.Length && input[position] == '}')
-                    {
                         position++;
-                    }
                     return new LatexTextNode("");
                 }
             }
-            else if (input[position] == '}' || input[position] == '{')
-            {
-                // Skip invalid script content
-                position++;
-                return new LatexTextNode("");
-            }
             else
             {
-                // Single character script
                 var singleCharNode = new LatexTextNode(input[position].ToString());
                 position++;
                 return singleCharNode;
@@ -263,23 +213,18 @@ namespace LatexConverter.Parsing
         {
             string openGroup = input.Substring(position, 2);
             string closeGroup = openGroup[0] + (openGroup[1] == '(' ? ")" : "]");
-
             position += 2;
-
             var groupNode = new LatexGroupNode(openGroup, closeGroup);
             int start = position;
             int groupLevel = 1;
-
             while (position < input.Length && groupLevel > 0)
             {
-                if (position + 1 < input.Length &&
-                    input[position] == '\\' && input[position + 1] == openGroup[1])
+                if (position + 1 < input.Length && input.Substring(position, 2) == openGroup)
                 {
                     groupLevel++;
                     position += 2;
                 }
-                else if (position + 1 < input.Length &&
-                         input[position] == '\\' && input[position + 1] == closeGroup[1])
+                else if (position + 1 < input.Length && input.Substring(position, 2) == closeGroup)
                 {
                     groupLevel--;
                     if (groupLevel == 0)
@@ -289,107 +234,92 @@ namespace LatexConverter.Parsing
                         position += 2;
                         return groupNode;
                     }
-                    else
-                    {
-                        position += 2;
-                    }
+                    position += 2;
                 }
                 else
                 {
                     position++;
                 }
             }
-
             if (position > start)
             {
                 string remainingContent = input.Substring(start, position - start);
                 groupNode.Children = Parse(remainingContent);
             }
-
             return groupNode;
         }
 
         private LatexCommandNode ParseCommand(string input, ref int position)
         {
             position++;
-
             int start = position;
             while (position < input.Length && char.IsLetter(input[position]))
             {
                 position++;
             }
-
+            string commandName;
             if (position == start)
             {
                 if (position < input.Length)
                 {
-                    string specialChar = input[position].ToString();
+                    commandName = input[position].ToString();
                     position++;
-                    return new LatexCommandNode(specialChar);
                 }
-                return new LatexCommandNode("");
+                else
+                {
+                    commandName = "";
+                }
             }
-
-            string commandName = input.Substring(start, position - start);
+            else
+            {
+                commandName = input.Substring(start, position - start);
+            }
             var commandNode = new LatexCommandNode(commandName);
+            var arguments = ParseCommandArguments(input, ref position);
+            commandNode.Args.AddRange(arguments);
+            return commandNode;
+        }
 
+        private List<LatexNode> ParseCommandArguments(string input, ref int position)
+        {
+            var arguments = new List<LatexNode>();
             while (position < input.Length && input[position] == '{')
             {
-                int braceStart = position;
                 position++; // Skip '{'
-
                 var argumentContent = ExtractBracedContent(input, ref position);
                 if (argumentContent != null)
                 {
-                    var argumentNodes = Parse(argumentContent);
-                    commandNode.Args.AddRange(argumentNodes);
-
-                    // Skip the closing brace
+                    arguments.AddRange(Parse(argumentContent));
                     if (position < input.Length && input[position] == '}')
-                    {
                         position++;
-                    }
                 }
                 else
                 {
                     break;
                 }
             }
-
-            return commandNode;
+            return arguments;
         }
 
         private string ExtractBracedContent(string input, ref int position)
         {
             int start = position;
             int braceLevel = 1;
-
             while (position < input.Length && braceLevel > 0)
             {
                 char currentChar = input[position];
-
                 if (currentChar == '{')
-                {
                     braceLevel++;
-                }
                 else if (currentChar == '}')
-                {
                     braceLevel--;
-                }
-
                 if (braceLevel == 0)
-                {
                     break;
-                }
-
                 position++;
             }
-
-            if (braceLevel == 0 && start < position)
+            if (braceLevel == 0 && start <= position)
             {
                 return input.Substring(start, position - start);
             }
-
             return null;
         }
     }
@@ -424,16 +354,13 @@ namespace LatexConverter.Parsing
                 if (node is LatexCommandNode cmdNode)
                 {
                     var commandInfo = new CommandInfo { CommandName = cmdNode.Command };
-
                     foreach (var arg in cmdNode.Args)
                     {
                         if (arg is not LatexTextNode)
                             continue;
                         commandInfo.TextArguments.Add(ExtractTextContent(arg));
                     }
-
                     commands.Add(commandInfo);
-
                     ExtractCommandsRecursive(cmdNode.Args, commands);
                 }
                 else if (node is LatexGroupNode groupNode)
@@ -453,7 +380,7 @@ namespace LatexConverter.Parsing
             {
                 return textNode.Text;
             }
-            else if (node is LatexCommandNode cmdNode)
+            else if (node is LatexCommandNode)
             {
                 return node.ToString();
             }
@@ -461,7 +388,7 @@ namespace LatexConverter.Parsing
             {
                 return string.Join("", groupNode.Children.Select(ExtractTextContent));
             }
-            else if (node is LatexScriptNode scriptNode)
+            else if (node is LatexScriptNode)
             {
                 return node.ToString();
             }
