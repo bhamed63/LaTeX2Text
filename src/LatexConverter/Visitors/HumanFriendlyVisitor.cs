@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace LatexConverter
 {
     /// <summary>
@@ -129,7 +131,11 @@ namespace LatexConverter
 
         public override string VisitMath(MathNode node)
         {
-            return string.Join("", node.Children.Select(child => child.Accept(this)));
+            return string.Join("", node.Children.Select(n => n.Accept(this)));
+        }
+        public override string ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
         }
     }
 }

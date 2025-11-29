@@ -10,9 +10,11 @@ namespace LatexConverter
     {
         public string? PlainText { get; set; }
         public string? ScreenReader { get; set; }
+        //public string? ScreenReaderTemplate { get; set; }
         public string? ExceptionalScreenReader { get; set; }
         public string? HumanFriendly { get; set; }
         public string? HumanFriendlyKey { get; set; }
+        //public string? HumanFriendlyTemplate { get; set; }
         public string? OpenAI { get; set; }
         public CommandType CommandType { get; set; }
         public int ArgsNumber { get; set; }

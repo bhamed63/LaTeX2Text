@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace LatexConverter
 {
@@ -29,13 +30,17 @@ namespace LatexConverter
             }
 
             var mergedNodes = new List<AstNode>();
-            var textBuffer = new System.Text.StringBuilder();
+            var textBuffer = new StringBuilder();
 
             foreach (var node in nodes)
             {
                 if (node is TextNode textNode)
                 {
                     textBuffer.Append(textNode.Text);
+                }
+                else if (node is CommandNode cmdNode && (cmdNode.Command == CommandNames.Thinspace || cmdNode.Command == @"\,"))
+                {
+                    textBuffer.Append(" ");
                 }
                 else
                 {
@@ -48,10 +53,6 @@ namespace LatexConverter
                     if (node is GroupNode groupNode)
                     {
                         mergedNodes.Add(new GroupNode(MergeTextNodes(groupNode.Body)));
-                    }
-                    else if (node is MathNode mathNode)
-                    {
-                        mergedNodes.Add(mathNode);
                     }
                     else
                     {
@@ -138,9 +139,9 @@ namespace LatexConverter
 
             switch (token.Value)
             {
-                case CommandNames.BeginMath:
-                case CommandNames.BeginMathDisplay:
-                case CommandNames.BeginMathDisplay2:
+                case @"\(":
+                case @"\[":
+                case "$$":
                     return ParseMath(token.Value);
                 case CommandNames.Sqrt:
                     return ParseRootCommand();
@@ -148,13 +149,15 @@ namespace LatexConverter
                     return ParseFracCommand();
                 case CommandNames.Binom:
                     return ParseBinomCommand();
-                case CommandNames.Comment:
+                case "%":
                     var commentArgs = new List<AstNode>();
                     if (CurrentToken.Type == TokenType.Text)
                     {
                         commentArgs.Add(ParsePrimary());
                     }
                     return new CommandNode(token.Value, commentArgs, null, null);
+                case CommandNames.Times:
+                    return new TextNode("×");
             }
 
 
@@ -186,6 +189,7 @@ namespace LatexConverter
                 args.Add(ParsePrimary());
             }
 
+            SkipSpaces();
             return new CommandNode(token.Value, args, null, null);
         }
 
@@ -267,6 +271,7 @@ namespace LatexConverter
                 superscript = ParsePrimary();
             }
 
+            SkipSpaces();
             return new CommandNode(token.Value, new List<AstNode>(), subscript, superscript);
         }
 
@@ -274,9 +279,9 @@ namespace LatexConverter
         {
             var endCommand = beginCommand switch
             {
-                CommandNames.BeginMath => CommandNames.EndMath,
-                CommandNames.BeginMathDisplay => CommandNames.EndMathDisplay,
-                CommandNames.BeginMathDisplay2 => CommandNames.BeginMathDisplay2,
+                @"\(" => @"\)",
+                @"\[" => @"\]",
+                "$$" => "$$",
                 _ => ""
             };
 
