@@ -1,7 +1,7 @@
-﻿using LatexConverter.Ast;
+using LatexConverter;
 using LatexConverter.Parsing;
+using System.Collections.Generic;
 using Xunit;
-
 
 namespace LatexConvertorTests
 { 
@@ -60,31 +60,31 @@ namespace LatexConvertorTests
             Assert.True(getNestedNodesCount(_latexParser.Parse("here it a_{21} is a \\sqrt{\\frac{x}{y}}, it is simp m^2 le Latex.")) == 14);
         }
 
-        private int getNestedNodesCount(List<LatexNode> latexNodes)
+        private int getNestedNodesCount(List<AstNode> latexNodes)
         {
             var nodesCount = 0;
             nodesCount += latexNodes.Count;
             foreach (var item in latexNodes)
             {
-                if (item as LatexCommandNode != null)
+                if (item is CommandNode commandNode)
                 {
-                    nodesCount += getNestedNodesCount((item as LatexCommandNode).Args);
+                    nodesCount += getNestedNodesCount(commandNode.Args);
                 }
-                else if (item as LatexGroupNode != null)
+                else if (item is GroupNode groupNode)
                 {
-                    nodesCount += getNestedNodesCount((item as LatexGroupNode).Children);
+                    nodesCount += getNestedNodesCount(groupNode.Body);
                 }
-                else if (item is LatexScriptNode script)
+                else if (item is ScriptNode script)
                 {
                     nodesCount += 2;
-                    if (script.Base as LatexCommandNode != null)
-                        nodesCount += getNestedNodesCount((script.Base as LatexCommandNode).Args);
-                    if (script.Base as LatexGroupNode != null)
-                        nodesCount += getNestedNodesCount((script.Base as LatexGroupNode).Children);
-                    if (script.Script as LatexCommandNode != null)
-                        nodesCount += getNestedNodesCount((script.Script as LatexCommandNode).Args);
-                    if (script.Base as LatexGroupNode != null)
-                        nodesCount += getNestedNodesCount((script.Script as LatexGroupNode).Children);
+                    if (script.Base is CommandNode baseCommand)
+                        nodesCount += getNestedNodesCount(baseCommand.Args);
+                    if (script.Base is GroupNode baseGroup)
+                        nodesCount += getNestedNodesCount(baseGroup.Body);
+                    if (script.Script is CommandNode scriptCommand)
+                        nodesCount += getNestedNodesCount(scriptCommand.Args);
+                    if (script.Script is GroupNode scriptGroup)
+                        nodesCount += getNestedNodesCount(scriptGroup.Body);
                 }
             }
             return nodesCount;

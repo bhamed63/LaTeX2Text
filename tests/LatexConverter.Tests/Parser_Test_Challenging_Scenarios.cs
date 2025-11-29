@@ -1,7 +1,6 @@
-﻿using LatexConverter.Ast;
+using LatexConverter;
 using LatexConverter.Parsing;
 using Xunit;
-
 
 namespace LatexConvertorTests
 { 
@@ -20,16 +19,16 @@ namespace LatexConvertorTests
             // x_{y_{z_{n}}}
             var nodes = _latexParser.Parse("x_{y_{z_{n}}}");
             Assert.True(nodes.Count == 1);
-            Assert.True(nodes[0] is LatexScriptNode);
-            var script1 = nodes[0] as LatexScriptNode;
-            Assert.True(script1.Base is LatexTextNode && (script1.Base as LatexTextNode).Text == "x");
-            Assert.True(script1.Script is LatexScriptNode);
-            var script2 = script1.Script as LatexScriptNode;
-            Assert.True(script2.Base is LatexTextNode && (script2.Base as LatexTextNode).Text == "y");
-            Assert.True(script2.Script is LatexScriptNode);
-            var script3 = script2.Script as LatexScriptNode;
-            Assert.True(script3.Base is LatexTextNode && (script3.Base as LatexTextNode).Text == "z");
-            Assert.True(script3.Script is LatexTextNode && (script3.Script as LatexTextNode).Text == "n");
+            Assert.True(nodes[0] is ScriptNode);
+            var script1 = nodes[0] as ScriptNode;
+            Assert.True(script1.Base is TextNode && (script1.Base as TextNode).Text == "x");
+            Assert.True(script1.Script is ScriptNode);
+            var script2 = script1.Script as ScriptNode;
+            Assert.True(script2.Base is TextNode && (script2.Base as TextNode).Text == "y");
+            Assert.True(script2.Script is ScriptNode);
+            var script3 = script2.Script as ScriptNode;
+            Assert.True(script3.Base is TextNode && (script3.Base as TextNode).Text == "z");
+            Assert.True(script3.Script is TextNode && (script3.Script as TextNode).Text == "n");
         }
 
         [Fact]
@@ -49,15 +48,15 @@ namespace LatexConvertorTests
             // x_{\text{text}} and x^{\frac{1}{2}}
             var nodes1 = _latexParser.Parse("x_{\\text{text}}");
             Assert.True(nodes1.Count == 1);
-            Assert.True(nodes1[0] is LatexScriptNode);
-            var script1 = nodes1[0] as LatexScriptNode;
-            Assert.True(script1.Script is LatexCommandNode);
+            Assert.True(nodes1[0] is ScriptNode);
+            var script1 = nodes1[0] as ScriptNode;
+            Assert.True(script1.Script is CommandNode);
 
             var nodes2 = _latexParser.Parse("x^{\\frac{1}{2}}");
             Assert.True(nodes2.Count == 1);
-            Assert.True(nodes2[0] is LatexScriptNode);
-            var script2 = nodes2[0] as LatexScriptNode;
-            Assert.True(script2.Script is LatexCommandNode);
+            Assert.True(nodes2[0] is ScriptNode);
+            var script2 = nodes2[0] as ScriptNode;
+            Assert.True(script2.Script is CommandNode);
         }
 
         [Fact]
@@ -69,7 +68,7 @@ namespace LatexConvertorTests
 
             var nodes2 = _latexParser.Parse("ab_c");
             Assert.True(nodes2.Count == 1); // "ab_{c}"
-            Assert.True(nodes2[0] is LatexScriptNode);
+            Assert.True(nodes2[0] is ScriptNode);
         }
 
         [Fact]
@@ -78,12 +77,12 @@ namespace LatexConvertorTests
             // x\_y vs x_y
             var nodes1 = _latexParser.Parse("x\\_y");
             Assert.True(nodes1.Count == 1);
-            Assert.True(nodes1[0] is LatexTextNode);
-            Assert.True((nodes1[0] as LatexTextNode).Text == "x\\_y");
+            Assert.True(nodes1[0] is TextNode);
+            Assert.True((nodes1[0] as TextNode).Text == "x\\_y");
 
             var nodes2 = _latexParser.Parse("x_y");
             Assert.True(nodes2.Count == 1);
-            Assert.True(nodes2[0] is LatexScriptNode);
+            Assert.True(nodes2[0] is ScriptNode);
         }
 
         [Fact]
@@ -92,10 +91,10 @@ namespace LatexConvertorTests
             // \command{x_{i}}
             var nodes = _latexParser.Parse("\\command{x_{i}}");
             Assert.True(nodes.Count == 1);
-            Assert.True(nodes[0] is LatexCommandNode);
-            var cmd = nodes[0] as LatexCommandNode;
+            Assert.True(nodes[0] is CommandNode);
+            var cmd = nodes[0] as CommandNode;
             Assert.True(cmd.Args.Count == 1);
-            Assert.True(cmd.Args[0] is LatexScriptNode);
+            Assert.True(cmd.Args[0] is ScriptNode);
         }
         
         [Fact]
@@ -104,15 +103,15 @@ namespace LatexConvertorTests
             // _x, x_, x_{}
             var nodes1 = _latexParser.Parse("_x");
             Assert.True(nodes1.Count == 2);
-            Assert.True(nodes1[0] is LatexTextNode); // Script at beginning should be treated as text
+            Assert.True(nodes1[0] is TextNode); // Script at beginning should be treated as text
 
             var nodes2 = _latexParser.Parse("x_");
             Assert.True(nodes2.Count == 1);
-            Assert.True(nodes2[0] is LatexScriptNode); // Script with no content should be treated as text
+            Assert.True(nodes2[0] is ScriptNode); // Script with no content should be treated as text
 
             var nodes3 = _latexParser.Parse("x_{}");
             Assert.True(nodes3.Count == 1);
-            Assert.True(nodes3[0] is LatexScriptNode); // Empty script should still create ScriptNode
+            Assert.True(nodes3[0] is ScriptNode); // Empty script should still create ScriptNode
         }
 
         [Fact]
@@ -132,11 +131,11 @@ namespace LatexConvertorTests
             // \frac{x_{i}}{y^{j}}
             var nodes = _latexParser.Parse("\\frac{x_{i}}{y^{j}}");
             Assert.True(nodes.Count == 1);
-            Assert.True(nodes[0] is LatexCommandNode);
-            var cmd = nodes[0] as LatexCommandNode;
+            Assert.True(nodes[0] is CommandNode);
+            var cmd = nodes[0] as CommandNode;
             Assert.True(cmd.Args.Count == 2);
-            Assert.True(cmd.Args[0] is LatexScriptNode); // x_{i}
-            Assert.True(cmd.Args[1] is LatexScriptNode); // y^{j}
+            Assert.True(cmd.Args[0] is ScriptNode); // x_{i}
+            Assert.True(cmd.Args[1] is ScriptNode); // y^{j}
         }
 
         [Fact]
@@ -154,13 +153,13 @@ namespace LatexConvertorTests
             // x_{ij} and x^{n+1}
             var nodes1 = _latexParser.Parse("x_{ij}");
             Assert.True(nodes1.Count == 1);
-            var script1 = nodes1[0] as LatexScriptNode;
-            Assert.True((script1.Script as LatexTextNode).Text == "ij");
+            var script1 = nodes1[0] as ScriptNode;
+            Assert.True((script1.Script as TextNode).Text == "ij");
 
             var nodes2 = _latexParser.Parse("x^{n+1}");
             Assert.True(nodes2.Count == 1);
-            var script2 = nodes2[0] as LatexScriptNode;
-            Assert.True((script2.Script as LatexTextNode).Text == "n+1");
+            var script2 = nodes2[0] as ScriptNode;
+            Assert.True((script2.Script as TextNode).Text == "n+1");
         }
 
         [Fact]
@@ -169,13 +168,13 @@ namespace LatexConvertorTests
             // (x_{i}) and [y^{j}]
             var nodes1 = _latexParser.Parse("\\(x_{i}\\)");
             Assert.True(nodes1.Count == 1);
-            var group1 = nodes1[0] as LatexGroupNode;
-            Assert.True(group1.Children[0] is LatexScriptNode);
+            var group1 = nodes1[0] as GroupNode;
+            Assert.True(group1.Body[0] is ScriptNode);
 
             var nodes2 = _latexParser.Parse("\\[y^{j}\\]");
             Assert.True(nodes2.Count == 1);
-            var group2 = nodes2[0] as LatexGroupNode;
-            Assert.True(group2.Children[0] is LatexScriptNode);
+            var group2 = nodes2[0] as GroupNode;
+            Assert.True(group2.Body[0] is ScriptNode);
         }
 
         [Fact]
@@ -187,36 +186,6 @@ namespace LatexConvertorTests
 
             var nodes2 = _latexParser.Parse("a^b^c");
             Assert.True(nodes2.Count == 1); // Should handle consecutive superscripts
-        }
-
-        private int getNestedNodesCount(List<LatexNode> latexNodes)
-        {
-            var nodesCount = 0;
-            nodesCount += latexNodes.Count;
-            foreach (var item in latexNodes)
-            {
-                if (item as LatexCommandNode != null)
-                {
-                    nodesCount += getNestedNodesCount((item as LatexCommandNode).Args);
-                }
-                else if (item as LatexGroupNode != null)
-                {
-                    nodesCount += getNestedNodesCount((item as LatexGroupNode).Children);
-                }
-                else if (item is LatexScriptNode script)
-                {
-                    nodesCount += 2;
-                    if (script.Base as LatexCommandNode != null)
-                        nodesCount += getNestedNodesCount((script.Base as LatexCommandNode).Args);
-                    if (script.Base as LatexGroupNode != null)
-                        nodesCount += getNestedNodesCount((script.Base as LatexGroupNode).Children);
-                    if (script.Script as LatexCommandNode != null)
-                        nodesCount += getNestedNodesCount((script.Script as LatexCommandNode).Args);
-                    if (script.Script as LatexGroupNode != null)
-                        nodesCount += getNestedNodesCount((script.Script as LatexGroupNode).Children);
-                }
-            }
-            return nodesCount;
         }
     }
 }
