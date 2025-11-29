@@ -56,7 +56,7 @@ namespace LatexConvertorTests
             Assert.True(nodes2.Count == 1);
             Assert.True(nodes2[0] is ScriptNode);
             var script2 = nodes2[0] as ScriptNode;
-            Assert.True(script2.Script is CommandNode);
+            Assert.True(script2.Script is FracNode);
         }
 
         [Fact]
@@ -131,11 +131,10 @@ namespace LatexConvertorTests
             // \frac{x_{i}}{y^{j}}
             var nodes = _latexParser.Parse("\\frac{x_{i}}{y^{j}}");
             Assert.True(nodes.Count == 1);
-            Assert.True(nodes[0] is CommandNode);
-            var cmd = nodes[0] as CommandNode;
-            Assert.True(cmd.Args.Count == 2);
-            Assert.True(cmd.Args[0] is ScriptNode); // x_{i}
-            Assert.True(cmd.Args[1] is ScriptNode); // y^{j}
+            Assert.True(nodes[0] is FracNode);
+            var frac = nodes[0] as FracNode;
+            Assert.True(frac.Numerator is GroupNode numeratorGroup && numeratorGroup.Body[0] is ScriptNode);
+            Assert.True(frac.Denominator is GroupNode denominatorGroup && denominatorGroup.Body[0] is ScriptNode);
         }
 
         [Fact]

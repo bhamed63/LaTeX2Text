@@ -18,5 +18,14 @@ namespace LatexConverter
             }
             return $"{Base}{scriptChar}{{{Script}}}";
         }
+
+
+        public override List<AstNode> GetAllSubNodes()
+        {
+            return new List<AstNode>()
+            {
+                Base, Script
+            };
+        }
     }
 }
