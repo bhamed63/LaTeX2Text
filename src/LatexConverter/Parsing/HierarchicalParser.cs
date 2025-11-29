@@ -52,7 +52,7 @@ namespace LatexConverter
 
                     if (node is GroupNode groupNode)
                     {
-                        mergedNodes.Add(new GroupNode(MergeTextNodes(groupNode.Body)));
+                        mergedNodes.Add(new GroupNode(MergeTextNodes(groupNode.Body), "", ""));
                     }
                     else
                     {
@@ -122,7 +122,7 @@ namespace LatexConverter
                 nodes.Add(ParseExpression());
             }
             if (CurrentToken.Type == TokenType.RBrace) _pos++; // Consume '}'
-            return new GroupNode(nodes);
+            return new GroupNode(nodes, "", "");
         }
 
         private bool IsLimitCommand(string command) => command == CommandNames.Sum || command == CommandNames.Int || command == CommandNames.Prod || command == CommandNames.Lim;
@@ -156,8 +156,8 @@ namespace LatexConverter
                         commentArgs.Add(ParsePrimary());
                     }
                     return new CommandNode(token.Value, commentArgs, null, null);
-                //case CommandNames.Times:
-                //    return new TextNode("×");
+                    //case CommandNames.Times:
+                    //    return new TextNode("×");
             }
 
 
@@ -224,7 +224,7 @@ namespace LatexConverter
                 {
                     _pos++; // Consume ']'
                 }
-                return new GroupNode(nodes);
+                return new GroupNode(nodes, "", "");
             }
             return null;
         }
