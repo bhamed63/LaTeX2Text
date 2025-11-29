@@ -47,11 +47,6 @@ namespace LatexConverter
         public const string Mathtt = @"\mathtt";
         public const string Text = @"\text";
         public const string Textrm = @"\textrm";
-        public const string BeginMath = @"\(";
-        public const string EndMath = @"\)";
-        public const string BeginMathDisplay = @"\[";
-        public const string EndMathDisplay = @"\]";
-        public const string BeginMathDisplay2 = @"$$";
         public const string Mathrm = @"\mathrm";
 
         public const string Alpha = @"\alpha";
@@ -174,5 +169,12 @@ namespace LatexConverter
 
         public const string Big = "Big";
         public const string Bigg = "Bigg";
+
+        public const string BeginMath = @"\(";
+        public const string EndMath = @"\)";
+        public const string BeginMathDisplay = @"\[";
+        public const string EndMathDisplay = @"\]";
+        public const string BeginMathDisplay2 = @"$$";
+        public const string EndMathDisplay2 = @"$$";
     }
 }

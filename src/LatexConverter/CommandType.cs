@@ -9,7 +9,6 @@ namespace LatexConverter
         AccentDecoration,
         Symbol,
         Unknown,
-        ArrowRelation,
-        Matrix
+        ArrowRelation
     }
 }

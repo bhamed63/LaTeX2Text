@@ -1,5 +1,6 @@
 using Xunit;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LatexConverter.Tests
 {
@@ -102,6 +103,139 @@ namespace LatexConverter.Tests
             var parser = new HierarchicalParser(tokens);
             var nodes = parser.Parse();
             Assert.Equal(expectedNodeCount, nodes.Count);
+        }
+
+        // New tests for the provided cases
+
+        [Fact]
+        public void Parse_WithSqrtWithOptionalArgument_ShouldReturnCorrectRootNode()
+        {
+            var text = @"\sqrt[2]{m}";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Single(nodes);
+            var rootNode = Assert.IsType<RootNode>(nodes[0]);
+            var degree = Assert.IsType<GroupNode>(rootNode.Degree);
+            var degreeText = Assert.IsType<TextNode>(degree.Body.First());
+            Assert.Equal("2", degreeText.Text);
+
+            var radicand = Assert.IsType<GroupNode>(rootNode.Radicand);
+            var radicandText = Assert.IsType<TextNode>(radicand.Body.First());
+            Assert.Equal("m", radicandText.Text);
+        }
+
+        [Fact]
+        public void Parse_WithComplexSqrt_ShouldReturnCorrectRootNode()
+        {
+            var text = @"\sqrt[31]{y^2 + z^3}";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Single(nodes);
+            var rootNode = Assert.IsType<RootNode>(nodes[0]);
+            var degree = Assert.IsType<GroupNode>(rootNode.Degree);
+            var degreeText = Assert.IsType<TextNode>(degree.Body.First());
+            Assert.Equal("31", degreeText.Text);
+
+            var radicand = Assert.IsType<GroupNode>(rootNode.Radicand);
+            Assert.Equal(5, radicand.Body.Count);
+        }
+
+        [Fact]
+        public void Parse_WithThinSpace_ShouldMergeIntoSingleTextNode()
+        {
+            var text = @"a\,b";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Single(nodes);
+            var textNode = Assert.IsType<TextNode>(nodes[0]);
+            Assert.Equal("a b", textNode.Text);
+        }
+
+        [Fact]
+        public void Parse_WithCosAlpha_ShouldReturnCorrectNodes()
+        {
+            var text = @"\cos \alpha";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Equal(3, nodes.Count);
+            var cosNode = Assert.IsType<CommandNode>(nodes[0]);
+            Assert.Equal(CommandNames.Cos, cosNode.Command);
+            var alphaNode = Assert.IsType<CommandNode>(nodes[2]);
+            Assert.Equal(CommandNames.Alpha, alphaNode.Command);
+        }
+
+        [Fact]
+        public void Parse_WithPlainTextContainingUnderscores_ShouldReturnSingleTextNode()
+        {
+            var text = @"A baryon consists of ____ quark(s) and ____ antiquark(s).";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Single(nodes);
+            var textNode = Assert.IsType<TextNode>(nodes[0]);
+            Assert.Equal(text, textNode.Text);
+        }
+
+        [Fact]
+        public void Parse_WithReAndIm_ShouldReturnCorrectNodes()
+        {
+            var text = @"The \Re and the \Im.";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Equal(5, nodes.Count);
+            Assert.IsType<TextNode>(nodes[0]);
+            Assert.Equal("The ", ((TextNode)nodes[0]).Text);
+            Assert.IsType<CommandNode>(nodes[1]);
+            Assert.Equal(CommandNames.Re, ((CommandNode)nodes[1]).Command);
+            Assert.IsType<TextNode>(nodes[2]);
+            Assert.Equal(" and the ", ((TextNode)nodes[2]).Text);
+            Assert.IsType<CommandNode>(nodes[3]);
+            Assert.Equal(CommandNames.Im, ((CommandNode)nodes[3]).Command);
+            Assert.IsType<TextNode>(nodes[4]);
+            Assert.Equal(".", ((TextNode)nodes[4]).Text);
+        }
+
+        [Fact]
+        public void Parse_WithMultiplicationAndSuperscript_ShouldReturnCorrectNodes()
+        {
+            var text = @"4.0 \times 10^{-4}";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Equal(4, nodes.Count);
+            Assert.IsType<TextNode>(nodes[0]);
+            Assert.IsType<CommandNode>(nodes[1]);
+            Assert.IsType<ScriptNode>(nodes[3]);
+        }
+
+        [Fact]
+        public void Parse_WithSummation_ShouldReturnCorrectNodes()
+        {
+            var text = @"\sum_{i=1}^{n} i^2";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Equal(3, nodes.Count);
+            var sumNode = Assert.IsType<CommandNode>(nodes[0]);
+            Assert.Equal(CommandNames.Sum, sumNode.Command);
+            Assert.NotNull(sumNode.Subscript);
+            Assert.NotNull(sumNode.Superscript);
+
+            var iSqNode = Assert.IsType<ScriptNode>(nodes[2]);
+            Assert.True(iSqNode.IsSuperscript);
         }
     }
 }

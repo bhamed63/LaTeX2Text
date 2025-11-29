@@ -89,5 +89,9 @@ namespace LatexConverter.Visitors
         {
             return node.Children.SelectMany(child => child.Accept(this)).ToList();
         }
+        public override List<string> ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
+        }
     }
 }

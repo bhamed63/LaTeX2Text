@@ -132,7 +132,7 @@ namespace LatexConverter.Visitors
             }
             _visitedNodes.Add(matrixNode);
 
-            Result.Commands.Add(new Tuple<CommandType, string>(CommandType.Matrix, CommandNames.Matrix));
+            Result.Commands.Add(new Tuple<CommandType, string>(CommandType.Environment, CommandNames.Matrix));
             var oldContext = _isMathContext;
             _isMathContext = true;
             try
@@ -235,13 +235,21 @@ namespace LatexConverter.Visitors
             _isMathContext = true;
             try
             {
-                node.Children.Select(child => child.Accept(this));
+                foreach(var child in node.Children)
+                {
+                    child.Accept(this);
+                }
             }
             finally
             {
                 _isMathContext = oldContext;
             }
             return null;
+        }
+
+        public override object ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
         }
     }
 }
