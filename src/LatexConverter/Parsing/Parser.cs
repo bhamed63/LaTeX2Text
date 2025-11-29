@@ -79,7 +79,7 @@ namespace LatexConverter
                 nodes.Add(ParseExpression());
             }
             if (CurrentToken.Type == TokenType.RBrace) _pos++; // Consume '}'
-            return new GroupNode(nodes);
+            return new GroupNode(nodes, "", "");
         }
 
         private bool IsLimitCommand(string command) => command == CommandNames.Sum || command == CommandNames.Int || command == CommandNames.Prod || command == CommandNames.Lim;
@@ -163,7 +163,7 @@ namespace LatexConverter
                 {
                     _pos++; // Consume ']'
                 }
-                return new GroupNode(nodes);
+                return new GroupNode(nodes, "", "");
             }
             return null;
         }

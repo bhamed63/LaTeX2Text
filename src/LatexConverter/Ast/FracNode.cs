@@ -7,5 +7,7 @@ namespace LatexConverter
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitFrac(this);
         public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitFrac(this);
+
+        public override string ToString() => $"\\frac{{{Numerator}}}{{{Denominator}}}";
     }
 }

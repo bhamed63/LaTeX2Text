@@ -11,5 +11,14 @@ namespace LatexConverter
         {
             return visitor.ExceptionalVisitRoot(this);
         }
+
+        public override string ToString()
+        {
+            if (Degree is TextNode textNode && textNode.Text == "2")
+            {
+                return $"\\sqrt{{{Radicand}}}";
+            }
+            return $"\\sqrt[{Degree}]{{{Radicand}}}";
+        }
     }
 }

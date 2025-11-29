@@ -1,5 +1,7 @@
-﻿using LatexConverter.Ast;
+using LatexConverter;
 using LatexConverter.Parsing;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 
@@ -32,7 +34,7 @@ namespace LatexConvertorTests
             Assert.True(callToString(_latexParser.Parse("XXXXXXXXXXXXXXX")) == "XXXXXXXXXXXXXXX");
         }
 
-        private string callToString(List<LatexNode> latexNodes)
+        private string callToString(List<AstNode> latexNodes)
         {
             return string.Join("", latexNodes.Select(c => c.ToString()));
         }
@@ -41,25 +43,25 @@ namespace LatexConvertorTests
         public void Test_Parser_Check_Content_Of_Nodes()
         {
             var nodes = _latexParser.Parse("\\frac{x}{y}, it is simple Latex.");
-            Assert.True(nodes[0] is LatexCommandNode);
-            Assert.True(nodes[1] is LatexTextNode);
+            Assert.True(nodes[0] is FracNode);
+            Assert.True(nodes[1] is TextNode);
 
             nodes = _latexParser.Parse("here it is a \\sqrt{x}, it is simple Latex.");
-            Assert.True(nodes[0] is LatexTextNode);
-            Assert.True(nodes[1] is LatexCommandNode);
-            Assert.True(nodes[2] is LatexTextNode);
+            Assert.True(nodes[0] is TextNode);
+            Assert.True(nodes[1] is RootNode);
+            Assert.True(nodes[2] is TextNode);
 
             nodes = _latexParser.Parse("here it is a \\sqrt{\\frac{x}{y}}, it is simple Latex.");
-            Assert.True(nodes[0] is LatexTextNode);
-            Assert.True(nodes[1] is LatexCommandNode);
-            Assert.True(nodes[1] is LatexCommandNode commandNode1 && commandNode1.Args[0] is LatexCommandNode fracNode1 && fracNode1.Args[0] is LatexTextNode && fracNode1.Args[1] is LatexTextNode);
-            Assert.True(nodes[2] is LatexTextNode);
+            Assert.True(nodes[0] is TextNode);
+            Assert.True(nodes[1] is RootNode);
+            Assert.True(nodes[1] is RootNode rootNode1 && rootNode1.Radicand is GroupNode radicandGroup && radicandGroup.Body[0] is FracNode);
+            Assert.True(nodes[2] is TextNode);
 
             nodes = _latexParser.Parse("\\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.");
-            Assert.True(nodes[0] is LatexGroupNode);
-            Assert.True(nodes[1] is LatexTextNode);
-            Assert.True(nodes[2] is LatexCommandNode commandNode2 && commandNode2.Args[0] is LatexCommandNode fracNode && fracNode.Args[0] is LatexTextNode && fracNode.Args[1] is LatexCommandNode);
-            Assert.True(nodes[3] is LatexTextNode);
+            Assert.True(nodes[0] is GroupNode);
+            Assert.True(nodes[1] is TextNode);
+            Assert.True(nodes[2] is RootNode rootNode2 && rootNode2.Radicand is GroupNode radicandGroup2 && radicandGroup2.Body[0] is FracNode);
+            Assert.True(nodes[3] is TextNode);
         }
     }
 }
