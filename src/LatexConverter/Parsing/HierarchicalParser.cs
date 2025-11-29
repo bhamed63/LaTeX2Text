@@ -156,8 +156,8 @@ namespace LatexConverter
                         commentArgs.Add(ParsePrimary());
                     }
                     return new CommandNode(token.Value, commentArgs, null, null);
-                case CommandNames.Times:
-                    return new TextNode("×");
+                //case CommandNames.Times:
+                //    return new TextNode("×");
             }
 
 
@@ -249,10 +249,10 @@ namespace LatexConverter
 
         private void SkipSpaces()
         {
-            while (CurrentToken.Type == TokenType.Space)
-            {
-                _pos++;
-            }
+            //while (CurrentToken.Type == TokenType.Space)
+            //{
+            //    _pos++;
+            //}
         }
 
         private AstNode ParseLimitCommand(Token token)

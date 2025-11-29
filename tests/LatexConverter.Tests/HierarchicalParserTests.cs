@@ -165,10 +165,10 @@ namespace LatexConverter.Tests
             var parser = new HierarchicalParser(tokens);
             var nodes = parser.Parse();
 
-            Assert.Equal(2, nodes.Count);
+            Assert.Equal(3, nodes.Count);
             var cosNode = Assert.IsType<CommandNode>(nodes[0]);
             Assert.Equal(CommandNames.Cos, cosNode.Command);
-            var alphaNode = Assert.IsType<CommandNode>(nodes[1]);
+            var alphaNode = Assert.IsType<CommandNode>(nodes[2]);
             Assert.Equal(CommandNames.Alpha, alphaNode.Command);
         }
 
@@ -214,10 +214,10 @@ namespace LatexConverter.Tests
             var parser = new HierarchicalParser(tokens);
             var nodes = parser.Parse();
 
-            Assert.Equal(3, nodes.Count);
+            Assert.Equal(4, nodes.Count);
             Assert.IsType<TextNode>(nodes[0]);
-            Assert.IsType<TextNode>(nodes[1]);
-            Assert.IsType<ScriptNode>(nodes[2]);
+            Assert.IsType<CommandNode>(nodes[1]);
+            Assert.IsType<ScriptNode>(nodes[3]);
         }
 
         [Fact]
@@ -228,13 +228,13 @@ namespace LatexConverter.Tests
             var parser = new HierarchicalParser(tokens);
             var nodes = parser.Parse();
 
-            Assert.Equal(2, nodes.Count);
+            Assert.Equal(3, nodes.Count);
             var sumNode = Assert.IsType<CommandNode>(nodes[0]);
             Assert.Equal(CommandNames.Sum, sumNode.Command);
             Assert.NotNull(sumNode.Subscript);
             Assert.NotNull(sumNode.Superscript);
 
-            var iSqNode = Assert.IsType<ScriptNode>(nodes[1]);
+            var iSqNode = Assert.IsType<ScriptNode>(nodes[2]);
             Assert.True(iSqNode.IsSuperscript);
         }
     }
