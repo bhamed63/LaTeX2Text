@@ -105,7 +105,7 @@ namespace LatexConverter
             }
 
             var tokens = Tokenizer.Tokenize(latex_input);
-            var parser = new Parser(tokens);
+            var parser = new HierarchicalParser(tokens);
             var nodes = parser.Parse();
 
             var visitor = new ComponentExtractionVisitor();
