@@ -97,6 +97,23 @@ namespace LatexConverter
             return commands.Distinct().ToList();
         }
 
+        public ExtractionResult ExtractComponents(string latex_input)
+        {
+            if (string.IsNullOrEmpty(latex_input))
+            {
+                return new ExtractionResult();
+            }
+
+            var tokens = Tokenizer.Tokenize(latex_input);
+            var parser = new Parser(tokens);
+            var nodes = parser.Parse();
+
+            var visitor = new ComponentExtractionVisitor();
+            nodes.Select(node => node.Accept(visitor)).ToList();
+
+            return visitor.Result;
+        }
+
         /// <summary>
         /// Normalizes structural patterns in the LaTeX input, such as converting `sqrt(x)` to `\sqrt{x}`.
         /// </summary>
