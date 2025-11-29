@@ -43,21 +43,21 @@ namespace LatexConvertorTests
         [Fact]
         public void Test_Parser_Check_The_Count_Of_Whole_Nodes_Created()
         {
-            Assert.True(getNestedNodesCount(_latexParser.Parse("\\frac{x}{y}, it is simple Latex.")) == 4);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{x}, it is simple Latex.")) == 4);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{x}")) == 3);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("\\sqrt{x}")) == 2);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{x}, it is \\alpha simple Latex.")) == 6);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{\\frac{x}{y}}, it is simple Latex.")) == 6);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.")) == 6);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("\\frac{x}{y}, it is simple Latex.")) == 6);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{x}, it is simple Latex.")) == 6);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{x}")) == 5);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("\\sqrt{x}")) == 4);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{x}, it is \\alpha simple Latex.")) == 8);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{\\frac{x}{y}}, it is simple Latex.")) == 10);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("here it is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.")) == 10);
 
-            Assert.True(getNestedNodesCount(_latexParser.Parse("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.")) == 9);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("\\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.")) == 8);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.")) == 13);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("\\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.")) == 12);
             Assert.True(getNestedNodesCount(_latexParser.Parse("\\(it \\) is a sqrt.")) == 3);
             Assert.True(getNestedNodesCount(_latexParser.Parse("\\(it \\)")) == 2);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("\\(it  \\sqrt{\\frac{x}{\\alpha}} \\)")) == 7);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("\\(it  \\sqrt{\\frac{x}{\\alpha}} \\)")) == 11);
             Assert.True(getNestedNodesCount(_latexParser.Parse("it a_{21} is")) == 5);
-            Assert.True(getNestedNodesCount(_latexParser.Parse("here it a_{21} is a \\sqrt{\\frac{x}{y}}, it is simp m^2 le Latex.")) == 14);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("here it a_{21} is a \\sqrt{\\frac{x}{y}}, it is simp m^2 le Latex.")) == 18);
         }
 
         private int getNestedNodesCount(List<AstNode> latexNodes)

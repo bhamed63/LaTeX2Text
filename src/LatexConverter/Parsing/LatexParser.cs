@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static LatexConverter.Parsing.LatexCommandExtractor;
 
 namespace LatexConverter.Parsing
 {
@@ -311,9 +312,9 @@ namespace LatexConverter.Parsing
             switch (commandName)
             {
                 case "frac":
-                    return ParseFracCommand(input, ref position);
+                    return ParseFracCommand(commandName, input, ref position);
                 case "sqrt":
-                    return ParseSqrtCommand(input, ref position);
+                    return ParseSqrtCommand(commandName, input, ref position);
                 default:
                     var arguments = new List<AstNode>();
                     while (position < input.Length && input[position] == '{')
@@ -335,7 +336,7 @@ namespace LatexConverter.Parsing
             }
         }
 
-        private FracNode ParseFracCommand(string input, ref int position)
+        private FracNode ParseFracCommand(string commandName, string input, ref int position)
         {
             var numeratorArgs = ParseCommandArguments(input, ref position);
             var denominatorArgs = ParseCommandArguments(input, ref position);
@@ -343,10 +344,10 @@ namespace LatexConverter.Parsing
             var numerator = new GroupNode(numeratorArgs, "", "");
             var denominator = new GroupNode(denominatorArgs, "", "");
 
-            return new FracNode(numerator, denominator);
+            return new FracNode(commandName, numerator, denominator);
         }
 
-        private RootNode ParseSqrtCommand(string input, ref int position)
+        private RootNode ParseSqrtCommand(string commandName, string input, ref int position)
         {
             var degreeArgs = ParseOptionalArgument(input, ref position);
             var radicandArgs = ParseCommandArguments(input, ref position);
@@ -354,7 +355,7 @@ namespace LatexConverter.Parsing
             AstNode degree = degreeArgs != null ? new GroupNode(degreeArgs, "", "") : new TextNode("2");
             var radicand = new GroupNode(radicandArgs, "", "");
 
-            return new RootNode(radicand, degree);
+            return new RootNode(commandName, radicand, degree);
         }
 
         private List<AstNode> ParseOptionalArgument(string input, ref int position)
@@ -470,11 +471,11 @@ namespace LatexConverter.Parsing
         public List<CommandInfo> ExtractCommands(List<AstNode> nodes)
         {
             var commands = new List<CommandInfo>();
-            ExtractCommandsRecursive(nodes, commands);
+            ExtractCommandsRecursive(nodes, commands, null);
             return commands;
         }
 
-        private void ExtractCommandsRecursive(List<AstNode> nodes, List<CommandInfo> commands)
+        private void ExtractCommandsRecursive(List<AstNode> nodes, List<CommandInfo> commands, CommandInfo currentCommandInfo)
         {
             foreach (var node in nodes)
             {
@@ -485,41 +486,102 @@ namespace LatexConverter.Parsing
                     {
                         if (arg is not TextNode)
                             continue;
-                        commandInfo.TextArguments.Add(ExtractTextContent(arg));
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(cmdNode.Args, commands);
+                    ExtractCommandsRecursive(cmdNode.Args, commands, commandInfo);
+                }
+                else if (node is FracNode fracNode)
+                {
+                    var commandInfo = new CommandInfo { CommandName = fracNode.Command };
+                    var args = node.GetAllSubNodes();
+                    foreach (var arg in args)
+                    {
+                        if (arg is not TextNode)
+                            continue;
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
+                    }
+                    commands.Add(commandInfo);
+                    ExtractCommandsRecursive(args, commands, commandInfo);
+                }
+                else if (node is RootNode rootNode)
+                {
+                    var commandInfo = new CommandInfo { CommandName = rootNode.Command };
+                    var args = node.GetAllSubNodes();
+                    foreach (var arg in args)
+                    {
+                        if (arg is not TextNode)
+                            continue;
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
+                    }
+                    commands.Add(commandInfo);
+                    ExtractCommandsRecursive(args, commands, commandInfo);
                 }
                 else if (node is GroupNode groupNode)
                 {
-                    ExtractCommandsRecursive(groupNode.Body, commands);
+                    foreach (var arg in groupNode.Body)
+                    {
+                        if (arg is not TextNode || currentCommandInfo == null)
+                            continue;
+                        currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
+                    }
+                    ExtractCommandsRecursive(groupNode.Body, commands, null);
                 }
                 else if (node is ScriptNode scriptNode)
                 {
-                    ExtractCommandsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, commands);
+                    ExtractCommandsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, commands, null);
+                }
+                else if (node is TextNode textNode && currentCommandInfo != null)
+                {
+                    currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(textNode));
                 }
             }
         }
 
-        private string ExtractTextContent(AstNode node)
+        private List<string> ExtractTextContentIfArgument(AstNode node)
         {
+            var textContents = new List<string>();
             if (node is TextNode textNode)
             {
-                return textNode.Text;
+                textContents.Add(textNode.Text);
             }
-            else if (node is CommandNode)
+            else if (node is CommandNode commandNode)
             {
-                return node.ToString();
+                textContents.AddRange(commandNode.Args.SelectMany(c => ExtractTextContentIfArgument(c)));
             }
             else if (node is GroupNode groupNode)
             {
-                return string.Join("", groupNode.Body.Select(ExtractTextContent));
+                textContents.AddRange(groupNode.Body.SelectMany(c => ExtractTextContentIfArgument(c)));
             }
-            else if (node is ScriptNode)
+            else if (node is RootNode rootNode)
             {
-                return node.ToString();
+                textContents.AddRange(ExtractTextContentIfArgument(rootNode.Radicand));
+                textContents.AddRange(ExtractTextContentIfArgument(rootNode.Degree));
             }
-            return node.ToString();
+            else if (node is ScriptNode scriptNode)
+            {
+                textContents.AddRange(ExtractTextContentIfArgument(scriptNode.Base));
+                textContents.AddRange(ExtractTextContentIfArgument(scriptNode.Script));
+            }
+
+            return textContents
+                .Where(c => isValidArgument(c))
+                .ToList();
+        }
+
+        private bool isValidArgument(string text)
+        {
+            var notAllowedForStart = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+            if (string.IsNullOrEmpty(text) || string.IsNullOrWhiteSpace(text))
+                return false;
+
+            if (notAllowedForStart.Any(c => text.StartsWith(c)))
+                return false;
+
+            if (text.Trim().Contains(" "))
+                return false;
+
+            return true;
         }
     }
 }

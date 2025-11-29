@@ -22,17 +22,17 @@ namespace LatexConvertorTests
             checkCommandsAndArgumentsCount("here it is a \\sqrt{x}", 1, 1);
             checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{y}}, it is simple Latex.", 2, 2);
             checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 1);
-            checkCommandsAndArgumentsCount("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 1); 
+            checkCommandsAndArgumentsCount("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 1);
         }
 
         private void checkCommandsAndArgumentsCount(string text, int commandsCount, int argumentCount)
         {
             var nodes = _latexParser.Parse(text);
             var commands = _commandExtractor.ExtractCommands(nodes);
-            if(commands.Count != commandsCount)
+            if (commands.Count != commandsCount)
                 Assert.Fail("Extracted commands count is invalid: " + text);
-            if( commands.Sum(c=> c.ArgumentCount) != argumentCount)
+            if (commands.Sum(c => c.ArgumentCount) != argumentCount)
                 Assert.Fail("Extracted arguments count is invalid: " + text);
-        } 
+        }
     }
 }

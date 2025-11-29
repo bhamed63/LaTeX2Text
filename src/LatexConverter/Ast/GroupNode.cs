@@ -15,5 +15,11 @@ namespace LatexConverter
         public override bool NeedsParentheses() => this.Body.Count > 1 || this.Body.Any(b => b is ScriptNode scriptNode && scriptNode.Script is GroupNode);
 
         public override string ToString() => $"{OpenDelimiter}{string.Join("", Body.Select(n => n.ToString()))}{CloseDelimiter}";
+
+
+        public override List<AstNode> GetAllSubNodes()
+        {
+            return Body.ToList();
+        }
     }
 }

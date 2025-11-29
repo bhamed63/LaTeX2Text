@@ -31,5 +31,10 @@ namespace LatexConverter
             }
             return sb.ToString();
         }
+
+        public override List<AstNode> GetAllSubNodes()
+        {
+            return Args.ToList();
+        }
     }
 }
