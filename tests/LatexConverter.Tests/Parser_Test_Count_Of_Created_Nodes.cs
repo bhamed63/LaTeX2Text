@@ -86,8 +86,26 @@ namespace LatexConvertorTests
                 {
                     nodesCount += getNestedNodesCount(new List<AstNode> { rootNode.Radicand, rootNode.Degree });
                 }
+                else if (item is LimNode limNode)
+                {
+                    nodesCount += getNestedNodesCount(new List<AstNode> { limNode.Subscript });
+                }
             }
             return nodesCount;
+        }
+
+        [Fact]
+        public void Test_Parser_Check_The_Count_Of_Lim_Nodes_Created()
+        {
+            Assert.True(_latexParser.Parse(@"\lim_{x \to 0}").Count == 1);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"\lim_{x \to 0}")) == 5);
+        }
+
+        [Fact]
+        public void Test_Parser_Check_The_Count_Of_Lim_Nodes_Created_Nested()
+        {
+            Assert.True(_latexParser.Parse(@"The limit is \lim_{x \to 0}").Count == 2);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"The limit is \lim_{x \to 0}")) == 6);
         }
     }
 }

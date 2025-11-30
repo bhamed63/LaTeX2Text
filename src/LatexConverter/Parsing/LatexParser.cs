@@ -315,6 +315,8 @@ namespace LatexConverter.Parsing
                     return ParseFracCommand(commandName, input, ref position);
                 case "sqrt":
                     return ParseSqrtCommand(commandName, input, ref position);
+                case "lim":
+                    return ParseLimitCommand(commandName, input, ref position);
                 default:
                     var arguments = new List<AstNode>();
                     while (position < input.Length && input[position] == '{')
@@ -356,6 +358,17 @@ namespace LatexConverter.Parsing
             var radicand = new GroupNode(radicandArgs, "", "");
 
             return new RootNode(commandName, radicand, degree);
+        }
+
+        private AstNode ParseLimitCommand(string commandName, string input, ref int position)
+        {
+            AstNode subscript = null;
+            if (position < input.Length && input[position] == '_')
+            {
+                position++; // Skip '_'
+                subscript = ParseScriptContent(input, ref position);
+            }
+            return new LimNode(commandName, new List<AstNode>(), subscript);
         }
 
         private List<AstNode> ParseOptionalArgument(string input, ref int position)

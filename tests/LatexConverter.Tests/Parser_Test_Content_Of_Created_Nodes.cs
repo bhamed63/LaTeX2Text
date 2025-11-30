@@ -40,6 +40,54 @@ namespace LatexConvertorTests
         }
 
         [Fact]
+        public void Test_Parser_Check_Content_Of_Lim_Node()
+        {
+            var nodes = _latexParser.Parse(@"\lim_{x \to 0}");
+            Assert.True(nodes[0] is LimNode);
+            var limNode = nodes[0] as LimNode;
+            Assert.True(limNode.Subscript is GroupNode);
+            var groupNode = limNode.Subscript as GroupNode;
+            Assert.True(groupNode.Body[0] is TextNode);
+            var textNode = groupNode.Body[0] as TextNode;
+            Assert.Equal("x ", textNode.Text);
+            Assert.True(groupNode.Body[1] is CommandNode);
+            var commandNode = groupNode.Body[1] as CommandNode;
+            Assert.Equal("to", commandNode.Command);
+            Assert.True(groupNode.Body[2] is TextNode);
+            textNode = groupNode.Body[2] as TextNode;
+            Assert.Equal(" 0", textNode.Text);
+        }
+
+        [Fact]
+        public void Test_Parser_Check_Content_Of_Lim_Node_Nested()
+        {
+            var nodes = _latexParser.Parse(@"Consider the limit \lim_{n \to \infty} \frac{1}{n}");
+            Assert.True(nodes[0] is TextNode);
+            var textNode = nodes[0] as TextNode;
+            Assert.Equal("Consider the limit ", textNode.Text);
+            Assert.True(nodes[1] is LimNode);
+            var limNode = nodes[1] as LimNode;
+            Assert.True(limNode.Subscript is GroupNode);
+            var groupNode = limNode.Subscript as GroupNode;
+            Assert.True(groupNode.Body[0] is TextNode);
+            textNode = groupNode.Body[0] as TextNode;
+            Assert.Equal("n ", textNode.Text);
+            Assert.True(groupNode.Body[1] is CommandNode);
+            var commandNode = groupNode.Body[1] as CommandNode;
+            Assert.Equal("to", commandNode.Command);
+            Assert.True(groupNode.Body[2] is TextNode);
+            textNode = groupNode.Body[2] as TextNode;
+            Assert.Equal(" ", textNode.Text);
+            Assert.True(groupNode.Body[3] is CommandNode);
+            commandNode = groupNode.Body[3] as CommandNode;
+            Assert.Equal("infty", commandNode.Command);
+            Assert.True(nodes[2] is TextNode);
+            textNode = nodes[2] as TextNode;
+            Assert.Equal(" ", textNode.Text);
+            Assert.True(nodes[3] is FracNode);
+        }
+
+        [Fact]
         public void Test_Parser_Check_Content_Of_Nodes()
         {
             var nodes = _latexParser.Parse("\\frac{x}{y}, it is simple Latex.");

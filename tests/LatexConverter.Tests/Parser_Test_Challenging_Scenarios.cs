@@ -186,5 +186,34 @@ namespace LatexConvertorTests
             var nodes2 = _latexParser.Parse("a^b^c");
             Assert.True(nodes2.Count == 1); // Should handle consecutive superscripts
         }
+
+        [Fact]
+        public void Test_Lim_With_Fraction_In_Subscript()
+        {
+            var nodes = _latexParser.Parse(@"\lim_{\frac{1}{n} \to 0}");
+            Assert.True(nodes.Count == 1);
+            Assert.True(nodes[0] is LimNode);
+            var limNode = nodes[0] as LimNode;
+            Assert.True(limNode.Subscript is GroupNode);
+            var groupNode = limNode.Subscript as GroupNode;
+            Assert.True(groupNode.Body[0] is FracNode);
+        }
+
+        [Fact]
+        public void Test_Lim_With_Sqrt_In_Subscript_Nested()
+        {
+            var nodes = _latexParser.Parse(@"The result is \lim_{x \to \infty} \sqrt{x}");
+            Assert.True(nodes.Count == 4);
+            Assert.True(nodes[0] is TextNode);
+            Assert.True(nodes[1] is LimNode);
+            var limNode = nodes[1] as LimNode;
+            Assert.True(limNode.Subscript is GroupNode);
+            var groupNode = limNode.Subscript as GroupNode;
+            Assert.True(groupNode.Body[0] is TextNode);
+            Assert.True(groupNode.Body[1] is CommandNode);
+            Assert.True(groupNode.Body[2] is TextNode);
+            Assert.True(groupNode.Body[3] is CommandNode);
+            Assert.True(nodes[3] is RootNode);
+        }
     }
 }
