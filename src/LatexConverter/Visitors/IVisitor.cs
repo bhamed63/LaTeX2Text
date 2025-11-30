@@ -23,5 +23,7 @@ namespace LatexConverter
         T ExceptionalVisitBinom(BinomNode node);
         T VisitMath(MathNode node);
         T ExceptionalVisitMath(MathNode node);
+        T VisitLim(LimNode node);
+        T ExceptionalVisitLim(LimNode node);
     }
 }

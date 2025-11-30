@@ -96,5 +96,10 @@ namespace LatexConverter.Visitors
         {
             return VisitMath(node);
         }
+
+        public override string VisitLim(LimNode node)
+        {
+            return node.Command + "_{" + node.Subscript.Accept(this) + "}";
+        }
     }
 }

@@ -145,6 +145,19 @@ namespace LatexConverter
             return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.OpenAITemplateMap);
         }
 
+        public override string VisitLim(LimNode node)
+        {
+            var sb = new StringBuilder();
+            sb.Append(Dictionaries.SymbolMap.GetValueOrDefault(node.Command, node.Command));
+            if (node.Subscript != null)
+            {
+                var toBeAppended = node.Subscript.Accept(this);
+                toBeAppended = addParantesesIfNeeded(toBeAppended);
+                sb.Append($"_{toBeAppended}");
+            }
+            return sb.ToString();
+        }
+
         public override string GetPreProcessedResult(string text)
         {
             return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();

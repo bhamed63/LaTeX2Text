@@ -68,8 +68,6 @@ namespace LatexConverter
                 case CommandNames.Int:
                 case CommandNames.Prod:
                     return _templateProcessor.ToUnicodeProcessTemplateCommandSubscriptSuperscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
-                case CommandNames.Lim:
-                    return _templateProcessor.ProcessTemplateCommandSubscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
                 default:
                     return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
@@ -117,6 +115,11 @@ namespace LatexConverter
             var top = node.Top.Accept(this);
             var bottom = node.Bottom.Accept(this);
             return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
+        }
+
+        public override string VisitLim(LimNode node)
+        {
+            return _templateProcessor.ProcessTemplateCommandSubscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
         }
 
         public override string GetPreProcessedResult(string text)

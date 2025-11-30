@@ -52,6 +52,11 @@ namespace LatexConverter
         {
             return VisitBinom(node);
         }
+        public abstract T VisitLim(LimNode node);
+        public virtual T ExceptionalVisitLim(LimNode node)
+        {
+            return VisitLim(node);
+        }
         public virtual T ExceptionalVisitMath(MathNode node)
         {
             return VisitMath(node);

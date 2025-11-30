@@ -81,7 +81,6 @@ namespace LatexConverter.Tests
         [InlineData(@"a \mp b", "a ∓ b")]
         [InlineData(@"a \equiv b", "a ≡ b")]
         [InlineData(@"\int_a^b f(x) dx", "∫ₐᵇ f(x) dx")]
-        // [InlineData(@"\lim_{x \to \infty} f(x)", "lim_{x→∞} f(x)")]
         [InlineData(@"\lim_{x \to \infty} f(x)", "lim (x→∞) f(x)")]
         [InlineData(@"\begin{pmatrix} a & b \\ c & d \end{pmatrix}", "(a b)\n(c d)")]
         [InlineData(@"\sin(x)", "sin(x)")]

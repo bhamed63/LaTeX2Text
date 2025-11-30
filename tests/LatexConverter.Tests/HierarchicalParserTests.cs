@@ -90,7 +90,6 @@ namespace LatexConverter.Tests
         [InlineData(@"a \neq b", 3)]
         [InlineData(@"\forall x", 2)]
         [InlineData(@"\int_a^b f(x) dx", 2)]
-        [InlineData(@"\lim_{x \to \infty} f(x)", 2)]
         [InlineData(@"\binom{n}{k}", 1)]
         [InlineData(@"The result is \approx 5.", 3)]
         [InlineData("\r\n\\alpha\r\n\\beta\r\n", 5)]
@@ -236,6 +235,23 @@ namespace LatexConverter.Tests
 
             var iSqNode = Assert.IsType<ScriptNode>(nodes[2]);
             Assert.True(iSqNode.IsSuperscript);
+        }
+
+        [Fact]
+        public void Parse_WithLimit_ShouldReturnCorrectNodes()
+        {
+            var text = @"\lim_{x \to \infty} f(x)";
+            var tokens = Tokenizer.Tokenize(text);
+            var parser = new HierarchicalParser(tokens);
+            var nodes = parser.Parse();
+
+            Assert.Equal(2, nodes.Count);
+            var limNode = Assert.IsType<LimNode>(nodes[0]);
+            var subScript = Assert.IsType<GroupNode>(limNode.Subscript);
+            Assert.Equal(5, subScript.Body.Count);
+
+            var textNode = Assert.IsType<TextNode>(nodes[1]);
+            Assert.Equal(" f(x)", textNode.Text);
         }
     }
 }

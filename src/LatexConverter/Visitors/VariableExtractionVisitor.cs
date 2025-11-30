@@ -138,5 +138,10 @@ namespace LatexConverter.Visitors
         {
             return VisitMath(node);
         }
+
+        public override List<string> VisitLim(LimNode node)
+        {
+            return Visit(node.Subscript, true);
+        }
     }
 }

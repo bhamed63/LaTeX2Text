@@ -210,6 +210,11 @@ namespace LatexConverter
                 superscript = ParsePrimary();
             }
 
+            if (token.Value == CommandNames.Lim)
+            {
+                return new LimNode(token.Value, new List<AstNode>(), subscript);
+            }
+
             return new CommandNode(token.Value, new List<AstNode>(), subscript, superscript);
         }
     }

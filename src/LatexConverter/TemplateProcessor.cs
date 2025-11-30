@@ -41,6 +41,20 @@ namespace LatexConverter
             return node.Command;
         }
 
+        public string ProcessTemplateCommandSubscript(LimNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap)
+        {
+            if (templateMap.TryGetValue(node.Command, out var template))
+            {
+                if (node.Subscript != null)
+                {
+                    var subscriptText = node.Subscript.Accept(visitor);
+                    subscriptText = Regex.Replace(subscriptText, @"\s+", "");
+                    return string.Format(template, subscriptText);
+                }
+            }
+            return node.Command;
+        }
+
         public string ToUnicodeProcessTemplateCommandSubscriptSuperscript(CommandNode node, IVisitor<string> visitor, IReadOnlyDictionary<string, string> templateMap, Dictionary<char, string> unicodeMap = null)
         {
             if (templateMap.TryGetValue(node.Command, out var template))
