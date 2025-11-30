@@ -215,5 +215,33 @@ namespace LatexConvertorTests
             Assert.True(groupNode.Body[3] is CommandNode);
             Assert.True(nodes[3] is RootNode);
         }
+
+        [Fact]
+        public void Test_Nth_Root_With_Fraction_In_Degree()
+        {
+            var nodes = _latexParser.Parse(@"\sqrt[\frac{1}{2}]{x}");
+            Assert.True(nodes.Count == 1);
+            Assert.True(nodes[0] is RootNode);
+            var rootNode = nodes[0] as RootNode;
+            Assert.True(rootNode.Degree is GroupNode);
+            var degreeGroup = rootNode.Degree as GroupNode;
+            Assert.True(degreeGroup.Body[0] is FracNode);
+        }
+
+        [Fact]
+        public void Test_Nth_Root_With_Fraction_In_Radicand_Nested()
+        {
+            var nodes = _latexParser.Parse(@"The result is \sqrt[n]{\frac{a}{b}}");
+            Assert.True(nodes.Count == 2);
+            Assert.True(nodes[0] is TextNode);
+            Assert.True(nodes[1] is RootNode);
+            var rootNode = nodes[1] as RootNode;
+            Assert.True(rootNode.Degree is GroupNode);
+            var degreeGroup = rootNode.Degree as GroupNode;
+            Assert.True(degreeGroup.Body[0] is TextNode);
+            Assert.True(rootNode.Radicand is GroupNode);
+            var radicandGroup = rootNode.Radicand as GroupNode;
+            Assert.True(radicandGroup.Body[0] is FracNode);
+        }
     }
 }

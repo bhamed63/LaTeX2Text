@@ -88,6 +88,45 @@ namespace LatexConvertorTests
         }
 
         [Fact]
+        public void Test_Parser_Check_Content_Of_Nth_Root_Node()
+        {
+            var nodes = _latexParser.Parse(@"\sqrt[3]{x}");
+            Assert.True(nodes[0] is RootNode);
+            var rootNode = nodes[0] as RootNode;
+            Assert.True(rootNode.Degree is GroupNode);
+            var degreeGroup = rootNode.Degree as GroupNode;
+            Assert.True(degreeGroup.Body[0] is TextNode);
+            var degreeText = degreeGroup.Body[0] as TextNode;
+            Assert.Equal("3", degreeText.Text);
+            Assert.True(rootNode.Radicand is GroupNode);
+            var radicandGroup = rootNode.Radicand as GroupNode;
+            Assert.True(radicandGroup.Body[0] is TextNode);
+            var radicandText = radicandGroup.Body[0] as TextNode;
+            Assert.Equal("x", radicandText.Text);
+        }
+
+        [Fact]
+        public void Test_Parser_Check_Content_Of_Nth_Root_Node_Nested()
+        {
+            var nodes = _latexParser.Parse(@"The equation is \sqrt[n]{x+y}");
+            Assert.True(nodes[0] is TextNode);
+            var textNode = nodes[0] as TextNode;
+            Assert.Equal("The equation is ", textNode.Text);
+            Assert.True(nodes[1] is RootNode);
+            var rootNode = nodes[1] as RootNode;
+            Assert.True(rootNode.Degree is GroupNode);
+            var degreeGroup = rootNode.Degree as GroupNode;
+            Assert.True(degreeGroup.Body[0] is TextNode);
+            var degreeText = degreeGroup.Body[0] as TextNode;
+            Assert.Equal("n", degreeText.Text);
+            Assert.True(rootNode.Radicand is GroupNode);
+            var radicandGroup = rootNode.Radicand as GroupNode;
+            Assert.True(radicandGroup.Body[0] is TextNode);
+            var radicandText = radicandGroup.Body[0] as TextNode;
+            Assert.Equal("x+y", radicandText.Text);
+        }
+
+        [Fact]
         public void Test_Parser_Check_Content_Of_Nodes()
         {
             var nodes = _latexParser.Parse("\\frac{x}{y}, it is simple Latex.");

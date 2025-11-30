@@ -107,5 +107,19 @@ namespace LatexConvertorTests
             Assert.True(_latexParser.Parse(@"The limit is \lim_{x \to 0}").Count == 2);
             Assert.True(getNestedNodesCount(_latexParser.Parse(@"The limit is \lim_{x \to 0}")) == 6);
         }
+
+        [Fact]
+        public void Test_Parser_Check_The_Count_Of_Nth_Root_Nodes_Created()
+        {
+            Assert.True(_latexParser.Parse(@"\sqrt[3]{x}").Count == 1);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"\sqrt[3]{x}")) == 5);
+        }
+
+        [Fact]
+        public void Test_Parser_Check_The_Count_Of_Nth_Root_Nodes_Created_Nested()
+        {
+            Assert.True(_latexParser.Parse(@"The equation is \sqrt[n]{x+y}").Count == 2);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"The equation is \sqrt[n]{x+y}")) == 6);
+        }
     }
 }
