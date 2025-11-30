@@ -124,6 +124,9 @@ namespace LatexConvertorTests
         {
             Assert.True(_latexParser.Parse(@"The equation is \sqrt[n]{x+y}").Count == 2);
             Assert.True(getNestedNodesCount(_latexParser.Parse(@"The equation is \sqrt[n]{x+y}")) == 6);
+
+            Assert.True(_latexParser.Parse(@"The equation is \sqrt[n]{\binom{n}{k}}").Count == 2);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"The equation is \sqrt[n]{\binom{n}{k}}")) == 10);
         }
 
         [Fact]
@@ -131,6 +134,9 @@ namespace LatexConvertorTests
         {
             Assert.True(_latexParser.Parse(@"\binom{n}{k}").Count == 1);
             Assert.True(getNestedNodesCount(_latexParser.Parse(@"\binom{n}{k}")) == 5);
+
+            Assert.True(_latexParser.Parse(@"\binom{n}{\sqrt{\alpha}}").Count == 1);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"\binom{n}{\sqrt{\alpha}}")) == 8);
         }
 
         [Fact]
@@ -138,6 +144,9 @@ namespace LatexConvertorTests
         {
             Assert.True(_latexParser.Parse(@"The result is \binom{n}{k}").Count == 2);
             Assert.True(getNestedNodesCount(_latexParser.Parse(@"The result is \binom{n}{k}")) == 6);
+
+            Assert.True(_latexParser.Parse(@"The result is \binom{n}{\sqrt{\alpha}}").Count == 2);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"The result is \binom{n}{\sqrt{\alpha}}")) == 9);
         }
 
     }
