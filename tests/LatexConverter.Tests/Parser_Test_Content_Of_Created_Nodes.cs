@@ -189,5 +189,38 @@ namespace LatexConvertorTests
             Assert.True(nodes[2] is RootNode rootNode2 && rootNode2.Radicand is GroupNode radicandGroup2 && radicandGroup2.Body[0] is FracNode);
             Assert.True(nodes[3] is TextNode);
         }
+
+        [Fact]
+        public void Test_Parser_Check_Content_Of_Generic_Command_Nodes()
+        {
+            // Command with single argument
+            var nodes1 = _latexParser.Parse(@"\sin{x}");
+            Assert.True(nodes1[0] is CommandNode);
+            var cmd1 = nodes1[0] as CommandNode;
+            Assert.Equal("sin", cmd1.Command);
+            Assert.True(cmd1.Args[0] is TextNode);
+            Assert.Equal("x", (cmd1.Args[0] as TextNode).Text);
+
+            // Command with multiple arguments
+            var nodes2 = _latexParser.Parse(@"\custom{arg1}{arg2}");
+            Assert.True(nodes2[0] is CommandNode);
+            var cmd2 = nodes2[0] as CommandNode;
+            Assert.Equal("custom", cmd2.Command);
+            Assert.True(cmd2.Args[0] is TextNode);
+            Assert.Equal("arg1", (cmd2.Args[0] as TextNode).Text);
+            Assert.True(cmd2.Args[1] is TextNode);
+            Assert.Equal("arg2", (cmd2.Args[1] as TextNode).Text);
+
+            // Nested command
+            var nodes3 = _latexParser.Parse(@"\outer{\inner{x}}");
+            Assert.True(nodes3[0] is CommandNode);
+            var cmd3 = nodes3[0] as CommandNode;
+            Assert.Equal("outer", cmd3.Command);
+            Assert.True(cmd3.Args[0] is CommandNode);
+            var innerCmd = cmd3.Args[0] as CommandNode;
+            Assert.Equal("inner", innerCmd.Command);
+            Assert.True(innerCmd.Args[0] is TextNode);
+            Assert.Equal("x", (innerCmd.Args[0] as TextNode).Text);
+        }
     }
 }
