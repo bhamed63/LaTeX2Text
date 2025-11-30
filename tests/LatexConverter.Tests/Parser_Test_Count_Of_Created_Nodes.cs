@@ -60,6 +60,10 @@ namespace LatexConvertorTests
             Assert.True(getNestedNodesCount(_latexParser.Parse("\\(it  \\sqrt{\\frac{x}{\\alpha}} \\)")) == 11);
             Assert.True(getNestedNodesCount(_latexParser.Parse("it a_{21} is")) == 5);
             Assert.True(getNestedNodesCount(_latexParser.Parse("here it a_{21} is a \\sqrt{\\frac{x}{y}}, it is simp m^2 le Latex.")) == 18);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("This is a nested binomial: \\binom{n}{\\binom{k}{2}}")) == 12);
+            // SKIPPED: Per user instruction, abandoning \lim implementation for now.
+            // Assert.True(getNestedNodesCount(_latexParser.Parse("The limit is \\lim_{x \\to \\infty} \\frac{1}{x}")) == 12);
+            Assert.True(getNestedNodesCount(_latexParser.Parse("it is a sample of \\frac{\\sqrt{\\sin{x+y}}}{\\alpha} to test")) == 14);
         }
 
         private int getNestedNodesCount(List<AstNode> latexNodes)

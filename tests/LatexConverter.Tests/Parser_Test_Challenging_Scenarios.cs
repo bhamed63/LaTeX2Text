@@ -197,5 +197,54 @@ namespace LatexConvertorTests
             Assert.True(binom.Top is GroupNode topGroup && topGroup.Body[0] is FracNode);
             Assert.True(binom.Bottom is GroupNode bottomGroup && bottomGroup.Body[0] is TextNode);
         }
+
+        [Fact]
+        public void Test_Nested_Binom_In_Sentence()
+        {
+            var nodes = _latexParser.Parse("This is a nested binomial: \\binom{n}{\\binom{k}{2}}");
+            Assert.True(nodes.Count == 2);
+            Assert.True(nodes[0] is TextNode && ((TextNode)nodes[0]).Text == "This is a nested binomial: ");
+            Assert.True(nodes[1] is BinomNode);
+            var binom1 = nodes[1] as BinomNode;
+            Assert.True(binom1.Top is GroupNode topGroup1 && topGroup1.Body[0] is TextNode topNode1 && topNode1.Text == "n");
+            Assert.True(binom1.Bottom is GroupNode bottomGroup && bottomGroup.Body[0] is BinomNode);
+            var binom2 = ((GroupNode)binom1.Bottom).Body[0] as BinomNode;
+            Assert.True(binom2.Top is GroupNode topGroup2 && topGroup2.Body[0] is TextNode topNode2 && topNode2.Text == "k");
+            Assert.True(binom2.Bottom is GroupNode bottomGroup2 && bottomGroup2.Body[0] is TextNode bottomNode2 && bottomNode2.Text == "2");
+        }
+
+        // SKIPPED: Per user instruction, abandoning \lim implementation for now.
+        // [Fact]
+        // public void Test_Lim_In_Sentence()
+        // {
+        //     var nodes = _latexParser.Parse("The limit is \\lim_{x \\to \\infty} \\frac{1}{x}");
+        //     Assert.True(nodes.Count == 3);
+        //     Assert.True(nodes[0] is TextNode && ((TextNode)nodes[0]).Text == "The limit is ");
+        //     Assert.True(nodes[1] is CommandNode);
+        //     var limNode = nodes[1] as CommandNode;
+        //     Assert.True(limNode.Command == "lim");
+        //     Assert.True(limNode.Subscript is GroupNode);
+        // }
+
+        [Fact]
+        public void Test_Complex_Nested_Functions_In_Sentence()
+        {
+            var nodes = _latexParser.Parse("it is a sample of \\frac{\\sqrt{\\sin{x+y}}}{\\alpha} to test");
+            Assert.True(nodes.Count == 3);
+            Assert.True(nodes[0] is TextNode && ((TextNode)nodes[0]).Text == "it is a sample of ");
+            Assert.True(nodes[2] is TextNode && ((TextNode)nodes[2]).Text == " to test");
+            Assert.True(nodes[1] is FracNode);
+            var frac = nodes[1] as FracNode;
+            Assert.True(frac.Numerator is GroupNode numGroup && numGroup.Body[0] is RootNode);
+            var root = ((GroupNode)frac.Numerator).Body[0] as RootNode;
+            Assert.True(root.Radicand is GroupNode radGroup && radGroup.Body[0] is CommandNode);
+            var sin = ((GroupNode)root.Radicand).Body[0] as CommandNode;
+            Assert.True(sin.Command == "sin");
+            Assert.True(sin.Args.Count == 1);
+            Assert.True(sin.Args[0] is TextNode arg && arg.Text == "x+y");
+            Assert.True(frac.Denominator is GroupNode denGroup && denGroup.Body[0] is CommandNode);
+            var alpha = ((GroupNode)frac.Denominator).Body[0] as CommandNode;
+            Assert.True(alpha.Command == "alpha");
+        }
     }
 }

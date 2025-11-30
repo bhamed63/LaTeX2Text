@@ -79,10 +79,11 @@ namespace LatexConvertorTests
             // Assert.True(nodes[0] is RootNode rootNode3 && rootNode3.Degree is GroupNode degreeGroup && degreeGroup.Body[0] is TextNode degreeNode && degreeNode.Text == "3");
             // Assert.True(nodes[0] is RootNode rootNode4 && rootNode4.Radicand is GroupNode radicandGroup4 && ((GroupNode)rootNode4.Radicand).Body[0] is TextNode radicandNode && radicandNode.Text == "x");
 
-            nodes = _latexParser.Parse("\\lim_{x \\to \\infty}");
-            Assert.True(nodes[0] is CommandNode);
-            Assert.True(nodes[0] is CommandNode limNode && limNode.Command == "lim");
-            Assert.True(nodes[0] is CommandNode limNode2 && limNode2.Subscript is GroupNode);
+            // SKIPPED: Per user instruction, abandoning \lim implementation for now.
+            // nodes = _latexParser.Parse("\\lim_{x \\to \\infty}");
+            // Assert.True(nodes[0] is CommandNode);
+            // Assert.True(nodes[0] is CommandNode limNode && limNode.Command == "lim");
+            // Assert.True(nodes[0] is CommandNode limNode2 && limNode2.Subscript is GroupNode);
 
             nodes = _latexParser.Parse("\\sin{x}");
             Assert.True(nodes[0] is CommandNode);
