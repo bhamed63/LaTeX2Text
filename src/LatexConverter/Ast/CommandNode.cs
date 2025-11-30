@@ -1,12 +1,23 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LatexConverter
 {
     /// <summary>
     /// Represents a command node in the AST.
     /// </summary>
-    public record CommandNode(string Command, List<AstNode> Args, AstNode Subscript, AstNode Superscript) : AstNode
+    public record CommandNode(string Command, List<AstNode> Args) : AstNode
     {
+        public AstNode? Subscript { get; set; }
+        public AstNode? Superscript { get; set; }
+
+        public CommandNode(string command, List<AstNode> args, AstNode? subscript, AstNode? superscript)
+            : this(command, args)
+        {
+            Subscript = subscript;
+            Superscript = superscript;
+        }
+
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCommand(this);
         public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitCommand(this);
 

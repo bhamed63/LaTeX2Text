@@ -308,13 +308,19 @@ namespace LatexConverter.Parsing
         {
             position++;
             string commandName = ReadCommandName(input, ref position);
+            AstNode node;
 
             switch (commandName)
             {
                 case "frac":
-                    return ParseFracCommand(commandName, input, ref position);
+                    node = ParseFracCommand(commandName, input, ref position);
+                    break;
                 case "sqrt":
-                    return ParseSqrtCommand(commandName, input, ref position);
+                    node = ParseSqrtCommand(commandName, input, ref position);
+                    break;
+                case "binom":
+                    node = ParseBinomCommand(commandName, input, ref position);
+                    break;
                 default:
                     var arguments = new List<AstNode>();
                     while (position < input.Length && input[position] == '{')
@@ -332,8 +338,43 @@ namespace LatexConverter.Parsing
                             break;
                         }
                     }
-                    return new CommandNode(commandName, arguments, null, null);
+                    node = new CommandNode(commandName, arguments);
+                    break;
             }
+
+            if (node is CommandNode commandNode)
+            {
+                while (position < input.Length && (input[position] == '_' || input[position] == '^'))
+                {
+                    bool isSuperscript = input[position] == '^';
+                    position++;
+
+                    var scriptContent = ParseScriptContent(input, ref position);
+                    if (scriptContent != null)
+                    {
+                        if (isSuperscript)
+                        {
+                            commandNode.Superscript = scriptContent;
+                        }
+                        else
+                        {
+                            commandNode.Subscript = scriptContent;
+                        }
+                    }
+                }
+            }
+            return node;
+        }
+
+        private BinomNode ParseBinomCommand(string commandName, string input, ref int position)
+        {
+            var topArgs = ParseCommandArguments(input, ref position);
+            var bottomArgs = ParseCommandArguments(input, ref position);
+
+            var top = new GroupNode(topArgs, "", "");
+            var bottom = new GroupNode(bottomArgs, "", "");
+
+            return new BinomNode(commandName, top, bottom);
         }
 
         private FracNode ParseFracCommand(string commandName, string input, ref int position)

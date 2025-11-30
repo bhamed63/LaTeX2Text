@@ -186,5 +186,16 @@ namespace LatexConvertorTests
             var nodes2 = _latexParser.Parse("a^b^c");
             Assert.True(nodes2.Count == 1); // Should handle consecutive superscripts
         }
+
+        [Fact]
+        public void Test_Binom_With_Frac()
+        {
+            var nodes = _latexParser.Parse("\\binom{\\frac{1}{2}}{k}");
+            Assert.True(nodes.Count == 1);
+            Assert.True(nodes[0] is BinomNode);
+            var binom = nodes[0] as BinomNode;
+            Assert.True(binom.Top is GroupNode topGroup && topGroup.Body[0] is FracNode);
+            Assert.True(binom.Bottom is GroupNode bottomGroup && bottomGroup.Body[0] is TextNode);
+        }
     }
 }
