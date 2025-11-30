@@ -90,6 +90,10 @@ namespace LatexConvertorTests
                 {
                     nodesCount += getNestedNodesCount(new List<AstNode> { limNode.Subscript });
                 }
+                else if (item is BinomNode binomNode)
+                {
+                    nodesCount += getNestedNodesCount(new List<AstNode> { binomNode.Top, binomNode.Bottom });
+                }
             }
             return nodesCount;
         }
@@ -121,5 +125,20 @@ namespace LatexConvertorTests
             Assert.True(_latexParser.Parse(@"The equation is \sqrt[n]{x+y}").Count == 2);
             Assert.True(getNestedNodesCount(_latexParser.Parse(@"The equation is \sqrt[n]{x+y}")) == 6);
         }
+
+        [Fact]
+        public void Test_Parser_Check_The_Count_Of_Binom_Nodes_Created()
+        {
+            Assert.True(_latexParser.Parse(@"\binom{n}{k}").Count == 1);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"\binom{n}{k}")) == 5);
+        }
+
+        [Fact]
+        public void Test_Parser_Check_The_Count_Of_Binom_Nodes_Created_Nested()
+        {
+            Assert.True(_latexParser.Parse(@"The result is \binom{n}{k}").Count == 2);
+            Assert.True(getNestedNodesCount(_latexParser.Parse(@"The result is \binom{n}{k}")) == 6);
+        }
+
     }
 }

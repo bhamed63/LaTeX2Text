@@ -317,6 +317,8 @@ namespace LatexConverter.Parsing
                     return ParseSqrtCommand(commandName, input, ref position);
                 case "lim":
                     return ParseLimitCommand(commandName, input, ref position);
+                case "binom":
+                    return ParseBinomCommand(commandName, input, ref position);
                 default:
                     var arguments = new List<AstNode>();
                     while (position < input.Length && input[position] == '{')
@@ -369,6 +371,17 @@ namespace LatexConverter.Parsing
                 subscript = ParseScriptContent(input, ref position);
             }
             return new LimNode(commandName, new List<AstNode>(), subscript);
+        }
+
+        private BinomNode ParseBinomCommand(string commandName, string input, ref int position)
+        {
+            var topArgs = ParseCommandArguments(input, ref position);
+            var bottomArgs = ParseCommandArguments(input, ref position);
+
+            var top = new GroupNode(topArgs, "", "");
+            var bottom = new GroupNode(bottomArgs, "", "");
+
+            return new BinomNode(commandName, top, bottom);
         }
 
         private List<AstNode> ParseOptionalArgument(string input, ref int position)

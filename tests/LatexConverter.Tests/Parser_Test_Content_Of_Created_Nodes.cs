@@ -127,6 +127,45 @@ namespace LatexConvertorTests
         }
 
         [Fact]
+        public void Test_Parser_Check_Content_Of_Binom_Node()
+        {
+            var nodes = _latexParser.Parse(@"\binom{n}{k}");
+            Assert.True(nodes[0] is BinomNode);
+            var binomNode = nodes[0] as BinomNode;
+            Assert.True(binomNode.Top is GroupNode);
+            var topGroup = binomNode.Top as GroupNode;
+            Assert.True(topGroup.Body[0] is TextNode);
+            var topText = topGroup.Body[0] as TextNode;
+            Assert.Equal("n", topText.Text);
+            Assert.True(binomNode.Bottom is GroupNode);
+            var bottomGroup = binomNode.Bottom as GroupNode;
+            Assert.True(bottomGroup.Body[0] is TextNode);
+            var bottomText = bottomGroup.Body[0] as TextNode;
+            Assert.Equal("k", bottomText.Text);
+        }
+
+        [Fact]
+        public void Test_Parser_Check_Content_Of_Binom_Node_Nested()
+        {
+            var nodes = _latexParser.Parse(@"The result is \binom{n}{k}");
+            Assert.True(nodes[0] is TextNode);
+            var textNode = nodes[0] as TextNode;
+            Assert.Equal("The result is ", textNode.Text);
+            Assert.True(nodes[1] is BinomNode);
+            var binomNode = nodes[1] as BinomNode;
+            Assert.True(binomNode.Top is GroupNode);
+            var topGroup = binomNode.Top as GroupNode;
+            Assert.True(topGroup.Body[0] is TextNode);
+            var topText = topGroup.Body[0] as TextNode;
+            Assert.Equal("n", topText.Text);
+            Assert.True(binomNode.Bottom is GroupNode);
+            var bottomGroup = binomNode.Bottom as GroupNode;
+            Assert.True(bottomGroup.Body[0] is TextNode);
+            var bottomText = bottomGroup.Body[0] as TextNode;
+            Assert.Equal("k", bottomText.Text);
+        }
+
+        [Fact]
         public void Test_Parser_Check_Content_Of_Nodes()
         {
             var nodes = _latexParser.Parse("\\frac{x}{y}, it is simple Latex.");
