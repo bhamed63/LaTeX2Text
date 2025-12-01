@@ -510,12 +510,11 @@ namespace LatexConverter.Parsing
                     var commandInfo = new CommandInfo { CommandName = cmdNode.Command };
                     foreach (var arg in cmdNode.Args)
                     {
-                        if (arg is not TextNode)
-                            continue;
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(cmdNode.Args, commands, commandInfo);
+                    // Recurse to find more commands, but pass null to avoid argument duplication
+                    ExtractCommandsRecursive(cmdNode.Args, commands, null);
                 }
                 else if (node is FracNode fracNode)
                 {

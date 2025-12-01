@@ -34,5 +34,36 @@ namespace LatexConvertorTests
             if (commands.Sum(c => c.ArgumentCount) != argumentCount)
                 Assert.Fail("Extracted arguments count is invalid: " + text);
         }
+
+        [Fact]
+        public void Test_CommandExtractor_Comprehensive_Scenarios()
+        {
+            // Generic command with one argument
+            checkCommandsAndArgumentsCount(@"\sin{x}", 1, 1);
+
+            // Generic command with multiple arguments (note: only "arg1" and "arg2" are valid args)
+            checkCommandsAndArgumentsCount(@"\command{arg1}{arg2}{123}", 1, 2);
+
+            // Nested generic commands
+            checkCommandsAndArgumentsCount(@"\textbf{\textit{i}}", 2, 2);
+
+            // Command with no arguments
+            checkCommandsAndArgumentsCount(@"\alpha", 1, 0);
+
+            // Mixed content with multiple commands
+            checkCommandsAndArgumentsCount(@"Some text \command{arg} and \another", 2, 1);
+
+            // Special command containing a generic command
+            checkCommandsAndArgumentsCount(@"\sqrt{\textbf{x}}", 2, 1);
+
+            // Generic command with a special command as an argument
+            checkCommandsAndArgumentsCount(@"\textit{\frac{a}{b}}", 2, 2);
+
+            // Command with an argument that is invalid and should be ignored
+            checkCommandsAndArgumentsCount(@"\item{1. First point}", 1, 0);
+
+            // Command with an argument containing spaces, which is invalid
+            checkCommandsAndArgumentsCount(@"\textbf{hello world}", 1, 0);
+        }
     }
 }

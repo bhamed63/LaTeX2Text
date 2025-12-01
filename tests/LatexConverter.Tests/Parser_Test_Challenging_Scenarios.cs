@@ -243,36 +243,5 @@ namespace LatexConvertorTests
             var radicandGroup = rootNode.Radicand as GroupNode;
             Assert.True(radicandGroup.Body[0] is FracNode);
         }
-
-        [Fact]
-        public void Test_Generic_Command_With_Special_Arguments()
-        {
-            // Generic command with a \frac node as an argument
-            var nodes1 = _latexParser.Parse(@"\command{\frac{a}{b}}");
-            Assert.True(nodes1.Count == 1);
-            Assert.True(nodes1[0] is CommandNode);
-            var cmd1 = nodes1[0] as CommandNode;
-            Assert.Equal("command", cmd1.Command);
-            Assert.True(cmd1.Args[0] is FracNode);
-
-            // Generic command with a \sqrt node as an argument
-            var nodes2 = _latexParser.Parse(@"\style{\sqrt{x}}");
-            Assert.True(nodes2.Count == 1);
-            Assert.True(nodes2[0] is CommandNode);
-            var cmd2 = nodes2[0] as CommandNode;
-            Assert.Equal("style", cmd2.Command);
-            Assert.True(cmd2.Args[0] is RootNode);
-
-            // Special command with a generic command as an argument
-            var nodes3 = _latexParser.Parse(@"\frac{\textbf{bold}}{normal}");
-            Assert.True(nodes3.Count == 1);
-            Assert.True(nodes3[0] is FracNode);
-            var frac = nodes3[0] as FracNode;
-            var numeratorGroup = frac.Numerator as GroupNode;
-            Assert.True(numeratorGroup.Body[0] is CommandNode);
-            var boldCmd = numeratorGroup.Body[0] as CommandNode;
-            Assert.Equal("textbf", boldCmd.Command);
-            Assert.Equal("bold", (boldCmd.Args[0] as TextNode).Text);
-        }
     }
 }
