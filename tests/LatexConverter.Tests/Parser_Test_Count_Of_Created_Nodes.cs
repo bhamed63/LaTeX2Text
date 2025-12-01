@@ -69,6 +69,14 @@ namespace LatexConvertorTests
                 if (item is CommandNode commandNode)
                 {
                     nodesCount += getNestedNodesCount(commandNode.Args);
+                    if (commandNode.Subscript != null)
+                    {
+                        nodesCount += getNestedNodesCount(new List<AstNode> { commandNode.Subscript });
+                    }
+                    if (commandNode.Superscript != null)
+                    {
+                        nodesCount += getNestedNodesCount(new List<AstNode> { commandNode.Superscript });
+                    }
                 }
                 else if (item is GroupNode groupNode)
                 {
@@ -85,10 +93,6 @@ namespace LatexConvertorTests
                 else if (item is RootNode rootNode)
                 {
                     nodesCount += getNestedNodesCount(new List<AstNode> { rootNode.Radicand, rootNode.Degree });
-                }
-                else if (item is LimNode limNode)
-                {
-                    nodesCount += getNestedNodesCount(new List<AstNode> { limNode.Subscript });
                 }
                 else if (item is BinomNode binomNode)
                 {

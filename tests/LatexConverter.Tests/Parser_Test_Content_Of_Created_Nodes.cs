@@ -43,8 +43,8 @@ namespace LatexConvertorTests
         public void Test_Parser_Check_Content_Of_Lim_Node()
         {
             var nodes = _latexParser.Parse(@"\lim_{x \to 0}");
-            Assert.True(nodes[0] is LimNode);
-            var limNode = nodes[0] as LimNode;
+            Assert.True(nodes[0] is CommandNode);
+            var limNode = nodes[0] as CommandNode;
             Assert.True(limNode.Subscript is GroupNode);
             var groupNode = limNode.Subscript as GroupNode;
             Assert.True(groupNode.Body[0] is TextNode);
@@ -65,8 +65,8 @@ namespace LatexConvertorTests
             Assert.True(nodes[0] is TextNode);
             var textNode = nodes[0] as TextNode;
             Assert.Equal("Consider the limit ", textNode.Text);
-            Assert.True(nodes[1] is LimNode);
-            var limNode = nodes[1] as LimNode;
+            Assert.True(nodes[1] is CommandNode);
+            var limNode = nodes[1] as CommandNode;
             Assert.True(limNode.Subscript is GroupNode);
             var groupNode = limNode.Subscript as GroupNode;
             Assert.True(groupNode.Body[0] is TextNode);

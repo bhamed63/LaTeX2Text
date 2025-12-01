@@ -192,8 +192,8 @@ namespace LatexConvertorTests
         {
             var nodes = _latexParser.Parse(@"\lim_{\frac{1}{n} \to 0}");
             Assert.True(nodes.Count == 1);
-            Assert.True(nodes[0] is LimNode);
-            var limNode = nodes[0] as LimNode;
+            Assert.True(nodes[0] is CommandNode);
+            var limNode = nodes[0] as CommandNode;
             Assert.True(limNode.Subscript is GroupNode);
             var groupNode = limNode.Subscript as GroupNode;
             Assert.True(groupNode.Body[0] is FracNode);
@@ -205,8 +205,8 @@ namespace LatexConvertorTests
             var nodes = _latexParser.Parse(@"The result is \lim_{x \to \infty} \sqrt{x}");
             Assert.True(nodes.Count == 4);
             Assert.True(nodes[0] is TextNode);
-            Assert.True(nodes[1] is LimNode);
-            var limNode = nodes[1] as LimNode;
+            Assert.True(nodes[1] is CommandNode);
+            var limNode = nodes[1] as CommandNode;
             Assert.True(limNode.Subscript is GroupNode);
             var groupNode = limNode.Subscript as GroupNode;
             Assert.True(groupNode.Body[0] is TextNode);
@@ -214,6 +214,19 @@ namespace LatexConvertorTests
             Assert.True(groupNode.Body[2] is TextNode);
             Assert.True(groupNode.Body[3] is CommandNode);
             Assert.True(nodes[3] is RootNode);
+        }
+
+        [Fact]
+        public void Test_Lim_With_Subscript_And_Superscript()
+        {
+            var nodes = _latexParser.Parse(@"\lim_{x \to 0}^{+}");
+            Assert.True(nodes.Count == 1);
+            Assert.True(nodes[0] is CommandNode);
+            var limNode = nodes[0] as CommandNode;
+            Assert.True(limNode.Command == "lim");
+            Assert.True(limNode.Subscript is GroupNode);
+            Assert.True(limNode.Superscript is TextNode);
+            Assert.True((limNode.Superscript as TextNode).Text == "+");
         }
 
         [Fact]
@@ -359,6 +372,41 @@ namespace LatexConvertorTests
             Assert.True((prod.Subscript as TextNode).Text == "i=1");
             Assert.True(prod.Superscript is TextNode);
             Assert.True((prod.Superscript as TextNode).Text == "n");
+        }
+
+        [Fact]
+        public void Test_Single_Argument_Commands()
+        {
+            // \vec a (no braces)
+            var nodes1 = _latexParser.Parse("\\vec a");
+            Assert.True(nodes1.Count == 1);
+            Assert.True(nodes1[0] is CommandNode);
+            var vec = nodes1[0] as CommandNode;
+            Assert.True(vec.Command == "vec");
+            Assert.True(vec.Args.Count == 1);
+            Assert.True(vec.Args[0] is TextNode && (vec.Args[0] as TextNode).Text == "a");
+
+            // \mathbf{F} (with braces)
+            var nodes2 = _latexParser.Parse("\\mathbf{F}");
+            Assert.True(nodes2.Count == 1);
+            Assert.True(nodes2[0] is CommandNode);
+            var bold = nodes2[0] as CommandNode;
+            Assert.True(bold.Command == "mathbf");
+            Assert.True(bold.Args.Count == 1);
+            Assert.True(bold.Args[0] is TextNode && (bold.Args[0] as TextNode).Text == "F");
+
+            // Nested: \mathbf \vec a
+            var nodes3 = _latexParser.Parse("\\mathbf \\vec a");
+            Assert.True(nodes3.Count == 1);
+            Assert.True(nodes3[0] is CommandNode);
+            var boldVec = nodes3[0] as CommandNode;
+            Assert.True(boldVec.Command == "mathbf");
+            Assert.True(boldVec.Args.Count == 1);
+            Assert.True(boldVec.Args[0] is CommandNode);
+            var innerVec = boldVec.Args[0] as CommandNode;
+            Assert.True(innerVec.Command == "vec");
+            Assert.True(innerVec.Args.Count == 1);
+            Assert.True(innerVec.Args[0] is TextNode && (innerVec.Args[0] as TextNode).Text == "a");
         }
     }
 }

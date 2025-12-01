@@ -252,6 +252,12 @@ namespace LatexConverter.Parsing
             position++;
             string commandName = ReadCommandName(input, ref position);
 
+            if (IsSingleArgumentCommand(commandName))
+            {
+                var arg = ParseArgument(input, ref position);
+                return new CommandNode(commandName, new List<AstNode> { arg }, null, null);
+            }
+
             switch (commandName)
             {
                 case "frac":
@@ -284,6 +290,48 @@ namespace LatexConverter.Parsing
                     }
                     return new CommandNode(commandName, arguments, null, null);
             }
+        }
+
+        private static readonly HashSet<string> SingleArgumentCommands = new HashSet<string>
+        {
+            "vec", "hat", "mathcal", "mathbb", "text", "mathrm", "textrm", "cos", "sin", "tan",
+            "log", "ln", "exp", "det", "mathbf", "mathit", "mathsf", "mathtt", "mathfrak",
+            "mathscr", "overline", "bar"
+        };
+
+        private bool IsSingleArgumentCommand(string commandName)
+        {
+            return SingleArgumentCommands.Contains(commandName);
+        }
+
+        private AstNode ParseArgument(string input, ref int position)
+        {
+            while (position < input.Length && char.IsWhiteSpace(input[position]))
+            {
+                position++;
+            }
+
+            if (position >= input.Length)
+            {
+                return new TextNode("");
+            }
+
+            if (input[position] == '{')
+            {
+                position++; // Consume '{'
+                var content = ExtractBracedContent(input, ref position);
+                position++; // Consume '}'
+                var nodes = Parse(content);
+                if (nodes.Count == 1) return nodes[0];
+                return new GroupNode(nodes, "", "");
+            }
+
+            if (input[position] == '\\')
+            {
+                return ParseCommand(input, ref position);
+            }
+
+            return new TextNode(input[position++].ToString());
         }
 
         private AstNode ParseLimitStyleCommand(string commandName, string input, ref int position)
@@ -331,11 +379,6 @@ namespace LatexConverter.Parsing
             else
             {
                 position = checkpoint;
-            }
-
-            if (commandName == "lim")
-            {
-                return new LimNode(commandName, new List<AstNode>(), subscript);
             }
 
             return new CommandNode(commandName, new List<AstNode>(), subscript, superscript);
