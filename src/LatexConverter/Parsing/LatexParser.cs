@@ -259,7 +259,10 @@ namespace LatexConverter.Parsing
                 case "sqrt":
                     return ParseSqrtCommand(commandName, input, ref position);
                 case "lim":
-                    return ParseLimitCommand(commandName, input, ref position);
+                case "sum":
+                case "int":
+                case "prod":
+                    return ParseLimitStyleCommand(commandName, input, ref position);
                 case "binom":
                     return ParseBinomCommand(commandName, input, ref position);
                 default:
@@ -283,6 +286,61 @@ namespace LatexConverter.Parsing
             }
         }
 
+        private AstNode ParseLimitStyleCommand(string commandName, string input, ref int position)
+        {
+            AstNode subscript = null;
+            AstNode superscript = null;
+
+            // First pass for either _ or ^
+            int checkpoint = position;
+            while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+
+            if (position < input.Length && input[position] == '_')
+            {
+                position++;
+                while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+                subscript = ParseScriptContent(input, ref position);
+            }
+            else if (position < input.Length && input[position] == '^')
+            {
+                position++;
+                while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+                superscript = ParseScriptContent(input, ref position);
+            }
+            else
+            {
+                position = checkpoint;
+            }
+
+            // Second pass for the other script
+            checkpoint = position;
+            while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+
+            if (subscript == null && position < input.Length && input[position] == '_')
+            {
+                position++;
+                while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+                subscript = ParseScriptContent(input, ref position);
+            }
+            else if (superscript == null && position < input.Length && input[position] == '^')
+            {
+                position++;
+                while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+                superscript = ParseScriptContent(input, ref position);
+            }
+            else
+            {
+                position = checkpoint;
+            }
+
+            if (commandName == "lim")
+            {
+                return new LimNode(commandName, new List<AstNode>(), subscript);
+            }
+
+            return new CommandNode(commandName, new List<AstNode>(), subscript, superscript);
+        }
+
         private FracNode ParseFracCommand(string commandName, string input, ref int position)
         {
             var numeratorArgs = ParseCommandArguments(input, ref position);
@@ -303,17 +361,6 @@ namespace LatexConverter.Parsing
             var radicand = new GroupNode(radicandArgs, "", "");
 
             return new RootNode(commandName, radicand, degree);
-        }
-
-        private AstNode ParseLimitCommand(string commandName, string input, ref int position)
-        {
-            AstNode subscript = null;
-            if (position < input.Length && input[position] == '_')
-            {
-                position++; // Skip '_'
-                subscript = ParseScriptContent(input, ref position);
-            }
-            return new LimNode(commandName, new List<AstNode>(), subscript);
         }
 
         private BinomNode ParseBinomCommand(string commandName, string input, ref int position)

@@ -325,5 +325,40 @@ namespace LatexConvertorTests
             Assert.True(script3.Base is TextNode && (script3.Base as TextNode).Text == "b");
             Assert.True(script3.Script is TextNode && (script3.Script as TextNode).Text == "c");
         }
+
+        [Fact]
+        public void Test_Limit_Style_Commands()
+        {
+            // \sum_{i=1}^{n}
+            var nodes1 = _latexParser.Parse("\\sum_{i=1}^{n}");
+            Assert.True(nodes1.Count == 1);
+            Assert.True(nodes1[0] is CommandNode);
+            var sum = nodes1[0] as CommandNode;
+            Assert.True(sum.Command == "sum");
+            Assert.True(sum.Subscript is TextNode);
+            Assert.True((sum.Subscript as TextNode).Text == "i=1");
+            Assert.True(sum.Superscript is TextNode);
+            Assert.True((sum.Superscript as TextNode).Text == "n");
+
+            // \int_a^b
+            var nodes2 = _latexParser.Parse("\\int_a^b");
+            Assert.True(nodes2.Count == 1);
+            Assert.True(nodes2[0] is CommandNode);
+            var integral = nodes2[0] as CommandNode;
+            Assert.True(integral.Command == "int");
+            Assert.True(integral.Subscript is TextNode && (integral.Subscript as TextNode).Text == "a");
+            Assert.True(integral.Superscript is TextNode && (integral.Superscript as TextNode).Text == "b");
+
+            // \prod _ {i=1} ^ {n}
+            var nodes3 = _latexParser.Parse("\\prod _ {i=1} ^ {n}");
+            Assert.True(nodes3.Count == 1);
+            Assert.True(nodes3[0] is CommandNode);
+            var prod = nodes3[0] as CommandNode;
+            Assert.True(prod.Command == "prod");
+            Assert.True(prod.Subscript is TextNode);
+            Assert.True((prod.Subscript as TextNode).Text == "i=1");
+            Assert.True(prod.Superscript is TextNode);
+            Assert.True((prod.Superscript as TextNode).Text == "n");
+        }
     }
 }
