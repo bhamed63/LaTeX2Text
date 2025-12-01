@@ -62,93 +62,79 @@ namespace LatexConverter.Parsing
                 }
                 else if (input[position] == '_' || input[position] == '^')
                 {
-                    // Found script character
-                    if (position == start)
-                    {
-                        // Script at beginning - treat as text
-                        nodes.Add(new TextNode(input.Substring(start, 1)));
-                        position++;
-                        return nodes;
-                    }
+                    string textBefore = input.Substring(start, position - start);
 
-                    // Check if there's whitespace immediately before the script
-                    if (char.IsWhiteSpace(input[position - 1]))
+                    if (string.IsNullOrWhiteSpace(textBefore))
                     {
-                        // Script with whitespace before - treat script char as separate text
-                        if (position > start)
+                        if (!string.IsNullOrEmpty(textBefore))
                         {
-                            nodes.Add(new TextNode(input.Substring(start, position - start)));
+                            nodes.Add(new TextNode(textBefore));
                         }
                         nodes.Add(new TextNode(input[position].ToString()));
                         position++;
                         return nodes;
                     }
 
-                    // Find the base text (go backwards until whitespace or delimiter)
                     int baseEnd = position;
-                    int baseStart = baseEnd;
-
-                    // Go backwards to find the start of the base text
-                    while (baseStart > start)
+                    while (baseEnd > start && char.IsWhiteSpace(input[baseEnd - 1]))
                     {
-                        if (char.IsWhiteSpace(input[baseStart - 1]) ||
-                            input[baseStart - 1] == '\\' ||
-                            input[baseStart - 1] == '(' || input[baseStart - 1] == '[' ||
-                            input[baseStart - 1] == ')' || input[baseStart - 1] == ']')
-                        {
-                            break;
-                        }
+                        baseEnd--;
+                    }
+
+                    int baseStart = baseEnd;
+                    while (baseStart > start && !char.IsWhiteSpace(input[baseStart - 1]))
+                    {
                         baseStart--;
                     }
 
-                    if (baseStart >= baseEnd)
-                    {
-                        // No valid base found
-                        nodes.Add(new TextNode(input.Substring(start, position - start + 1)));
-                        position++;
-                        return nodes;
-                    }
-
-                    List<AstNode> resultNodes = new List<AstNode>();
-
-                    // Add text before the base
-                    if (baseStart > start)
-                    {
-                        string precedingText = input.Substring(start, baseStart - start);
-                        resultNodes.Add(new TextNode(precedingText));
-                    }
-
-                    // Extract base text (can be multiple characters like "ab")
+                    string precedingText = input.Substring(start, baseStart - start);
                     string baseText = input.Substring(baseStart, baseEnd - baseStart);
+
+                    if (!string.IsNullOrEmpty(precedingText))
+                    {
+                        nodes.Add(new TextNode(precedingText));
+                    }
                     var baseNode = new TextNode(baseText);
 
-                    // Parse script
-                    bool isSuperscript = input[position] == '^';
-                    position++;
+                    AstNode finalNode = baseNode;
+                    int currentPos = position;
 
-                    var scriptContent = ParseScriptContent(input, ref position);
-
-                    // For empty scripts like x_{}, still create ScriptNode
-                    if (scriptContent == null)
+                    while (true)
                     {
-                        scriptContent = new TextNode("");
+                        bool isSuperscript = input[currentPos] == '^';
+                        currentPos++;
+
+                        while (currentPos < input.Length && char.IsWhiteSpace(input[currentPos]))
+                        {
+                            currentPos++;
+                        }
+
+                        var scriptContent = ParseScriptContent(input, ref currentPos);
+                        if (scriptContent == null)
+                        {
+                            scriptContent = new TextNode("");
+                        }
+                        finalNode = new ScriptNode(finalNode, scriptContent, isSuperscript);
+
+                        int nextScriptPos = currentPos;
+                        while (nextScriptPos < input.Length && char.IsWhiteSpace(input[nextScriptPos]))
+                        {
+                            nextScriptPos++;
+                        }
+
+                        if (nextScriptPos < input.Length && (input[nextScriptPos] == '_' || input[nextScriptPos] == '^'))
+                        {
+                            currentPos = nextScriptPos;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
 
-                    var scriptNode = new ScriptNode(baseNode, scriptContent, isSuperscript);
-
-                    // Check for consecutive scripts (like x_i_j or x^{2}_{i})
-                    if (position < input.Length && (input[position] == '_' || input[position] == '^'))
-                    {
-                        // Parse the consecutive script with the current script as base
-                        var consecutiveNodes = ParseConsecutiveScript(input, ref position, scriptNode);
-                        resultNodes.AddRange(consecutiveNodes);
-                    }
-                    else
-                    {
-                        resultNodes.Add(scriptNode);
-                    }
-
-                    return resultNodes;
+                    nodes.Add(finalNode);
+                    position = currentPos;
+                    return nodes;
                 }
                 else
                 {
@@ -156,35 +142,11 @@ namespace LatexConverter.Parsing
                 }
             }
 
-            // Plain text without scripts
             if (position > start)
             {
                 nodes.Add(new TextNode(input.Substring(start, position - start)));
             }
 
-            return nodes;
-        }
-
-        private List<AstNode> ParseConsecutiveScript(string input, ref int position, AstNode currentBase)
-        {
-            var nodes = new List<AstNode>();
-
-            while (position < input.Length && (input[position] == '_' || input[position] == '^'))
-            {
-                bool isSuperscript = input[position] == '^';
-                position++;
-
-                var scriptContent = ParseScriptContent(input, ref position);
-
-                if (scriptContent == null)
-                {
-                    scriptContent = new TextNode("");
-                }
-
-                currentBase = new ScriptNode(currentBase, scriptContent, isSuperscript);
-            }
-
-            nodes.Add(currentBase);
             return nodes;
         }
 
@@ -195,44 +157,24 @@ namespace LatexConverter.Parsing
                 return null;
             }
 
-            // Handle case where there's no content after script char (like "x_")
-            if (position >= input.Length)
-            {
-                return null;
-            }
-
             if (input[position] == '{')
             {
-                int braceStart = position;
                 position++; // Skip '{'
-
                 var content = ExtractBracedContent(input, ref position);
                 if (content != null)
                 {
                     var contentNodes = Parse(content);
-
-                    // Skip the closing brace
                     if (position < input.Length && input[position] == '}')
                     {
                         position++;
                     }
 
-                    if (contentNodes.Count == 1)
-                    {
-                        return contentNodes[0];
-                    }
-                    else if (contentNodes.Count > 1)
-                    {
-                        return new GroupNode(contentNodes, "", "");
-                    }
-                    else
-                    {
-                        return new TextNode("");
-                    }
+                    if (contentNodes.Count == 1) return contentNodes[0];
+                    if (contentNodes.Count > 1) return new GroupNode(contentNodes, "", "");
+                    return new TextNode("");
                 }
                 else
                 {
-                    // If extraction failed, return empty content
                     if (position < input.Length && input[position] == '}')
                     {
                         position++;
@@ -240,19 +182,20 @@ namespace LatexConverter.Parsing
                     return new TextNode("");
                 }
             }
-            else if (input[position] == '}' || input[position] == '{')
+
+            if (input[position] == '\\')
             {
-                // Skip invalid script content
-                position++;
-                return new TextNode("");
+                return ParseCommand(input, ref position);
             }
-            else
+
+            if (char.IsLetterOrDigit(input[position]))
             {
-                // Single character script
                 var singleCharNode = new TextNode(input[position].ToString());
                 position++;
                 return singleCharNode;
             }
+
+            return new TextNode("");
         }
 
         private GroupNode ParseGroup(string input, ref int position)
@@ -448,7 +391,7 @@ namespace LatexConverter.Parsing
             int start = position;
             int braceLevel = 1;
 
-            while (position < input.Length && braceLevel > 0)
+            while (position < input.Length)
             {
                 char currentChar = input[position];
 
@@ -463,17 +406,10 @@ namespace LatexConverter.Parsing
 
                 if (braceLevel == 0)
                 {
-                    break;
+                    return input.Substring(start, position - start);
                 }
-
                 position++;
             }
-
-            if (braceLevel == 0 && start < position)
-            {
-                return input.Substring(start, position - start);
-            }
-
             return null;
         }
     }
@@ -510,11 +446,12 @@ namespace LatexConverter.Parsing
                     var commandInfo = new CommandInfo { CommandName = cmdNode.Command };
                     foreach (var arg in cmdNode.Args)
                     {
+                        if (arg is not TextNode)
+                            continue;
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    // Recurse to find more commands, but pass null to avoid argument duplication
-                    ExtractCommandsRecursive(cmdNode.Args, commands, null);
+                    ExtractCommandsRecursive(cmdNode.Args, commands, commandInfo);
                 }
                 else if (node is FracNode fracNode)
                 {
