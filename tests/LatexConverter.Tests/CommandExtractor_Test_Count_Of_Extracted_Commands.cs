@@ -64,6 +64,15 @@ namespace LatexConvertorTests
 
             // Command with an argument containing spaces, which is invalid
             checkCommandsAndArgumentsCount(@"\textbf{hello world}", 1, 0);
+
+            // Malformed frac - extractor should still find the command, but no valid arguments
+            checkCommandsAndArgumentsCount(@"\frac{a}", 1, 1);
+
+            // Unclosed command argument - should find command and valid part of argument
+            checkCommandsAndArgumentsCount(@"\command{unclosed", 1, 1);
+
+            // Deeply nested structure
+            checkCommandsAndArgumentsCount(@"\textbf{\sqrt{\frac{a}{b}}}", 3, 3);
         }
     }
 }

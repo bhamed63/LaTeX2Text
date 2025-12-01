@@ -189,5 +189,65 @@ namespace LatexConvertorTests
             Assert.True(nodes[2] is RootNode rootNode2 && rootNode2.Radicand is GroupNode radicandGroup2 && radicandGroup2.Body[0] is FracNode);
             Assert.True(nodes[3] is TextNode);
         }
+
+        [Fact]
+        public void Test_Parser_Check_Content_Of_Generic_Command_Nodes()
+        {
+            // Command with single argument
+            var nodes1 = _latexParser.Parse(@"\sin{x}");
+            Assert.True(nodes1[0] is CommandNode);
+            var cmd1 = nodes1[0] as CommandNode;
+            Assert.Equal("sin", cmd1.Command);
+            Assert.True(cmd1.Args[0] is TextNode);
+            Assert.Equal("x", (cmd1.Args[0] as TextNode).Text);
+
+            // Command with multiple arguments
+            var nodes2 = _latexParser.Parse(@"\custom{arg1}{arg2}");
+            Assert.True(nodes2[0] is CommandNode);
+            var cmd2 = nodes2[0] as CommandNode;
+            Assert.Equal("custom", cmd2.Command);
+            Assert.True(cmd2.Args[0] is TextNode);
+            Assert.Equal("arg1", (cmd2.Args[0] as TextNode).Text);
+            Assert.True(cmd2.Args[1] is TextNode);
+            Assert.Equal("arg2", (cmd2.Args[1] as TextNode).Text);
+
+            // Nested command
+            var nodes3 = _latexParser.Parse(@"\outer{\inner{x}}");
+            Assert.True(nodes3[0] is CommandNode);
+            var cmd3 = nodes3[0] as CommandNode;
+            Assert.Equal("outer", cmd3.Command);
+            Assert.True(cmd3.Args[0] is CommandNode);
+            var innerCmd = cmd3.Args[0] as CommandNode;
+            Assert.Equal("inner", innerCmd.Command);
+            Assert.True(innerCmd.Args[0] is TextNode);
+            Assert.Equal("x", (innerCmd.Args[0] as TextNode).Text);
+        }
+
+        [Fact]
+        public void Test_Parser_Check_Content_Of_Deeply_Nested_Structure()
+        {
+            var nodes = _latexParser.Parse(@"\textbf{\sqrt{\frac{a}{b}}}");
+            Assert.True(nodes[0] is CommandNode);
+            var boldCmd = nodes[0] as CommandNode;
+            Assert.Equal("textbf", boldCmd.Command);
+
+            Assert.True(boldCmd.Args[0] is RootNode);
+            var sqrtNode = boldCmd.Args[0] as RootNode;
+            Assert.True(sqrtNode.Radicand is GroupNode);
+
+            var sqrtRadicandGroup = sqrtNode.Radicand as GroupNode;
+            Assert.True(sqrtRadicandGroup.Body[0] is FracNode);
+            var fracNode = sqrtRadicandGroup.Body[0] as FracNode;
+
+            Assert.True(fracNode.Numerator is GroupNode);
+            var numeratorGroup = fracNode.Numerator as GroupNode;
+            Assert.True(numeratorGroup.Body[0] is TextNode);
+            Assert.Equal("a", (numeratorGroup.Body[0] as TextNode).Text);
+
+            Assert.True(fracNode.Denominator is GroupNode);
+            var denominatorGroup = fracNode.Denominator as GroupNode;
+            Assert.True(denominatorGroup.Body[0] is TextNode);
+            Assert.Equal("b", (denominatorGroup.Body[0] as TextNode).Text);
+        }
     }
 }
