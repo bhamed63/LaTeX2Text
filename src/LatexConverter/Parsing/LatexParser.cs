@@ -550,7 +550,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(cmdNode.Args, commands, commandInfo);
+                    ExtractCommandsRecursive(cmdNode.Args.Where(c=> c is not TextNode).ToList(), commands, commandInfo);
                 }
                 else if (node is FracNode fracNode)
                 {
@@ -563,7 +563,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(args, commands, commandInfo);
+                    ExtractCommandsRecursive(args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
                 }
                 else if (node is RootNode rootNode)
                 {
@@ -576,7 +576,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(args, commands, commandInfo);
+                    ExtractCommandsRecursive(args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
                 }
                 else if (node is GroupNode groupNode)
                 {
@@ -586,7 +586,7 @@ namespace LatexConverter.Parsing
                             continue;
                         currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
-                    ExtractCommandsRecursive(groupNode.Body, commands, null);
+                    ExtractCommandsRecursive(groupNode.Body.Where(c => c is not TextNode).ToList(), commands, null);
                 }
                 else if (node is ScriptNode scriptNode)
                 {
