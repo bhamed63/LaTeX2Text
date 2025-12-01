@@ -208,5 +208,11 @@ namespace LatexConvertorTests
             Assert.True(_latexParser.Parse("a b ^ c").Count == 2);
             Assert.True(getNestedNodesCount(_latexParser.Parse("a b ^ c")) == 4);
         }
+
+        [Fact]
+        public void Test_Parser_Greedy_Script_Parsing()
+        {
+            Assert.True(_latexParser.Parse("E_int,1").Count == 1);
+        }
     }
 }

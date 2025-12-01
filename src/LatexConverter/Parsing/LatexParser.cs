@@ -188,11 +188,20 @@ namespace LatexConverter.Parsing
                 return ParseCommand(input, ref position);
             }
 
-            if (char.IsLetterOrDigit(input[position]))
+            int start = position;
+            while (position < input.Length)
             {
-                var singleCharNode = new TextNode(input[position].ToString());
+                char c = input[position];
+                if (char.IsWhiteSpace(c) || c == '\\' || c == '}' || c == '_' || c == '^')
+                {
+                    break;
+                }
                 position++;
-                return singleCharNode;
+            }
+
+            if (position > start)
+            {
+                return new TextNode(input.Substring(start, position - start));
             }
 
             return new TextNode("");
