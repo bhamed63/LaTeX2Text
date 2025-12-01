@@ -485,6 +485,15 @@ namespace LatexConvertorTests
             var subscriptNode = script4.Base as ScriptNode; // This is the subscript
             Assert.False(subscriptNode.IsSuperscript);
             Assert.Equal("int,1", (subscriptNode.Script as TextNode).Text);
+
+
+            // Test with space delimiter
+            var nodes5 = _latexParser.Parse("10^27");
+            Assert.Equal(1, nodes5.Count);
+            Assert.True(nodes5[0] is ScriptNode);
+            var script5 = nodes5[0] as ScriptNode;
+            Assert.Equal("10", (script5.Base as TextNode).Text);
+            Assert.Equal("27", (script5.Script as TextNode).Text); 
         }
     }
 }
