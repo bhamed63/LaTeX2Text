@@ -128,7 +128,6 @@ namespace LatexConverter.Parsing
                     string textBefore = input.Substring(start, position - start);
                     AstNode baseOfScript;
 
-
                     if (string.IsNullOrWhiteSpace(textBefore))
                     {
                         if (!string.IsNullOrEmpty(textBefore))
@@ -145,41 +144,21 @@ namespace LatexConverter.Parsing
                             baseEnd--;
                         }
 
-                    int baseStart = baseEnd;
-                    while (baseStart > start && !delimiters.Contains(input[baseStart - 1].ToString()))
-                    {
-                        baseStart--;
-                    }
+                        int baseStart = baseEnd;
+                        while (baseStart > start && !char.IsWhiteSpace(input[baseStart - 1]))
+                        {
+                            baseStart--;
+                        }
 
                         string precedingText = input.Substring(start, baseStart - start);
                         string baseText = input.Substring(baseStart, baseEnd - baseStart);
 
-
-                    var notallowedForStart = new List<string> { ",", "/", ";", "\\", ";" };
-                    while (baseText.Length > 0 && notallowedForStart.Contains(baseText[0].ToString()))
-                    {
-                        baseText = baseText.Substring(1);
-                    }
-
-
-                    if (!string.IsNullOrEmpty(precedingText))
-                    {
-                        nodes.Add(new TextNode(precedingText));
-                    }
-                    var baseNode = new TextNode(baseText);
-
-                    AstNode finalNode = baseNode;
-                    int currentPos = position;
-
-                    while (true)
-                    {
-                        bool isSuperscript = input[currentPos] == '^';
-                        currentPos++;
-
-                        while (currentPos < input.Length && char.IsWhiteSpace(input[currentPos]))
+                        if (!string.IsNullOrEmpty(precedingText))
                         {
-                            currentPos++;
+                            nodes.Add(new TextNode(precedingText));
                         }
+                        baseOfScript = new TextNode(baseText);
+                    }
 
                     var scriptNode = ParseScript(input, ref position, baseOfScript);
                     nodes.Add(scriptNode);
