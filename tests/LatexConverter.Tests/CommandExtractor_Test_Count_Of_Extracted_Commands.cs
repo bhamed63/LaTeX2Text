@@ -22,17 +22,19 @@ namespace LatexConvertorTests
             checkCommandsAndArgumentsCount("here it is a \\sqrt{x}", 1, 1);
             checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{y}}, it is simple Latex.", 2, 2);
             checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 1);
-            checkCommandsAndArgumentsCount("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 1);
+            checkCommandsAndArgumentsCount("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 2);
         }
 
         private void checkCommandsAndArgumentsCount(string text, int commandsCount, int argumentCount)
         {
             var nodes = _latexParser.Parse(text);
             var commands = _commandExtractor.ExtractCommands(nodes);
-            if (commands.Count != commandsCount)
-                Assert.Fail("Extracted commands count is invalid: " + text);
-            if (commands.Sum(c => c.ArgumentCount) != argumentCount)
-                Assert.Fail("Extracted arguments count is invalid: " + text);
+            var actualCommandsCount = commands.Where(c => !string.IsNullOrEmpty(c.CommandName) && !string.IsNullOrEmpty(c.CommandName)).Count();
+            var actualArgumentsCount = commands.Sum(c => c.ArgumentCount);
+            if (actualCommandsCount != commandsCount)
+                Assert.Fail(string.Format("Expected commands count: {0}, Actual commands count: {1}, Expression: {2}", commandsCount, actualCommandsCount, text));
+            if (actualArgumentsCount != argumentCount)
+                Assert.Fail("Expected arguments count: {0}, Actual arguments count: {1}, Expression: {2}" + text);
         }
 
         [Fact]

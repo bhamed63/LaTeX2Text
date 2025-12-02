@@ -596,7 +596,7 @@ namespace LatexConverter.Parsing
                         if (!isValidArgument(arg.Text))
                             continue;
 
-                        CommandInfo commandInfo = new CommandInfo() { CommandName = arg.ToString() };
+                        CommandInfo commandInfo = new CommandInfo() { CommandName = "" };
                         commands.Add(commandInfo);
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
