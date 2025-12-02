@@ -249,17 +249,5 @@ namespace LatexConvertorTests
             Assert.True(denominatorGroup.Body[0] is TextNode);
             Assert.Equal("b", (denominatorGroup.Body[0] as TextNode).Text);
         }
-
-        [Fact]
-        public void Test_Parser_Greedy_Script_Parsing_Content()
-        {
-            var nodes = _latexParser.Parse("E_int,1");
-            Assert.True(nodes[0] is ScriptNode);
-            var scriptNode = nodes[0] as ScriptNode;
-            Assert.True(scriptNode.Base is TextNode);
-            Assert.Equal("E", (scriptNode.Base as TextNode).Text);
-            Assert.True(scriptNode.Script is TextNode);
-            Assert.Equal("int,1", (scriptNode.Script as TextNode).Text);
-        }
     }
 }

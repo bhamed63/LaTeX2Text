@@ -188,20 +188,11 @@ namespace LatexConverter.Parsing
                 return ParseCommand(input, ref position);
             }
 
-            int start = position;
-            while (position < input.Length)
+            if (char.IsLetterOrDigit(input[position]))
             {
-                char c = input[position];
-                if (char.IsWhiteSpace(c) || c == '\\' || c == '}' || c == '_' || c == '^')
-                {
-                    break;
-                }
+                var singleCharNode = new TextNode(input[position].ToString());
                 position++;
-            }
-
-            if (position > start)
-            {
-                return new TextNode(input.Substring(start, position - start));
+                return singleCharNode;
             }
 
             return new TextNode("");
@@ -534,36 +525,6 @@ namespace LatexConverter.Parsing
             var commands = new List<CommandInfo>();
             ExtractCommandsRecursive(nodes, commands, null);
             return commands;
-        }
-
-        public List<EnrichedCommandInfo> EnrichCommands(List<CommandInfo> commands, Dictionary<string, SymbolDefinition> symbolLibrary)
-        {
-            var enrichedCommands = new List<EnrichedCommandInfo>();
-
-            foreach (var command in commands)
-            {
-                var enrichedCommand = new EnrichedCommandInfo
-                {
-                    CommandName = command.CommandName,
-                    TextArguments = command.TextArguments
-                };
-
-                if (symbolLibrary.TryGetValue(command.CommandName, out var definition))
-                {
-                    enrichedCommand.PlainText = definition.PlainText;
-                    enrichedCommand.ScreenReader = definition.ScreenReader;
-                    enrichedCommand.HumanFriendly = definition.HumanFriendly;
-                    enrichedCommand.OpenAI = definition.OpenAI;
-                    enrichedCommand.ExceptionalScreenReader = definition.ExceptionalScreenReader;
-                    enrichedCommand.HumanFriendlyKey = definition.HumanFriendlyKey;
-                    enrichedCommand.CommandType = definition.CommandType;
-                    enrichedCommand.ArgsNumber = definition.ArgsNumber;
-                }
-
-                enrichedCommands.Add(enrichedCommand);
-            }
-
-            return enrichedCommands;
         }
 
         private void ExtractCommandsRecursive(List<AstNode> nodes, List<CommandInfo> commands, CommandInfo currentCommandInfo)
