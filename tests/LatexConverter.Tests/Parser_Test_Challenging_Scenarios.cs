@@ -494,6 +494,14 @@ namespace LatexConvertorTests
             var script5 = nodes5[0] as ScriptNode;
             Assert.Equal("10", (script5.Base as TextNode).Text);
             Assert.Equal("27", (script5.Script as TextNode).Text);
+
+            // Test with space delimiter
+            var nodes6 = _latexParser.Parse("\\theta_1");
+            Assert.Equal(1, nodes6.Count);
+            Assert.True(nodes6[0] is ScriptNode);
+            var script6 = nodes6[0] as ScriptNode;
+            Assert.Equal("\\theta", (script6.Base ).ToString());
+            Assert.Equal("1", (script6.Script as TextNode).Text);
         }
     }
 }
