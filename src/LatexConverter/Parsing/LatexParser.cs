@@ -658,7 +658,6 @@ namespace LatexConverter.Parsing
 
         private bool isValidArgument(string text)
         {
-            var notAllowedForStart = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
             if (string.IsNullOrEmpty(text) || string.IsNullOrWhiteSpace(text))
                 return false;
 
