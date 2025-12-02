@@ -102,8 +102,8 @@ namespace LatexConvertorTests
         {
             // _x, x_, x_{}
             var nodes1 = _latexParser.Parse("_x");
-            Assert.True(nodes1.Count == 2);
-            Assert.True(nodes1[0] is TextNode); // Script at beginning should be treated as text
+            Assert.True(nodes1.Count == 1);
+            Assert.True(nodes1[0] is ScriptNode);
 
             var nodes2 = _latexParser.Parse("x_");
             Assert.True(nodes2.Count == 1);
@@ -446,6 +446,54 @@ namespace LatexConvertorTests
 
             nodes = _latexParser.Parse("this is my example \\sin{\\vec{a}} of creating \\sin { \\vec  { a}} \\cos {\\tan{ X}} ast");
             Assert.Equal(7, nodes.Count);
+        }
+
+        [Fact]
+        public void Test_Parser_Greedy_Script_Parsing_Scenarios()
+        {
+            // Test with space delimiter
+            var nodes1 = _latexParser.Parse("E_int,1 next");
+            Assert.Equal(2, nodes1.Count);
+            Assert.True(nodes1[0] is ScriptNode);
+            var script1 = nodes1[0] as ScriptNode;
+            Assert.Equal("int,1", (script1.Script as TextNode).Text);
+            Assert.Equal(" next", (nodes1[1] as TextNode).Text);
+
+            // Test with backslash delimiter
+            var nodes2 = _latexParser.Parse("E_int,1\\command");
+            Assert.Equal(2, nodes2.Count);
+            Assert.True(nodes2[0] is ScriptNode);
+            var script2 = nodes2[0] as ScriptNode;
+            Assert.Equal("int,1", (script2.Script as TextNode).Text);
+            Assert.True(nodes2[1] is CommandNode);
+
+            // Test with brace delimiter
+            var nodes3 = _latexParser.Parse("E_int,1}");
+            Assert.Equal(2, nodes3.Count);
+            Assert.True(nodes3[0] is ScriptNode);
+            var script3 = nodes3[0] as ScriptNode;
+            Assert.Equal("int,1", (script3.Script as TextNode).Text);
+            Assert.Equal("}", (nodes3[1] as TextNode).Text);
+
+            // Test with chained script delimiter
+            var nodes4 = _latexParser.Parse("E_int,1^2");
+            Assert.True(nodes4.Count == 1);
+            Assert.True(nodes4[0] is ScriptNode);
+            var script4 = nodes4[0] as ScriptNode; // This is the superscript
+            Assert.True(script4.IsSuperscript);
+            Assert.True(script4.Base is ScriptNode);
+            var subscriptNode = script4.Base as ScriptNode; // This is the subscript
+            Assert.False(subscriptNode.IsSuperscript);
+            Assert.Equal("int,1", (subscriptNode.Script as TextNode).Text);
+
+
+            // Test with space delimiter
+            var nodes5 = _latexParser.Parse("10^27");
+            Assert.Equal(1, nodes5.Count);
+            Assert.True(nodes5[0] is ScriptNode);
+            var script5 = nodes5[0] as ScriptNode;
+            Assert.Equal("10", (script5.Base as TextNode).Text);
+            Assert.Equal("27", (script5.Script as TextNode).Text);
         }
     }
 }
