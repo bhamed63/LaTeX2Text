@@ -8,7 +8,7 @@ namespace LatexConverter
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitFrac(this);
         public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitFrac(this);
 
-        public override string ToString() => $"\\frac{{{Numerator}}}{{{Denominator}}}";
+        public override string ToString() => $"{this.CreateCommandName()}{{{Numerator}}}{{{Denominator}}}";
 
 
         public override List<AstNode> GetAllSubNodes()
@@ -17,6 +17,11 @@ namespace LatexConverter
             {
                 Numerator, Denominator
             };
+        }
+
+        public override string CreateCommandName()
+        {
+            return $"\\frac";
         }
     }
 }

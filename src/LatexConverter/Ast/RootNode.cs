@@ -16,9 +16,9 @@ namespace LatexConverter
         {
             if (Degree is TextNode textNode && textNode.Text == "2")
             {
-                return $"\\sqrt{{{Radicand}}}";
+                return $"{this.CreateCommandName()}{{{Radicand}}}";
             }
-            return $"\\sqrt[{Degree}]{{{Radicand}}}";
+            return $"{this.CreateCommandName()}[{Degree}]{{{Radicand}}}";
         }
 
         public override List<AstNode> GetAllSubNodes()
@@ -27,6 +27,11 @@ namespace LatexConverter
             {
                 Degree, Radicand
             };
+        }
+
+        public override string CreateCommandName()
+        {
+            return $"\\sqrt";
         }
     }
 }

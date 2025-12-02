@@ -16,5 +16,10 @@ namespace LatexConverter
                 Top, Bottom
             };
         }
+
+        public override string CreateCommandName()
+        {
+            return $"\\binom";
+        }
     }
 }

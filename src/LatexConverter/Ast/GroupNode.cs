@@ -21,5 +21,10 @@ namespace LatexConverter
         {
             return Body.ToList();
         }
+
+        public override string CreateCommandName()
+        {
+            return String.Empty;
+        }
     }
 }

@@ -35,5 +35,10 @@ namespace LatexConverter
                 return Base.ToString();;
             return ToString();
         }
+
+        public override string CreateCommandName()
+        {
+            return this.ToString();
+        }
     }
 }

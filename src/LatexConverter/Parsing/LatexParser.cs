@@ -570,7 +570,7 @@ namespace LatexConverter.Parsing
             {
                 if (node is CommandNode cmdNode)
                 {
-                    var commandInfo = new CommandInfo { CommandName = cmdNode.Command };
+                    var commandInfo = new CommandInfo { CommandName = cmdNode.CreateCommandName() };
                     foreach (var arg in cmdNode.Args)
                     {
                         if (arg is not TextNode)
@@ -582,7 +582,7 @@ namespace LatexConverter.Parsing
                 }
                 else if (node is FracNode fracNode)
                 {
-                    var commandInfo = new CommandInfo { CommandName = fracNode.Command };
+                    var commandInfo = new CommandInfo { CommandName = fracNode.CreateCommandName() };
                     var args = node.GetAllSubNodes();
                     foreach (var arg in args)
                     {
@@ -595,7 +595,7 @@ namespace LatexConverter.Parsing
                 }
                 else if (node is RootNode rootNode)
                 {
-                    var commandInfo = new CommandInfo { CommandName = rootNode.Command };
+                    var commandInfo = new CommandInfo { CommandName = rootNode.CreateCommandName() };
                     var args = node.GetAllSubNodes();
                     foreach (var arg in args)
                     {
@@ -631,6 +631,15 @@ namespace LatexConverter.Parsing
                             commandInfo.TextArguments.Add(scriptNode.ToVariableName());
                             commands.Add(commandInfo);
                         }
+                    }
+                    else if (scriptNode.Base is CommandNode commandNode && 
+                        commandNode.Args.Count == 0 &&
+                        commandNode.Subscript is null && 
+                        commandNode.Superscript is null)
+                    {
+                        commandInfo = new CommandInfo { CommandName = scriptNode.ToVariableName() };
+                        commandInfo.TextArguments.Add(scriptNode.ToVariableName());
+                        commands.Add(commandInfo);
                     }
                     else
                         ExtractCommandsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, commands, commandInfo);
@@ -690,13 +699,13 @@ namespace LatexConverter.Parsing
                 text = text.Substring(1, text.Length - 2);
             }
 
-            var notAllowedForStart = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "_"};
+            var notAllowedForStart = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "_" };
 
             var notAllowedForContain = new List<string>()
             {
                 "{", "}", ")", "(",
                 ",", ";", "'", "\"",
-                "/", "\\", "="
+                "/", "\\", "=", "+"
             };
 
             if (notAllowedForStart.Any(c => text.StartsWith(c)))

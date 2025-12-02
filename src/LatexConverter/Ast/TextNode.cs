@@ -20,5 +20,10 @@ namespace LatexConverter
         {
             return new List<AstNode>() { };
         }
+
+        public override string CreateCommandName()
+        {
+            return $"\\{Text}";
+        }
     }
 }

@@ -16,5 +16,10 @@ namespace LatexConverter
         {
             return Children.ToList();
         }
+
+        public override string CreateCommandName()
+        {
+            return $"";
+        }
     }
 }

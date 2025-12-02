@@ -13,7 +13,7 @@ namespace LatexConverter
         public override string ToString()
         {
             var sb = new System.Text.StringBuilder();
-            sb.Append($"\\{Command}");
+            sb.Append(CreateCommandName());
             if (Args != null)
             {
                 foreach (var arg in Args)
@@ -35,6 +35,11 @@ namespace LatexConverter
         public override List<AstNode> GetAllSubNodes()
         {
             return Args.ToList();
+        }
+
+        public override string CreateCommandName()
+        {
+            return $"\\{Command}";
         }
     }
 }

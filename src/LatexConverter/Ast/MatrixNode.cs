@@ -16,5 +16,10 @@ namespace LatexConverter
             {
             };
         }
+
+        public override string CreateCommandName()
+        {
+            return "";
+        }
     }
 }
