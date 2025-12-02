@@ -89,5 +89,16 @@ namespace LatexConverter.Visitors
         {
             return node.Children.SelectMany(child => child.Accept(this)).ToList();
         }
+        public override List<string> ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
+        }
+
+        public override List<string> VisitLim(LimNode node)
+        {
+            var commands = new List<string> { node.Command };
+            commands.AddRange(node.Subscript.Accept(this));
+            return commands;
+        }
     }
 }

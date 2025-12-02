@@ -132,8 +132,16 @@ namespace LatexConverter.Visitors
 
         public override List<string> VisitMath(MathNode node)
         {
-            _isMathContext = true;
             return node.Children.SelectMany(child => Visit(child, true)).ToList();
+        }
+        public override List<string> ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
+        }
+
+        public override List<string> VisitLim(LimNode node)
+        {
+            return Visit(node.Subscript, true);
         }
     }
 }

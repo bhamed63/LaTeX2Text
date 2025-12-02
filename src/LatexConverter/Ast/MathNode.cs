@@ -10,5 +10,11 @@ namespace LatexConverter
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitMath(this);
 
         public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitMath(this);
+
+
+        public override List<AstNode> GetAllSubNodes()
+        {
+            return Children.ToList();
+        }
     }
 }

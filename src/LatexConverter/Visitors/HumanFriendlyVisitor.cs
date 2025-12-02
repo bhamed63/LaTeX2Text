@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace LatexConverter
 {
     /// <summary>
@@ -66,8 +68,6 @@ namespace LatexConverter
                 case CommandNames.Int:
                 case CommandNames.Prod:
                     return _templateProcessor.ToUnicodeProcessTemplateCommandSubscriptSuperscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
-                case CommandNames.Lim:
-                    return _templateProcessor.ProcessTemplateCommandSubscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
                 default:
                     return _templateProcessor.ProcessTemplateCommand(node, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             }
@@ -117,6 +117,11 @@ namespace LatexConverter
             return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
         }
 
+        public override string VisitLim(LimNode node)
+        {
+            return _templateProcessor.ProcessTemplateCommandSubscript(node, this, Dictionaries.HumanFriendlyTemplateMap);
+        }
+
         public override string GetPreProcessedResult(string text)
         {
             text = System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
@@ -129,7 +134,11 @@ namespace LatexConverter
 
         public override string VisitMath(MathNode node)
         {
-            return string.Join("", node.Children.Select(child => child.Accept(this)));
+            return string.Join("", node.Children.Select(n => n.Accept(this)));
+        }
+        public override string ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
         }
     }
 }

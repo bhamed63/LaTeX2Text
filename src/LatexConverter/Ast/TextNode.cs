@@ -12,5 +12,13 @@ namespace LatexConverter
         public override T ExceptionalAccept<T>(IVisitor<T> visitor) => visitor.ExceptionalVisitText(this);
 
         public override bool NeedsParentheses() => !Regex.IsMatch(Text, @"^[a-zA-Z0-9]+$");
+
+        public override string ToString() => Text;
+
+
+        public override List<AstNode> GetAllSubNodes()
+        {
+            return new List<AstNode>() { };
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace LatexConverter
 {
@@ -29,13 +30,17 @@ namespace LatexConverter
             }
 
             var mergedNodes = new List<AstNode>();
-            var textBuffer = new System.Text.StringBuilder();
+            var textBuffer = new StringBuilder();
 
             foreach (var node in nodes)
             {
                 if (node is TextNode textNode)
                 {
                     textBuffer.Append(textNode.Text);
+                }
+                else if (node is CommandNode cmdNode && (cmdNode.Command == CommandNames.Thinspace || cmdNode.Command == @"\,"))
+                {
+                    textBuffer.Append(" ");
                 }
                 else
                 {
@@ -47,11 +52,7 @@ namespace LatexConverter
 
                     if (node is GroupNode groupNode)
                     {
-                        mergedNodes.Add(new GroupNode(MergeTextNodes(groupNode.Body)));
-                    }
-                    else if (node is MathNode mathNode)
-                    {
-                        mergedNodes.Add(mathNode);
+                        mergedNodes.Add(new GroupNode(MergeTextNodes(groupNode.Body), "", ""));
                     }
                     else
                     {
@@ -121,7 +122,7 @@ namespace LatexConverter
                 nodes.Add(ParseExpression());
             }
             if (CurrentToken.Type == TokenType.RBrace) _pos++; // Consume '}'
-            return new GroupNode(nodes);
+            return new GroupNode(nodes, "", "");
         }
 
         private bool IsLimitCommand(string command) => command == CommandNames.Sum || command == CommandNames.Int || command == CommandNames.Prod || command == CommandNames.Lim;
@@ -138,23 +139,25 @@ namespace LatexConverter
 
             switch (token.Value)
             {
-                case CommandNames.BeginMath:
-                case CommandNames.BeginMathDisplay:
-                case CommandNames.BeginMathDisplay2:
+                case @"\(":
+                case @"\[":
+                case "$$":
                     return ParseMath(token.Value);
                 case CommandNames.Sqrt:
-                    return ParseRootCommand();
+                    return ParseRootCommand(token.Value);
                 case CommandNames.Frac:
-                    return ParseFracCommand();
+                    return ParseFracCommand(token.Value);
                 case CommandNames.Binom:
-                    return ParseBinomCommand();
-                case CommandNames.Comment:
+                    return ParseBinomCommand(token.Value);
+                case "%":
                     var commentArgs = new List<AstNode>();
                     if (CurrentToken.Type == TokenType.Text)
                     {
                         commentArgs.Add(ParsePrimary());
                     }
                     return new CommandNode(token.Value, commentArgs, null, null);
+                    //case CommandNames.Times:
+                    //    return new TextNode("×");
             }
 
 
@@ -186,10 +189,11 @@ namespace LatexConverter
                 args.Add(ParsePrimary());
             }
 
+            SkipSpaces();
             return new CommandNode(token.Value, args, null, null);
         }
 
-        private AstNode ParseRootCommand()
+        private AstNode ParseRootCommand(string commandName)
         {
             SkipSpaces();
             var degree = ParseOptionalArgument();
@@ -198,11 +202,11 @@ namespace LatexConverter
 
             if (degree == null)
             {
-                return new RootNode(radicand, new TextNode("2"));
+                return new RootNode(commandName, radicand, new TextNode("2"));
             }
             else
             {
-                return new RootNode(radicand, degree);
+                return new RootNode(commandName, radicand, degree);
             }
         }
 
@@ -220,35 +224,35 @@ namespace LatexConverter
                 {
                     _pos++; // Consume ']'
                 }
-                return new GroupNode(nodes);
+                return new GroupNode(nodes, "", "");
             }
             return null;
         }
 
-        private AstNode ParseFracCommand()
+        private AstNode ParseFracCommand(string commandName)
         {
             SkipSpaces();
             var numerator = ParsePrimary();
             SkipSpaces();
             var denominator = ParsePrimary();
-            return new FracNode(numerator, denominator);
+            return new FracNode(commandName, numerator, denominator);
         }
 
-        private AstNode ParseBinomCommand()
+        private AstNode ParseBinomCommand(string commandName)
         {
             SkipSpaces();
             var top = ParsePrimary();
             SkipSpaces();
             var bottom = ParsePrimary();
-            return new BinomNode(top, bottom);
+            return new BinomNode(commandName, top, bottom);
         }
 
         private void SkipSpaces()
         {
-            while (CurrentToken.Type == TokenType.Space)
-            {
-                _pos++;
-            }
+            //while (CurrentToken.Type == TokenType.Space)
+            //{
+            //    _pos++;
+            //}
         }
 
         private AstNode ParseLimitCommand(Token token)
@@ -267,6 +271,13 @@ namespace LatexConverter
                 superscript = ParsePrimary();
             }
 
+            SkipSpaces();
+
+            if (token.Value == CommandNames.Lim)
+            {
+                return new LimNode(token.Value, new List<AstNode>(), subscript);
+            }
+
             return new CommandNode(token.Value, new List<AstNode>(), subscript, superscript);
         }
 
@@ -274,9 +285,9 @@ namespace LatexConverter
         {
             var endCommand = beginCommand switch
             {
-                CommandNames.BeginMath => CommandNames.EndMath,
-                CommandNames.BeginMathDisplay => CommandNames.EndMathDisplay,
-                CommandNames.BeginMathDisplay2 => CommandNames.BeginMathDisplay2,
+                @"\(" => @"\)",
+                @"\[" => @"\]",
+                "$$" => "$$",
                 _ => ""
             };
 

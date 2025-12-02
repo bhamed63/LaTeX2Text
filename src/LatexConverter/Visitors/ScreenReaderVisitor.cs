@@ -1,4 +1,6 @@
 using System.Text;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace LatexConverter
 {
@@ -172,6 +174,13 @@ namespace LatexConverter
             return _templateProcessor.ProcessTemplateCommand(CommandNames.Binom, new[] { top, bottom }, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
         }
 
+        public override string VisitLim(LimNode node)
+        {
+            var sub = node.Subscript != null ? node.Subscript.ExceptionalAccept(this) : "";
+            var args = new string[] { sub };
+            return _templateProcessor.ProcessTemplateCommand(node.Command, args, this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+        }
+
         private string HandleLimitCommands(CommandNode node)
         {
             var sub_lim = node.Subscript != null ? node.Subscript.ExceptionalAccept(this) : "";
@@ -224,7 +233,11 @@ namespace LatexConverter
 
         public override string VisitMath(MathNode node)
         {
-            return string.Join(" ", node.Children.Select(child => child.Accept(this)));
+            return string.Join(" ", node.Children.Select(n => n.Accept(this)));
+        }
+        public override string ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
         }
     }
 }

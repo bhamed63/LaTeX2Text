@@ -13,6 +13,7 @@ namespace LatexConverter
         public abstract T VisitRoot(RootNode node);
         public abstract T VisitFrac(FracNode node);
         public abstract T VisitBinom(BinomNode node);
+        public abstract T VisitMath(MathNode node);
 
         public virtual T ExceptionalVisitText(TextNode node)
         {
@@ -27,6 +28,8 @@ namespace LatexConverter
         {
             return VisitGroup(node);
         }
+
+
 
         public virtual T ExceptionalVisitScript(ScriptNode node)
         {
@@ -49,9 +52,11 @@ namespace LatexConverter
         {
             return VisitBinom(node);
         }
-
-        public abstract T VisitMath(MathNode node);
-
+        public abstract T VisitLim(LimNode node);
+        public virtual T ExceptionalVisitLim(LimNode node)
+        {
+            return VisitLim(node);
+        }
         public virtual T ExceptionalVisitMath(MathNode node)
         {
             return VisitMath(node);

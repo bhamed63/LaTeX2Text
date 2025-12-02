@@ -132,7 +132,7 @@ namespace LatexConverter.Visitors
             }
             _visitedNodes.Add(matrixNode);
 
-            Result.Commands.Add(new Tuple<CommandType, string>(CommandType.Matrix, CommandNames.Matrix));
+            Result.Commands.Add(new Tuple<CommandType, string>(CommandType.Environment, CommandNames.Matrix));
             var oldContext = _isMathContext;
             _isMathContext = true;
             try
@@ -229,19 +229,56 @@ namespace LatexConverter.Visitors
             return null;
         }
 
-        public override object VisitMath(MathNode node)
+        public override object VisitLim(LimNode limNode)
         {
+            if (_visitedNodes.Contains(limNode))
+            {
+                return null;
+            }
+            _visitedNodes.Add(limNode);
+
+            Result.Commands.Add(new Tuple<CommandType, string>(CommandType.MathFunction, CommandNames.Lim));
             var oldContext = _isMathContext;
             _isMathContext = true;
             try
             {
-                node.Children.Select(child => child.Accept(this));
+                foreach (var arg in limNode.Args)
+                {
+                    arg.Accept(this);
+                }
+                if (limNode.Subscript != null)
+                {
+                    limNode.Subscript.Accept(this);
+                }
             }
             finally
             {
                 _isMathContext = oldContext;
             }
             return null;
+        }
+
+        public override object VisitMath(MathNode node)
+        {
+            var oldContext = _isMathContext;
+            _isMathContext = true;
+            try
+            {
+                foreach(var child in node.Children)
+                {
+                    child.Accept(this);
+                }
+            }
+            finally
+            {
+                _isMathContext = oldContext;
+            }
+            return null;
+        }
+
+        public override object ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
         }
     }
 }

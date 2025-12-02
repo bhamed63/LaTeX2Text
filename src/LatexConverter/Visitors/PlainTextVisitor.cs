@@ -42,5 +42,10 @@ namespace LatexConverter
         public override string VisitMath(MathNode node) => string.Concat(node.Children.Select(n => n.Accept(this)));
 
         public override string ExceptionalVisitMath(MathNode node) => string.Concat(node.Children.Select(n => n.ExceptionalAccept(this)));
+
+        public override string VisitLim(LimNode node)
+        {
+            return node.Command + node.Subscript.Accept(this);
+        }
     }
 }

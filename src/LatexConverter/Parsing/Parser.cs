@@ -79,7 +79,7 @@ namespace LatexConverter
                 nodes.Add(ParseExpression());
             }
             if (CurrentToken.Type == TokenType.RBrace) _pos++; // Consume '}'
-            return new GroupNode(nodes);
+            return new GroupNode(nodes, "", "");
         }
 
         private bool IsLimitCommand(string command) => command == CommandNames.Sum || command == CommandNames.Int || command == CommandNames.Prod || command == CommandNames.Lim;
@@ -106,11 +106,11 @@ namespace LatexConverter
             switch (token.Value)
             {
                 case CommandNames.Sqrt:
-                    return ParseRootCommand();
+                    return ParseRootCommand(token.Value);
                 case CommandNames.Frac:
-                    return ParseFracCommand();
+                    return ParseFracCommand(token.Value);
                 case CommandNames.Binom:
-                    return ParseBinomCommand();
+                    return ParseBinomCommand(token.Value);
                 case CommandNames.Comment:
                     var commentArgs = new List<AstNode>();
                     if (CurrentToken.Type == TokenType.Text)
@@ -132,7 +132,7 @@ namespace LatexConverter
             return new CommandNode(token.Value, args, null, null);
         }
 
-        private AstNode ParseRootCommand()
+        private AstNode ParseRootCommand(string commandName)
         {
             SkipSpaces();
             var degree = ParseOptionalArgument();
@@ -141,11 +141,11 @@ namespace LatexConverter
 
             if (degree == null)
             {
-                return new RootNode(radicand, new TextNode("2"));
+                return new RootNode(commandName, radicand, new TextNode("2"));
             }
             else
             {
-                return new RootNode(radicand, degree);
+                return new RootNode(commandName, radicand, degree);
             }
         }
 
@@ -163,27 +163,27 @@ namespace LatexConverter
                 {
                     _pos++; // Consume ']'
                 }
-                return new GroupNode(nodes);
+                return new GroupNode(nodes, "", "");
             }
             return null;
         }
 
-        private AstNode ParseFracCommand()
+        private AstNode ParseFracCommand(string commandName)
         {
             SkipSpaces();
             var numerator = ParsePrimary();
             SkipSpaces();
             var denominator = ParsePrimary();
-            return new FracNode(numerator, denominator);
+            return new FracNode(commandName, numerator, denominator);
         }
 
-        private AstNode ParseBinomCommand()
+        private AstNode ParseBinomCommand(string commandName)
         {
             SkipSpaces();
             var top = ParsePrimary();
             SkipSpaces();
             var bottom = ParsePrimary();
-            return new BinomNode(top, bottom);
+            return new BinomNode(commandName, top, bottom);
         }
 
         private void SkipSpaces()
@@ -208,6 +208,11 @@ namespace LatexConverter
             {
                 _pos++;
                 superscript = ParsePrimary();
+            }
+
+            if (token.Value == CommandNames.Lim)
+            {
+                return new LimNode(token.Value, new List<AstNode>(), subscript);
             }
 
             return new CommandNode(token.Value, new List<AstNode>(), subscript, superscript);

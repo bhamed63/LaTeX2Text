@@ -90,7 +90,16 @@ namespace LatexConverter.Visitors
 
         public override string VisitMath(MathNode node)
         {
-            return $"\\({string.Concat(node.Children.Select(n => n.Accept(this)))}\\)";
+            return string.Concat(node.Children.Select(n => n.Accept(this)));
+        }
+        public override string ExceptionalVisitMath(MathNode node)
+        {
+            return VisitMath(node);
+        }
+
+        public override string VisitLim(LimNode node)
+        {
+            return node.Command + "_{" + node.Subscript.Accept(this) + "}";
         }
     }
 }
