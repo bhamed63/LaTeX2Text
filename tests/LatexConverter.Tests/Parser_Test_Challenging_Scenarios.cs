@@ -102,8 +102,8 @@ namespace LatexConvertorTests
         {
             // _x, x_, x_{}
             var nodes1 = _latexParser.Parse("_x");
-            Assert.True(nodes1.Count == 2);
-            Assert.True(nodes1[0] is TextNode); // Script at beginning should be treated as text
+            Assert.True(nodes1.Count == 1);
+            Assert.True(nodes1[0] is ScriptNode);
 
             var nodes2 = _latexParser.Parse("x_");
             Assert.True(nodes2.Count == 1);
@@ -493,7 +493,15 @@ namespace LatexConvertorTests
             Assert.True(nodes5[0] is ScriptNode);
             var script5 = nodes5[0] as ScriptNode;
             Assert.Equal("10", (script5.Base as TextNode).Text);
-            Assert.Equal("27", (script5.Script as TextNode).Text); 
+            Assert.Equal("27", (script5.Script as TextNode).Text);
+
+            // Test with space delimiter
+            var nodes6 = _latexParser.Parse("\\theta_1");
+            Assert.Equal(1, nodes6.Count);
+            Assert.True(nodes6[0] is ScriptNode);
+            var script6 = nodes6[0] as ScriptNode;
+            Assert.Equal("\\theta", (script6.Base ).ToString());
+            Assert.Equal("1", (script6.Script as TextNode).Text);
         }
     }
 }

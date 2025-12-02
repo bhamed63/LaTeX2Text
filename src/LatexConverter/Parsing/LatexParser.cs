@@ -20,27 +20,88 @@ namespace LatexConverter.Parsing
 
             while (position < input.Length)
             {
+                AstNode node = null;
                 if (position + 1 < input.Length &&
                     input[position] == '\\' && (input[position + 1] == '(' || input[position + 1] == '['))
                 {
-                    var groupNode = ParseGroup(input, ref position);
-                    if (groupNode != null)
-                        nodes.Add(groupNode);
+                    node = ParseGroup(input, ref position);
                 }
                 else if (input[position] == '\\')
                 {
-                    var commandNode = ParseCommand(input, ref position);
-                    if (commandNode != null)
-                        nodes.Add(commandNode);
+                    node = ParseCommand(input, ref position);
                 }
                 else
                 {
                     var textNodes = ParseText(input, ref position);
-                    nodes.AddRange(textNodes);
+                    if (textNodes.Count > 0)
+                    {
+                        nodes.AddRange(textNodes);
+                    }
+                    continue;
+                }
+
+                if (node != null)
+                {
+                    int currentPos = position;
+                    while (currentPos < input.Length && char.IsWhiteSpace(input[currentPos]))
+                    {
+                        currentPos++;
+                    }
+
+                    if (currentPos < input.Length && (input[currentPos] == '_' || input[currentPos] == '^'))
+                    {
+                        position = currentPos;
+                        var scriptNode = ParseScript(input, ref position, node);
+                        nodes.Add(scriptNode);
+                    }
+                    else
+                    {
+                        nodes.Add(node);
+                    }
                 }
             }
-
             return nodes;
+        }
+
+        private AstNode ParseScript(string input, ref int position, AstNode baseNode)
+        {
+            AstNode finalNode = baseNode;
+            int currentPos = position;
+
+            while (true)
+            {
+                bool isSuperscript = input[currentPos] == '^';
+                currentPos++;
+
+                while (currentPos < input.Length && char.IsWhiteSpace(input[currentPos]))
+                {
+                    currentPos++;
+                }
+
+                var scriptContent = ParseScriptContent(input, ref currentPos);
+                if (scriptContent == null)
+                {
+                    scriptContent = new TextNode("");
+                }
+                finalNode = new ScriptNode(finalNode, scriptContent, isSuperscript);
+
+                int nextScriptPos = currentPos;
+                while (nextScriptPos < input.Length && char.IsWhiteSpace(input[nextScriptPos]))
+                {
+                    nextScriptPos++;
+                }
+
+                if (nextScriptPos < input.Length && (input[nextScriptPos] == '_' || input[nextScriptPos] == '^'))
+                {
+                    currentPos = nextScriptPos;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            position = currentPos;
+            return finalNode;
         }
 
         private List<AstNode> ParseText(string input, ref int position)
@@ -65,6 +126,7 @@ namespace LatexConverter.Parsing
                 else if (input[position] == '_' || input[position] == '^')
                 {
                     string textBefore = input.Substring(start, position - start);
+                    AstNode baseOfScript;
 
 
                     if (string.IsNullOrWhiteSpace(textBefore))
@@ -73,16 +135,15 @@ namespace LatexConverter.Parsing
                         {
                             nodes.Add(new TextNode(textBefore));
                         }
-                        nodes.Add(new TextNode(input[position].ToString()));
-                        position++;
-                        return nodes;
+                        baseOfScript = new TextNode("");
                     }
-
-                    int baseEnd = position;
-                    while (baseEnd > start && char.IsWhiteSpace(input[baseEnd - 1]))
+                    else
                     {
-                        baseEnd--;
-                    }
+                        int baseEnd = position;
+                        while (baseEnd > start && char.IsWhiteSpace(input[baseEnd - 1]))
+                        {
+                            baseEnd--;
+                        }
 
                     int baseStart = baseEnd;
                     while (baseStart > start && !delimiters.Contains(input[baseStart - 1].ToString()))
@@ -90,8 +151,8 @@ namespace LatexConverter.Parsing
                         baseStart--;
                     }
 
-                    string precedingText = input.Substring(start, baseStart - start);
-                    string baseText = input.Substring(baseStart, baseEnd - baseStart);
+                        string precedingText = input.Substring(start, baseStart - start);
+                        string baseText = input.Substring(baseStart, baseEnd - baseStart);
 
 
                     var notallowedForStart = new List<string> { ",", "/", ";", "\\", ";" };
@@ -120,31 +181,8 @@ namespace LatexConverter.Parsing
                             currentPos++;
                         }
 
-                        var scriptContent = ParseScriptContent(input, ref currentPos);
-                        if (scriptContent == null)
-                        {
-                            scriptContent = new TextNode("");
-                        }
-                        finalNode = new ScriptNode(finalNode, scriptContent, isSuperscript);
-
-                        int nextScriptPos = currentPos;
-                        while (nextScriptPos < input.Length && char.IsWhiteSpace(input[nextScriptPos]))
-                        {
-                            nextScriptPos++;
-                        }
-
-                        if (nextScriptPos < input.Length && (input[nextScriptPos] == '_' || input[nextScriptPos] == '^'))
-                        {
-                            currentPos = nextScriptPos;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    nodes.Add(finalNode);
-                    position = currentPos;
+                    var scriptNode = ParseScript(input, ref position, baseOfScript);
+                    nodes.Add(scriptNode);
                     return nodes;
                 }
                 else
@@ -574,7 +612,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
+                    ExtractCommandsRecursive(args, commands, commandInfo);
                 }
                 else if (node is RootNode rootNode)
                 {
@@ -587,7 +625,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
+                    ExtractCommandsRecursive(args, commands, commandInfo);
                 }
                 else if (node is GroupNode groupNode)
                 {
@@ -600,7 +638,7 @@ namespace LatexConverter.Parsing
                         commands.Add(commandInfo);
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
-                    ExtractCommandsRecursive(groupNode.Body.Where(c => c is not TextNode).ToList(), commands, null);
+                    ExtractCommandsRecursive(groupNode.Body, commands, null);
                 }
                 else if (node is ScriptNode scriptNode)
                 {
