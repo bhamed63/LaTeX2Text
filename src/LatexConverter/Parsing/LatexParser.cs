@@ -8,6 +8,8 @@ namespace LatexConverter.Parsing
 {
     public class LatexParser
     {
+        List<string> delimiters = new List<string> { ",", "/", ";", "\\", ";", " " };
+
         public List<AstNode> Parse(string input)
         {
             if (input == null)
@@ -64,6 +66,7 @@ namespace LatexConverter.Parsing
                 {
                     string textBefore = input.Substring(start, position - start);
 
+
                     if (string.IsNullOrWhiteSpace(textBefore))
                     {
                         if (!string.IsNullOrEmpty(textBefore))
@@ -82,13 +85,21 @@ namespace LatexConverter.Parsing
                     }
 
                     int baseStart = baseEnd;
-                    while (baseStart > start && !char.IsWhiteSpace(input[baseStart - 1]))
+                    while (baseStart > start && !delimiters.Contains(input[baseStart - 1].ToString()))
                     {
                         baseStart--;
                     }
 
                     string precedingText = input.Substring(start, baseStart - start);
                     string baseText = input.Substring(baseStart, baseEnd - baseStart);
+
+
+                    var notallowedForStart = new List<string> { ",", "/", ";", "\\", ";" };
+                    while (baseText.Length > 0 && notallowedForStart.Contains(baseText[0].ToString()))
+                    {
+                        baseText = baseText.Substring(1);
+                    }
+
 
                     if (!string.IsNullOrEmpty(precedingText))
                     {
@@ -550,7 +561,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(cmdNode.Args.Where(c=> c is not TextNode).ToList(), commands, commandInfo);
+                    ExtractCommandsRecursive(cmdNode.Args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
                 }
                 else if (node is FracNode fracNode)
                 {
@@ -580,17 +591,32 @@ namespace LatexConverter.Parsing
                 }
                 else if (node is GroupNode groupNode)
                 {
-                    foreach (var arg in groupNode.Body)
+                    foreach (var arg in groupNode.Body.OfType<TextNode>())
                     {
-                        if (arg is not TextNode || currentCommandInfo == null)
+                        if (!isValidArgument(arg.Text))
                             continue;
-                        currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
+
+                        CommandInfo commandInfo = new CommandInfo() { CommandName = arg.ToString() };
+                        commands.Add(commandInfo);
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     ExtractCommandsRecursive(groupNode.Body.Where(c => c is not TextNode).ToList(), commands, null);
                 }
                 else if (node is ScriptNode scriptNode)
                 {
-                    ExtractCommandsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, commands, null);
+                    CommandInfo commandInfo = null;
+                    if (scriptNode.Base is TextNode && scriptNode.Script is TextNode)
+                    {
+                        if (isValidArgument(scriptNode.Base.ToString()))
+                        {
+                            //commandInfo = new CommandInfo { CommandName = "" };
+                            commandInfo = new CommandInfo { CommandName = scriptNode.ToVariableName() };
+                            commandInfo.TextArguments.Add(scriptNode.ToVariableName());
+                            commands.Add(commandInfo);
+                        }
+                    }
+                    else
+                        ExtractCommandsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, commands, commandInfo);
                 }
                 else if (node is TextNode textNode && currentCommandInfo != null)
                 {
@@ -636,7 +662,31 @@ namespace LatexConverter.Parsing
             if (string.IsNullOrEmpty(text) || string.IsNullOrWhiteSpace(text))
                 return false;
 
+            text = text.Trim();
+            while (
+                (text.StartsWith("(") && text.EndsWith(")")) ||
+                (text.StartsWith("{") && text.EndsWith("}")) ||
+                (text.StartsWith("[") && text.EndsWith("]")) ||
+                (text.StartsWith("'") && text.EndsWith("'")) ||
+                (text.StartsWith("\"") && text.EndsWith("\""))
+                )
+            {
+                text = text.Substring(1, text.Length - 2);
+            }
+
+            var notAllowedForStart = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "_"};
+
+            var notAllowedForContain = new List<string>()
+            {
+                "{", "}", ")", "(",
+                ",", ";", "'", "\"",
+                "/", "\\", "="
+            };
+
             if (notAllowedForStart.Any(c => text.StartsWith(c)))
+                return false;
+
+            if (notAllowedForContain.Any(c => text.Contains(c)))
                 return false;
 
             if (text.Trim().Contains(" "))

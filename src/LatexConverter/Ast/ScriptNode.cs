@@ -1,3 +1,4 @@
+
 namespace LatexConverter
 {
     /// <summary>
@@ -26,6 +27,13 @@ namespace LatexConverter
             {
                 Base, Script
             };
+        }
+
+        internal string ToVariableName()
+        {
+            if(IsSuperscript)
+                return Base.ToString();;
+            return ToString();
         }
     }
 }
