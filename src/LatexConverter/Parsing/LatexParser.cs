@@ -536,6 +536,36 @@ namespace LatexConverter.Parsing
             return commands;
         }
 
+        public List<EnrichedCommandInfo> EnrichCommands(List<CommandInfo> commands, Dictionary<string, SymbolDefinition> symbolLibrary)
+        {
+            var enrichedCommands = new List<EnrichedCommandInfo>();
+
+            foreach (var command in commands)
+            {
+                var enrichedCommand = new EnrichedCommandInfo
+                {
+                    CommandName = command.CommandName,
+                    TextArguments = command.TextArguments
+                };
+
+                if (symbolLibrary.TryGetValue(command.CommandName, out var definition))
+                {
+                    enrichedCommand.PlainText = definition.PlainText;
+                    enrichedCommand.ScreenReader = definition.ScreenReader;
+                    enrichedCommand.HumanFriendly = definition.HumanFriendly;
+                    enrichedCommand.OpenAI = definition.OpenAI;
+                    enrichedCommand.ExceptionalScreenReader = definition.ExceptionalScreenReader;
+                    enrichedCommand.HumanFriendlyKey = definition.HumanFriendlyKey;
+                    enrichedCommand.CommandType = definition.CommandType;
+                    enrichedCommand.ArgsNumber = definition.ArgsNumber;
+                }
+
+                enrichedCommands.Add(enrichedCommand);
+            }
+
+            return enrichedCommands;
+        }
+
         private void ExtractCommandsRecursive(List<AstNode> nodes, List<CommandInfo> commands, CommandInfo currentCommandInfo)
         {
             foreach (var node in nodes)
@@ -550,7 +580,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(cmdNode.Args.Where(c=> c is not TextNode).ToList(), commands, commandInfo);
+                    ExtractCommandsRecursive(cmdNode.Args, commands, commandInfo);
                 }
                 else if (node is FracNode fracNode)
                 {
@@ -563,7 +593,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
+                    ExtractCommandsRecursive(args, commands, commandInfo);
                 }
                 else if (node is RootNode rootNode)
                 {
@@ -576,7 +606,7 @@ namespace LatexConverter.Parsing
                         commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
                     commands.Add(commandInfo);
-                    ExtractCommandsRecursive(args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
+                    ExtractCommandsRecursive(args, commands, commandInfo);
                 }
                 else if (node is GroupNode groupNode)
                 {
@@ -586,7 +616,7 @@ namespace LatexConverter.Parsing
                             continue;
                         currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
                     }
-                    ExtractCommandsRecursive(groupNode.Body.Where(c => c is not TextNode).ToList(), commands, null);
+                    ExtractCommandsRecursive(groupNode.Body, commands, null);
                 }
                 else if (node is ScriptNode scriptNode)
                 {
