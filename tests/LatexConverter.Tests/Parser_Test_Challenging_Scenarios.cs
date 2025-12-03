@@ -503,5 +503,28 @@ namespace LatexConvertorTests
             Assert.Equal("\\theta", (script6.Base ).ToString());
             Assert.Equal("1", (script6.Script as TextNode).Text);
         }
+
+        [Fact]
+        public void Test_Parse_V1_over_V2()
+        {
+            var nodes = _latexParser.Parse("V_1/V_2");
+            Assert.Equal(3, nodes.Count);
+            Assert.IsType<ScriptNode>(nodes[0]);
+            var script1 = (ScriptNode)nodes[0];
+            Assert.IsType<TextNode>(script1.Base);
+            Assert.Equal("V", ((TextNode)script1.Base).Text);
+            Assert.IsType<TextNode>(script1.Script);
+            Assert.Equal("1", ((TextNode)script1.Script).Text);
+
+            Assert.IsType<TextNode>(nodes[1]);
+            Assert.Equal("/", ((TextNode)nodes[1]).Text);
+
+            Assert.IsType<ScriptNode>(nodes[2]);
+            var script2 = (ScriptNode)nodes[2];
+            Assert.IsType<TextNode>(script2.Base);
+            Assert.Equal("V", ((TextNode)script2.Base).Text);
+            Assert.IsType<TextNode>(script2.Script);
+            Assert.Equal("2", ((TextNode)script2.Script).Text);
+        }
     }
 }

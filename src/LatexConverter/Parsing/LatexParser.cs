@@ -145,8 +145,13 @@ namespace LatexConverter.Parsing
                         }
 
                         int baseStart = baseEnd;
-                        while (baseStart > start && !char.IsWhiteSpace(input[baseStart - 1]))
+                        while (baseStart > start)
                         {
+                            char prevChar = input[baseStart - 1];
+                            if (char.IsWhiteSpace(prevChar) || prevChar == '/')
+                            {
+                                break;
+                            }
                             baseStart--;
                         }
 
@@ -220,7 +225,7 @@ namespace LatexConverter.Parsing
             while (position < input.Length)
             {
                 char c = input[position];
-                if (char.IsWhiteSpace(c) || c == '\\' || c == '}' || c == '_' || c == '^')
+                if (char.IsWhiteSpace(c) || c == '\\' || c == '}' || c == '_' || c == '^' || c == '/')
                 {
                     break;
                 }
