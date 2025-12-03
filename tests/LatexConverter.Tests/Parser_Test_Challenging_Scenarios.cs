@@ -505,7 +505,7 @@ namespace LatexConvertorTests
         }
 
         [Fact]
-        public void Test_Parse_V1_over_V2()
+        public void Parse_WithSlashDelimiter_CorrectlySplitsScripts()
         {
             var nodes = _latexParser.Parse("V_1/V_2");
             Assert.Equal(3, nodes.Count);
@@ -538,6 +538,22 @@ namespace LatexConvertorTests
 
             var text1 = (TextNode)nodes1[2];
             Assert.Equal(", righ", text1.Text);
+        }
+
+        [Fact]
+        public void Parse_WithCommaDelimiter_CorrectlyTerminatesScript()
+        {
+            var nodes = _latexParser.Parse("baseball, P_1, righ");
+            Assert.Equal(3, nodes.Count);
+            Assert.IsType<TextNode>(nodes[0]);
+            Assert.IsType<ScriptNode>(nodes[1]);
+            Assert.IsType<TextNode>(nodes[2]);
+
+            var script = (ScriptNode)nodes[1];
+            Assert.Equal("1", ((TextNode)script.Script).Text);
+
+            var text = (TextNode)nodes[2];
+            Assert.Equal(", righ", text.Text);
         }
     }
 }

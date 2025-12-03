@@ -7,8 +7,6 @@ namespace LatexConverter.Parsing
 {
     public class LatexParser
     {
-        List<string> delimiters = new List<string> { ",", "/", ";", "\\", ";", " " };
-
         public List<AstNode> Parse(string input)
         {
             if (input == null)
@@ -224,11 +222,11 @@ namespace LatexConverter.Parsing
             while (position < input.Length)
             {
                 char c = input[position];
-                if (this.isScriptDelimiter(c))
+                if (ParsingRules.IsScriptDelimiter(c))
                 {
                     break;
                 }
-                if (isLastOrNextIsDelimiter(input, position) && isNotAllowedAtLastChar(c))
+                if (ParsingRules.IsLastOrNextIsDelimiter(input, position) && ParsingRules.IsNotAllowedAtLastChar(c))
                     break;
                 position++;
             }
@@ -241,29 +239,6 @@ namespace LatexConverter.Parsing
             return new TextNode("");
         }
 
-        private bool isNotAllowedAtLastChar(char c)
-        {
-            return notAllowedAtLastChar.Contains(c);
-        }
-
-        char[] subscripDelimitor = new List<char> { '\\', '}', '_', '^', '/', ' ' }.ToArray();
-
-        char[] notAllowedAtLastChar = new List<char> { ',' }.ToArray();
-
-        private bool isLastOrNextIsDelimiter(string input, int position)
-        {
-            return isLast(input, position) || this.isScriptDelimiter(input[position + 1]);
-        }
-
-        private bool isLast(string input, int position)
-        {
-            return position == input.Length - 1;
-        }
-
-        private bool isScriptDelimiter(char input)
-        {
-            return char.IsWhiteSpace(input) || subscripDelimitor.Contains(input);
-        }
 
         private GroupNode ParseGroup(string input, ref int position)
         {
