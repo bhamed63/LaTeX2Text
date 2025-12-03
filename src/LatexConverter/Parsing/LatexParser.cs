@@ -224,10 +224,12 @@ namespace LatexConverter.Parsing
             while (position < input.Length)
             {
                 char c = input[position];
-                if (char.IsWhiteSpace(c) || c == '\\' || c == '}' || c == '_' || c == '^' || c == '/')
+                if (this.isScriptDelimiter(c))
                 {
                     break;
                 }
+                if (isLastOrNextIsDelimiter(input, position) && isNotAllowedAtLastChar(c))
+                    break;
                 position++;
             }
 
@@ -237,6 +239,30 @@ namespace LatexConverter.Parsing
             }
 
             return new TextNode("");
+        }
+
+        private bool isNotAllowedAtLastChar(char c)
+        {
+            return notAllowedAtLastChar.Contains(c);
+        }
+
+        char[] subscripDelimitor = new List<char> { '\\', '}', '_', '^', '/', ' ' }.ToArray();
+
+        char[] notAllowedAtLastChar = new List<char> { ',' }.ToArray();
+
+        private bool isLastOrNextIsDelimiter(string input, int position)
+        {
+            return isLast(input, position) || this.isScriptDelimiter(input[position + 1]);
+        }
+
+        private bool isLast(string input, int position)
+        {
+            return position == input.Length - 1;
+        }
+
+        private bool isScriptDelimiter(char input)
+        {
+            return char.IsWhiteSpace(input) || subscripDelimitor.Contains(input);
         }
 
         private GroupNode ParseGroup(string input, ref int position)
