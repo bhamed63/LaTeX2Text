@@ -2,12 +2,75 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using LatexConverter.Ast;
 
 namespace LatexConverter.Parsing
 {
     public class LatexParser
     {
         public List<AstNode> Parse(string input)
+        {
+            var nodes = ExecuteParsing(input);
+            AnalyzeOperators(nodes);
+            return nodes;
+        }
+
+        private void AnalyzeOperators(List<AstNode> nodes)
+        {
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                if (nodes[i] is TextNode textNode)
+                {
+                    var operatorNodes = new List<AstNode>();
+                    var lastIndex = 0;
+
+                    var text = textNode.Text;
+                    var foundOperators = new List<(string Operator, int Index)>();
+
+                    for (int j = 0; j < text.Length; j++)
+                    {
+                        foreach (var op in ParsingRules.Operators.OrderByDescending(o => o.Length))
+                        {
+                            if (j + op.Length <= text.Length && text.Substring(j, op.Length) == op)
+                            {
+                                foundOperators.Add((op, j));
+                                j += op.Length - 1;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (foundOperators.Any())
+                    {
+                        var newOperators = new List<OperatorNode>();
+                        for (int k = 0; k < foundOperators.Count; k++)
+                        {
+                            var (op, index) = foundOperators[k];
+                            var leftOperandStartIndex = (k > 0) ? foundOperators[k-1].Index + foundOperators[k-1].Operator.Length : 0;
+                            var leftOperand = text.Substring(leftOperandStartIndex, index - leftOperandStartIndex);
+
+                            string rightOperand;
+                            if (k + 1 < foundOperators.Count)
+                            {
+                                var nextOpIndex = foundOperators[k + 1].Index;
+                                rightOperand = text.Substring(index + op.Length, nextOpIndex - (index + op.Length));
+                            }
+                            else
+                            {
+                                rightOperand = text.Substring(index + op.Length);
+                            }
+
+                            newOperators.Add(new OperatorNode(op, leftOperand, rightOperand));
+                            lastIndex = index + op.Length;
+                        }
+
+                        nodes[i] = new TextNode(textNode.Text) { Operators = newOperators };
+                    }
+                }
+            }
+        }
+
+        private List<AstNode> ExecuteParsing(string input)
         {
             if (input == null)
                 return new List<AstNode>();

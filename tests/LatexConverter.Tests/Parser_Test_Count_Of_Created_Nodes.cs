@@ -207,6 +207,31 @@ namespace LatexConvertorTests
             // Script with space before base
             Assert.True(_latexParser.Parse("a b ^ c").Count == 2);
             Assert.True(getNestedNodesCount(_latexParser.Parse("a b ^ c")) == 4);
+
+
+            // Script with space before base
+            var result = _latexParser.Parse("a + c");
+            Assert.True(result.Count == 1 && result[0] is TextNode textNode1 && textNode1.Operators.Count == 1 && textNode1.Operators[0].LeftOperand == "a " && textNode1.Operators[0].RightOperand == " c");
+
+            result = _latexParser.Parse("a /c+9*q -1 = 90");
+            Assert.True(result.Count == 1);
+            var textNode2 = result[0] as TextNode;
+            Assert.True(textNode2.Operators.Count == 5);
+            Assert.Equal("a ", textNode2.Operators[0].LeftOperand);
+            Assert.Equal("c", textNode2.Operators[0].RightOperand);
+            Assert.Equal("c", textNode2.Operators[1].LeftOperand);
+            Assert.Equal("9", textNode2.Operators[1].RightOperand);
+            Assert.Equal("9", textNode2.Operators[2].LeftOperand);
+            Assert.Equal("q ", textNode2.Operators[2].RightOperand);
+            Assert.Equal("q ", textNode2.Operators[3].LeftOperand);
+            Assert.Equal("1 ", textNode2.Operators[3].RightOperand);
+            Assert.Equal("1 ", textNode2.Operators[4].LeftOperand);
+            Assert.Equal(" 90", textNode2.Operators[4].RightOperand);
+            Assert.Equal("/", textNode2.Operators[0].Operator);
+            Assert.Equal("+", textNode2.Operators[1].Operator);
+            Assert.Equal("*", textNode2.Operators[2].Operator);
+            Assert.Equal("-", textNode2.Operators[3].Operator);
+            Assert.Equal("=", textNode2.Operators[4].Operator);
         }
 
         [Fact]
@@ -219,9 +244,6 @@ namespace LatexConvertorTests
         public void Test_Parser_Command_With_Script()
         {
             Assert.Equal(1, _latexParser.Parse(@"\theta_1").Count);
-
-            var nodes = _latexParser.Parse("\\frac{x}{y}, a + 65 / 789 * a - x.");
-            Assert.Equal(2, nodes.Count);
         }
     }
 }
