@@ -7,8 +7,6 @@ namespace LatexConverter.Parsing
 {
     public class LatexParser
     {
-        List<string> delimiters = new List<string> { ",", "/", ";", "\\", ";", " " };
-
         public List<AstNode> Parse(string input)
         {
             if (input == null)
@@ -224,10 +222,12 @@ namespace LatexConverter.Parsing
             while (position < input.Length)
             {
                 char c = input[position];
-                if (char.IsWhiteSpace(c) || c == '\\' || c == '}' || c == '_' || c == '^' || c == '/')
+                if (ParsingRules.IsScriptDelimiter(c))
                 {
                     break;
                 }
+                if (ParsingRules.IsLastOrNextIsDelimiter(input, position) && ParsingRules.IsNotAllowedAtLastChar(c))
+                    break;
                 position++;
             }
 
@@ -238,6 +238,7 @@ namespace LatexConverter.Parsing
 
             return new TextNode("");
         }
+
 
         private GroupNode ParseGroup(string input, ref int position)
         {
