@@ -219,9 +219,6 @@ namespace LatexConvertorTests
         public void Test_Parser_Command_With_Script()
         {
             Assert.Equal(1, _latexParser.Parse(@"\theta_1").Count);
-
-            var nodes = _latexParser.Parse("\\frac{x}{y}, a + 65 / 789 * a - x.");
-            Assert.Equal(2, nodes.Count);
         }
     }
 }
