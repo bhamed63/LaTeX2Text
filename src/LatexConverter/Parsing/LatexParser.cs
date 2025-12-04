@@ -238,7 +238,8 @@ namespace LatexConverter.Parsing
                         while (baseStart > start)
                         {
                             char prevChar = input[baseStart - 1];
-                            if (char.IsWhiteSpace(prevChar) || prevChar == '/')
+                            //if (char.IsWhiteSpace(prevChar) || prevChar == '/')
+                            if (ParsingRules.IsScriptDelimiter(prevChar))
                             {
                                 break;
                             }

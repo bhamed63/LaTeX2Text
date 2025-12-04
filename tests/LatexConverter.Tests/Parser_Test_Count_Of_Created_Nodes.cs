@@ -213,6 +213,17 @@ namespace LatexConvertorTests
         public void Test_Parser_Greedy_Script_Parsing()
         {
             Assert.True(_latexParser.Parse("E_int,1").Count == 1);
+            var nodes = _latexParser.Parse("`E_int,1");
+            Assert.Equal(2, nodes.Count);
+            Assert.True(nodes.First() is TextNode);
+            Assert.True((nodes.First() as TextNode).Text == "`");
+
+            var nodes2 = _latexParser.Parse("V_2.");
+            Assert.Equal(2, nodes2.Count);
+            Assert.True(nodes2.First() is ScriptNode);
+            Assert.True((nodes2.Last() as TextNode).Text == ".");
+
+            
         }
 
         [Fact]
