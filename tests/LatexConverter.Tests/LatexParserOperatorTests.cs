@@ -43,8 +43,8 @@ namespace LatexConverter.Tests
                     }
                     break;
                 case ScriptNode sNode:
-                     result.AddRange(FindTextNodesWithOperators(sNode.Script));
-                     break;
+                    result.AddRange(FindTextNodesWithOperators(sNode.Script));
+                    break;
                 case RootNode rNode:
                     result.AddRange(FindTextNodesWithOperators(rNode.Radicand));
                     break;
@@ -52,7 +52,7 @@ namespace LatexConverter.Tests
                     result.AddRange(FindTextNodesWithOperators(fNode.Numerator));
                     result.AddRange(FindTextNodesWithOperators(fNode.Denominator));
                     break;
-                 case BinomNode bNode:
+                case BinomNode bNode:
                     result.AddRange(FindTextNodesWithOperators(bNode.Top));
                     result.AddRange(FindTextNodesWithOperators(bNode.Bottom));
                     break;
@@ -66,7 +66,8 @@ namespace LatexConverter.Tests
             var nodes = _parser.Parse(latex);
             var textNodes = new List<TextNode>();
 
-            foreach(var node in nodes) {
+            foreach (var node in nodes)
+            {
                 textNodes.AddRange(FindTextNodesWithOperators(node));
             }
 
@@ -140,13 +141,13 @@ namespace LatexConverter.Tests
         [Fact]
         public void Parse_InSubscriptOfLimit_FindsOperators()
         {
-             AssertOperators(@"\sum_{i=0}^{N-1}", "=", "i", "0");
+            AssertOperators(@"\sum_{i=0}^{N-1}", ("=", "i", "0"), ("-", "N", "1"));
         }
 
         [Fact]
         public void Parse_InSuperscriptOfLimit_FindsOperators()
         {
-             AssertOperators(@"\int_0^{z-1}", "-", "z", "1");
+            AssertOperators(@"\int_0^{z-1}", ("-", "z", "1"));
         }
 
         [Theory]
@@ -154,7 +155,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\frac{a}{c-d}", "-", "c", "d")]
         [InlineData(@"\sqrt{x*y}", "*", "x", "y")]
         [InlineData(@"\binom{n}{k-1}", "-", "k", "1")]
-        [InlineData(@"\text{Total=Cost+Tax}", "=", "Total", "Cost")] // Note: second op is not found because it's in a different text node
+        [InlineData(@"\text{Total=Cost and Tax}", "=", "Total", "Cost and Tax")] // Note: second op is not found because it's in a different text node
         public void Parse_InCommandArguments_FindsOperators(string latex, string op, string left, string right)
         {
             AssertOperators(latex, (op, left, right));
