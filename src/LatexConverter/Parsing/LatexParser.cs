@@ -17,56 +17,86 @@ namespace LatexConverter.Parsing
 
         private void AnalyzeOperators(List<AstNode> nodes)
         {
-            for (int i = 0; i < nodes.Count; i++)
+            foreach (var node in nodes)
             {
-                if (nodes[i] is TextNode textNode)
+                AnalyzeNodeRecursively(node);
+            }
+        }
+
+        private void AnalyzeNodeRecursively(AstNode node)
+        {
+            switch (node)
+            {
+                case TextNode textNode:
+                    ProcessTextNode(textNode);
+                    break;
+                case GroupNode groupNode:
+                    foreach (var child in groupNode.Body) AnalyzeNodeRecursively(child);
+                    break;
+                case CommandNode cmdNode:
+                    foreach (var arg in cmdNode.Args) AnalyzeNodeRecursively(arg);
+                    if (cmdNode.Subscript != null) AnalyzeNodeRecursively(cmdNode.Subscript);
+                    if (cmdNode.Superscript != null) AnalyzeNodeRecursively(cmdNode.Superscript);
+                    break;
+                case ScriptNode sNode:
+                    AnalyzeNodeRecursively(sNode.Base);
+                    AnalyzeNodeRecursively(sNode.Script);
+                    break;
+                case RootNode rNode:
+                    AnalyzeNodeRecursively(rNode.Radicand);
+                    if (rNode.Degree != null) AnalyzeNodeRecursively(rNode.Degree);
+                    break;
+                case FracNode fNode:
+                    AnalyzeNodeRecursively(fNode.Numerator);
+                    AnalyzeNodeRecursively(fNode.Denominator);
+                    break;
+                case BinomNode bNode:
+                    AnalyzeNodeRecursively(bNode.Top);
+                    AnalyzeNodeRecursively(bNode.Bottom);
+                    break;
+            }
+        }
+
+        private void ProcessTextNode(TextNode textNode)
+        {
+            var text = textNode.Text;
+            var foundOperators = new List<(string Operator, int Index)>();
+
+            for (int j = 0; j < text.Length; j++)
+            {
+                foreach (var op in ParsingRules.Operators.OrderByDescending(o => o.Length))
                 {
-                    var operatorNodes = new List<AstNode>();
-                    var lastIndex = 0;
-
-                    var text = textNode.Text;
-                    var foundOperators = new List<(string Operator, int Index)>();
-
-                    for (int j = 0; j < text.Length; j++)
+                    if (j + op.Length <= text.Length && text.Substring(j, op.Length) == op)
                     {
-                        foreach (var op in ParsingRules.Operators.OrderByDescending(o => o.Length))
-                        {
-                            if (j + op.Length <= text.Length && text.Substring(j, op.Length) == op)
-                            {
-                                foundOperators.Add((op, j));
-                                j += op.Length - 1;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (foundOperators.Any())
-                    {
-                        var newOperators = new List<OperatorNode>();
-                        for (int k = 0; k < foundOperators.Count; k++)
-                        {
-                            var (op, index) = foundOperators[k];
-                            var leftOperandStartIndex = (k > 0) ? foundOperators[k-1].Index + foundOperators[k-1].Operator.Length : 0;
-                            var leftOperand = text.Substring(leftOperandStartIndex, index - leftOperandStartIndex);
-
-                            string rightOperand;
-                            if (k + 1 < foundOperators.Count)
-                            {
-                                var nextOpIndex = foundOperators[k + 1].Index;
-                                rightOperand = text.Substring(index + op.Length, nextOpIndex - (index + op.Length));
-                            }
-                            else
-                            {
-                                rightOperand = text.Substring(index + op.Length);
-                            }
-
-                            newOperators.Add(new OperatorNode(op, leftOperand, rightOperand));
-                            lastIndex = index + op.Length;
-                        }
-
-                        nodes[i] = new TextNode(textNode.Text) { Operators = newOperators };
+                        foundOperators.Add((op, j));
+                        j += op.Length - 1;
+                        break;
                     }
                 }
+            }
+
+            if (foundOperators.Any())
+            {
+                var newOperators = new List<OperatorNode>();
+                for (int k = 0; k < foundOperators.Count; k++)
+                {
+                    var (op, index) = foundOperators[k];
+                    var leftOperandStartIndex = (k > 0) ? foundOperators[k - 1].Index + foundOperators[k - 1].Operator.Length : 0;
+                    var leftOperand = text.Substring(leftOperandStartIndex, index - leftOperandStartIndex);
+
+                    string rightOperand;
+                    if (k + 1 < foundOperators.Count)
+                    {
+                        var nextOpIndex = foundOperators[k + 1].Index;
+                        rightOperand = text.Substring(index + op.Length, nextOpIndex - (index + op.Length));
+                    }
+                    else
+                    {
+                        rightOperand = text.Substring(index + op.Length);
+                    }
+                    newOperators.Add(new OperatorNode(op, leftOperand, rightOperand));
+                }
+                textNode.Operators.AddRange(newOperators);
             }
         }
 
@@ -256,7 +286,7 @@ namespace LatexConverter.Parsing
                 var content = ExtractBracedContent(input, ref position);
                 if (content != null)
                 {
-                    var contentNodes = Parse(content);
+                    var contentNodes = ExecuteParsing(content);
                     if (position < input.Length && input[position] == '}')
                     {
                         position++;
@@ -328,7 +358,7 @@ namespace LatexConverter.Parsing
                     if (groupLevel == 0)
                     {
                         string groupContent = input.Substring(start, position - start);
-                        var children = Parse(groupContent);
+                        var children = ExecuteParsing(groupContent);
                         position += 2;
                         return new GroupNode(children, openGroup, closeGroup);
                     }
@@ -346,7 +376,7 @@ namespace LatexConverter.Parsing
             if (position > start)
             {
                 string remainingContent = input.Substring(start, position - start);
-                return new GroupNode(Parse(remainingContent), openGroup, closeGroup);
+                return new GroupNode(ExecuteParsing(remainingContent), openGroup, closeGroup);
             }
 
             return new GroupNode(new List<AstNode>(), openGroup, closeGroup);
@@ -384,7 +414,7 @@ namespace LatexConverter.Parsing
                         var argumentContent = ExtractBracedContent(input, ref position);
                         if (argumentContent != null)
                         {
-                            arguments.AddRange(Parse(argumentContent));
+                            arguments.AddRange(ExecuteParsing(argumentContent));
                             if (position < input.Length && input[position] == '}')
                                 position++;
                         }
@@ -426,7 +456,7 @@ namespace LatexConverter.Parsing
                 position++; // Consume '{'
                 var content = ExtractBracedContent(input, ref position);
                 position++; // Consume '}'
-                var nodes = Parse(content);
+                var nodes = ExecuteParsing(content);
                 if (nodes.Count == 1) return nodes[0];
                 return new GroupNode(nodes, "", "");
             }
@@ -537,7 +567,7 @@ namespace LatexConverter.Parsing
                 {
                     position++; // Skip ']'
                 }
-                return Parse(content.ToString());
+                return ExecuteParsing(content.ToString());
             }
             return null;
         }
@@ -551,7 +581,7 @@ namespace LatexConverter.Parsing
                 var argumentContent = ExtractBracedContent(input, ref position);
                 if (argumentContent != null)
                 {
-                    arguments.AddRange(Parse(argumentContent));
+                    arguments.AddRange(ExecuteParsing(argumentContent));
                     if (position < input.Length && input[position] == '}')
                         position++;
                 }

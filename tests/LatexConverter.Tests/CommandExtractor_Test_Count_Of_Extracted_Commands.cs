@@ -34,7 +34,7 @@ namespace LatexConvertorTests
             if (actualCommandsCount != commandsCount)
                 Assert.Fail(string.Format("Expected commands count: {0}, Actual commands count: {1}, Expression: {2}", commandsCount, actualCommandsCount, text));
             if (actualArgumentsCount != argumentCount)
-                Assert.Fail(string.Format("Expected arguments count: {0}, Actual arguments count: {1}, Expression: {2}", commandsCount, actualCommandsCount, text)); 
+                Assert.Fail(string.Format("Expected arguments count: {0}, Actual arguments count: {1}, Expression: {2}", commandsCount, actualCommandsCount, text));
         }
 
         [Fact]

@@ -525,6 +525,19 @@ namespace LatexConvertorTests
             Assert.Equal("V", ((TextNode)script2.Base).Text);
             Assert.IsType<TextNode>(script2.Script);
             Assert.Equal("2", ((TextNode)script2.Script).Text);
+
+
+            var nodes1 = _latexParser.Parse("baseball, P_1, righ");
+            Assert.Equal(3, nodes1.Count);
+            Assert.IsType<TextNode>(nodes1[0]);
+            Assert.IsType<ScriptNode>(nodes1[1]);
+            Assert.IsType<TextNode>(nodes1[2]);
+
+            var script3 = (ScriptNode)nodes1[1];
+            Assert.Equal("1", ((TextNode)script3.Script).Text);
+
+            var text1 = (TextNode)nodes1[2];
+            Assert.Equal(", righ", text1.Text);
         }
 
         [Fact]
