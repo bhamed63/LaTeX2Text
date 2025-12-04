@@ -28,6 +28,124 @@ namespace LatexConverter.Parsing
             return commands;
         }
 
+        public List<string> ExtractArgumentsFromOperators(List<AstNode> nodes)
+        {
+            var arguments = new HashSet<string>();
+            ExtractArgumentsRecursive(nodes, arguments);
+            return arguments.ToList();
+        }
+
+        private void ExtractArgumentsRecursive(List<AstNode> nodes, HashSet<string> arguments)
+        {
+            foreach (var node in nodes)
+            {
+                if (node is TextNode textNode)
+                {
+                    if (textNode.Operators.Any())
+                    {
+                        foreach (var opNode in textNode.Operators)
+                        {
+                            ExtractFromRightOperand(opNode.RightOperand, arguments);
+                            ExtractFromLeftOperand(opNode.LeftOperand, arguments);
+                        }
+                    }
+                    else
+                    {
+                        if (isValidArgument(textNode.Text))
+                        {
+                            arguments.Add(textNode.Text.Trim());
+                        }
+                    }
+                }
+                else if (node is GroupNode groupNode)
+                {
+                    ExtractArgumentsRecursive(groupNode.Body, arguments);
+                }
+                else if (node is CommandNode cmdNode)
+                {
+                    ExtractArgumentsRecursive(cmdNode.Args, arguments);
+                    if (cmdNode.Subscript != null)
+                    {
+                        ExtractArgumentsRecursive(new List<AstNode> { cmdNode.Subscript }, arguments);
+                    }
+                    if (cmdNode.Superscript != null)
+                    {
+                        ExtractArgumentsRecursive(new List<AstNode> { cmdNode.Superscript }, arguments);
+                    }
+                }
+                else if (node is ScriptNode scriptNode)
+                {
+                    ExtractArgumentsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, arguments);
+                }
+                else if (node is RootNode rootNode)
+                {
+                    ExtractArgumentsRecursive(new List<AstNode> { rootNode.Radicand }, arguments);
+                    if (rootNode.Degree != null)
+                    {
+                        ExtractArgumentsRecursive(new List<AstNode> { rootNode.Degree }, arguments);
+                    }
+                }
+                else if (node is FracNode fracNode)
+                {
+                    ExtractArgumentsRecursive(new List<AstNode> { fracNode.Numerator, fracNode.Denominator }, arguments);
+                }
+                else if (node is BinomNode binomNode)
+                {
+                    ExtractArgumentsRecursive(new List<AstNode> { binomNode.Top, binomNode.Bottom }, arguments);
+                }
+            }
+        }
+
+        private void ExtractFromRightOperand(string rightOperand, HashSet<string> arguments)
+        {
+            if (string.IsNullOrEmpty(rightOperand))
+                return;
+
+            int startIndex = 0;
+            while (startIndex < rightOperand.Length && ParsingRules.IsScriptDelimiter(rightOperand[startIndex]))
+            {
+                startIndex++;
+            }
+            if (startIndex >= rightOperand.Length) return;
+
+            int endIndex = startIndex;
+            while (endIndex < rightOperand.Length && !ParsingRules.IsScriptDelimiter(rightOperand[endIndex]))
+            {
+                endIndex++;
+            }
+
+            string potentialArgument = rightOperand.Substring(startIndex, endIndex - startIndex);
+            if (isValidArgument(potentialArgument))
+            {
+                arguments.Add(potentialArgument);
+            }
+        }
+
+        private void ExtractFromLeftOperand(string leftOperand, HashSet<string> arguments)
+        {
+            if (string.IsNullOrEmpty(leftOperand))
+                return;
+
+            int endIndex = leftOperand.Length;
+            while (endIndex > 0 && ParsingRules.IsScriptDelimiter(leftOperand[endIndex - 1]))
+            {
+                endIndex--;
+            }
+            if (endIndex == 0) return;
+
+            int startIndex = endIndex;
+            while (startIndex > 0 && !ParsingRules.IsScriptDelimiter(leftOperand[startIndex - 1]))
+            {
+                startIndex--;
+            }
+
+            string potentialArgument = leftOperand.Substring(startIndex, endIndex - startIndex);
+            if (isValidArgument(potentialArgument))
+            {
+                arguments.Add(potentialArgument);
+            }
+        }
+
         private void ExtractCommandsRecursive(List<AstNode> nodes, List<CommandInfo> commands, CommandInfo currentCommandInfo)
         {
             foreach (var node in nodes)
