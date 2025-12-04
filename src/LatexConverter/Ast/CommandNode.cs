@@ -34,7 +34,12 @@ namespace LatexConverter
 
         public override List<AstNode> GetAllSubNodes()
         {
-            return Args.ToList();
+            var result = Args.ToList();
+            if (Subscript is not null)
+                result.Add(Subscript);
+            if (Superscript is not null)
+                result.Add(Superscript);
+            return result;
         }
 
         public override string CreateCommandName()
