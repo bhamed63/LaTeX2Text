@@ -12,9 +12,9 @@ namespace LatexConverter.Tests
 
         [Theory]
         [InlineData("a+b", "a", "b")]
-        [InlineData("var1 = var2", "var2")]
-        [InlineData("x > y", "y")]
-        [InlineData("p < q", "q")]
+        [InlineData("var1 = var2", "var1", "var2")]
+        [InlineData("x > y", "x", "y")]
+        [InlineData("p < q", "p", "q")]
         [InlineData("a+b-c", "a", "b", "c")]
         public void TestSimpleOperands(string input, params string[] expectedArguments)
         {
@@ -24,7 +24,7 @@ namespace LatexConverter.Tests
         }
 
         [Theory]
-        [InlineData("a + b c", "b")]
+        [InlineData("a + b c", "a", "b")]
         [InlineData("a+b c d", "a", "b")]
         public void TestOperandsWithDelimiters(string input, params string[] expectedArguments)
         {
@@ -44,7 +44,7 @@ namespace LatexConverter.Tests
         }
 
         [Theory]
-        [InlineData("this is sample of \\sqrt{x} and i + x - this is a sample of = advanture.", "advanture", "this", "x")]
+        [InlineData("this is sample of \\sqrt{x} and i + x - this is a sample of = advanture.", "advanture", "i", "of", "this", "x")]
         [InlineData("A simple case is a=b.", "a", "b")]
         public void TestOperandsInMixedText(string input, params string[] expectedArguments)
         {

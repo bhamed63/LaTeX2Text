@@ -91,7 +91,7 @@ namespace LatexConverter.Parsing
             if (string.IsNullOrEmpty(rightOperand))
                 return;
 
-            string text = rightOperand;
+            string text = rightOperand.Trim();
 
             int startIndex = 0;
             // Skip any leading delimiters (including spaces) to find the start of the argument.
@@ -121,6 +121,8 @@ namespace LatexConverter.Parsing
         {
             if (string.IsNullOrEmpty(leftOperand))
                 return;
+
+            leftOperand = leftOperand.Trim();
 
             int startIndex = leftOperand.Length - 1;
             while (startIndex >= 0 && !ParsingRules.SubscripDelimitor.Contains(leftOperand[startIndex]))
