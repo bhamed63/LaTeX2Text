@@ -230,6 +230,10 @@ namespace LatexConverter.Tests
             Assert.Equal(">=", op4.Operator);
             Assert.Equal("10", op4.LeftOperand);
             Assert.Equal("5", op4.RightOperand);
+
+
+            var nodes2 = parser.Parse("this is another a+b*c-10>=5");
+            Assert.Single(nodes2);
         }
     }
 }
