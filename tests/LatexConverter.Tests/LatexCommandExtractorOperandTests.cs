@@ -34,9 +34,30 @@ namespace LatexConverter.Tests
         }
 
         [Theory]
-        [InlineData("\\frac{a+b}{c}", "a", "b", "c")]
-        [InlineData("\\sqrt[n]{x+y}", "n", "x", "y")]
+        [InlineData("\\frac{a+b}{c}", "a", "b")]
+        [InlineData("\\sqrt[n]{x+y}", "x", "y")]
         public void TestOperandsInCommands(string input, params string[] expectedArguments)
+        {
+            var nodes = _parser.Parse(input);
+            var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+        }
+
+        [Theory]
+        [InlineData("this is sample of \\sqrt{x} and i + x - this is a sample of = advanture.", "advanture", "i", "of", "this", "x")]
+        [InlineData("A simple case is a=b.", "a", "b")]
+        public void TestOperandsInMixedText(string input, params string[] expectedArguments)
+        {
+            var nodes = _parser.Parse(input);
+            var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+        }
+
+        [Theory]
+        [InlineData("var_1+var_2", "var")]
+        [InlineData("a_b-c_d", "b", "c")]
+        [InlineData("a\\b-c\\d", "c")]
+        public void TestOperandsWithSubscriptDelimiters(string input, params string[] expectedArguments)
         {
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);

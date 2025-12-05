@@ -39,22 +39,12 @@ namespace LatexConverter.Parsing
         {
             foreach (var node in nodes)
             {
-                if (node is TextNode textNode)
+                if (node is TextNode textNode && textNode.Operators.Any())
                 {
-                    if (textNode.Operators.Any())
+                    foreach (var opNode in textNode.Operators)
                     {
-                        foreach (var opNode in textNode.Operators)
-                        {
-                            ExtractFromRightOperand(opNode.RightOperand, arguments);
-                            ExtractFromLeftOperand(opNode.LeftOperand, arguments);
-                        }
-                    }
-                    else
-                    {
-                        if (isValidArgument(textNode.Text))
-                        {
-                            arguments.Add(textNode.Text.Trim());
-                        }
+                        ExtractFromRightOperand(opNode.RightOperand, arguments);
+                        ExtractFromLeftOperand(opNode.LeftOperand, arguments);
                     }
                 }
                 else if (node is GroupNode groupNode)
@@ -101,20 +91,26 @@ namespace LatexConverter.Parsing
             if (string.IsNullOrEmpty(rightOperand))
                 return;
 
+            string text = rightOperand.Trim();
+
             int startIndex = 0;
-            while (startIndex < rightOperand.Length && ParsingRules.IsScriptDelimiter(rightOperand[startIndex]))
+            // Skip any leading delimiters (including spaces) to find the start of the argument.
+            while (startIndex < text.Length && ParsingRules.SubscripDelimitor.Contains(text[startIndex]))
             {
                 startIndex++;
             }
-            if (startIndex >= rightOperand.Length) return;
 
+            if (startIndex >= text.Length)
+                return;
+
+            // Now, find the end of the argument
             int endIndex = startIndex;
-            while (endIndex < rightOperand.Length && !ParsingRules.IsScriptDelimiter(rightOperand[endIndex]))
+            while (endIndex < text.Length && !ParsingRules.SubscripDelimitor.Contains(text[endIndex]))
             {
                 endIndex++;
             }
 
-            string potentialArgument = rightOperand.Substring(startIndex, endIndex - startIndex);
+            string potentialArgument = text.Substring(startIndex, endIndex - startIndex);
             if (isValidArgument(potentialArgument))
             {
                 arguments.Add(potentialArgument);
@@ -126,20 +122,15 @@ namespace LatexConverter.Parsing
             if (string.IsNullOrEmpty(leftOperand))
                 return;
 
-            int endIndex = leftOperand.Length;
-            while (endIndex > 0 && ParsingRules.IsScriptDelimiter(leftOperand[endIndex - 1]))
-            {
-                endIndex--;
-            }
-            if (endIndex == 0) return;
+            leftOperand = leftOperand.Trim();
 
-            int startIndex = endIndex;
-            while (startIndex > 0 && !ParsingRules.IsScriptDelimiter(leftOperand[startIndex - 1]))
+            int startIndex = leftOperand.Length - 1;
+            while (startIndex >= 0 && !ParsingRules.SubscripDelimitor.Contains(leftOperand[startIndex]))
             {
                 startIndex--;
             }
 
-            string potentialArgument = leftOperand.Substring(startIndex, endIndex - startIndex);
+            string potentialArgument = leftOperand.Substring(startIndex + 1).Trim();
             if (isValidArgument(potentialArgument))
             {
                 arguments.Add(potentialArgument);
