@@ -63,57 +63,6 @@ namespace LatexConverter
             return converter.Convert(humanFriendlyText);
         }
 
-        public List<string> ExtractVariables(string latex_input)
-        {
-            if (string.IsNullOrEmpty(latex_input))
-            {
-                return new List<string>();
-            }
-
-            var tokens = Tokenizer.Tokenize(latex_input);
-            var parser = new Parser(tokens);
-            var nodes = parser.Parse();
-
-            var visitor = new VariableExtractionVisitor();
-            var variables = nodes.SelectMany(node => visitor.Visit(node, false)).ToList();
-
-            return variables.Distinct().ToList();
-        }
-
-        public List<string> ExtractCommands(string latex_input)
-        {
-            if (string.IsNullOrEmpty(latex_input))
-            {
-                return new List<string>();
-            }
-
-            var tokens = Tokenizer.Tokenize(latex_input);
-            var parser = new Parser(tokens);
-            var nodes = parser.Parse();
-
-            var visitor = new CommandExtractionVisitor();
-            var commands = nodes.SelectMany(node => node.Accept(visitor)).ToList();
-
-            return commands.Distinct().ToList();
-        }
-
-        public ExtractionResult ExtractComponents(string latex_input)
-        {
-            if (string.IsNullOrEmpty(latex_input))
-            {
-                return new ExtractionResult();
-            }
-
-            var tokens = Tokenizer.Tokenize(latex_input);
-            var parser = new Parser(tokens);
-            var nodes = parser.Parse();
-
-            var visitor = new ComponentExtractionVisitor();
-            nodes.Select(node => node.Accept(visitor)).ToList();
-
-            return visitor.Result;
-        }
-
         /// <summary>
         /// Normalizes structural patterns in the LaTeX input, such as converting `sqrt(x)` to `\sqrt{x}`.
         /// </summary>
