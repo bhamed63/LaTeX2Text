@@ -266,7 +266,12 @@ namespace LatexConverter.Parsing
                 }
             }
 
-            if (position > start)
+            //if (position > start) 
+            //{
+            //    nodes.Add(new TextNode(input.Substring(start, position - start)));
+            //}
+
+            if (position > start && (start + position - start) <= input.Length)
             {
                 nodes.Add(new TextNode(input.Substring(start, position - start)));
             }

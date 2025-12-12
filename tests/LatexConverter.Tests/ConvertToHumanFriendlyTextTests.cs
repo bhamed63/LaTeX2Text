@@ -152,8 +152,8 @@ namespace LatexConverter.Tests
         [InlineData("and n_2. A light ray", "and n₂. A light ray")]
         [InlineData("a\r\nb", "a\r\nb")]
         [InlineData("\r\n\\alpha\r\n\\beta\r\n", "\r\nα\r\nβ\r\n")]
-        [InlineData("I am a amin_21 and how are you ali_lg? Are you good?", "I am a amin_21 and how are you ali_lg? Are you good?")]
-        [InlineData("I am a amin_21 and how are you Reza_a? Are you nima_jx good?", "I am a amin₂₁ and how are you Rezaₐ? Are you nimaⱼₓ good?")]
+        [InlineData("I am a n_21 and how are you aaaaa_lg? Are you good?", "I am a n_21 and how are you aaaaa_lg? Are you good?")]
+        [InlineData("I am a n_21 and how are you aaaaaaa_a? Are you ewewe_jx good?", "I am a n₂₁ and how are you aaaaaaaₐ? Are you eweweⱼₓ good?")]
         [InlineData(@"\mathbf{F}", "F")]
         [InlineData(@"\mathit{x}", "x")]
         [InlineData(@"\mathsf{T}", "T")]
@@ -179,6 +179,7 @@ namespace LatexConverter.Tests
         [InlineData(@"\[x^2\]", "x²")]
         [InlineData(@"\(a_{sub}\)", "a_sub")]
         [InlineData(@"\[x^-2\]", "x⁻²")]
+        [InlineData(@"\infty", "∞")]
         public void ConvertToHumanFriendlyText_ConvertsCorrectly(string input, string expected)
         {
             var result = _converter.ConvertToHumanFriendlyText(input);

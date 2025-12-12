@@ -76,5 +76,41 @@ namespace LatexConvertorTests
             // Deeply nested structure
             checkCommandsAndArgumentsCount(@"\textbf{\sqrt{\frac{a}{b}}}", 3, 2);
         }
+
+
+        [Fact]
+        public void Test_CommandExtractor_Special_Case_Vector()
+        {
+            // Generic command with one argument
+            string text = @" towards it with the velocity \(\vec{v}_{1,0} = \big(3.11\;\mathrm{m}/\mathrm{s}\big)\,\hat{i}\), as shown";
+
+            var nodes = _latexParser.Parse(text);
+            var commands = _commandExtractor.ExtractCommands(nodes);
+
+            var command = commands.FirstOrDefault(c => c.CommandName == "\\vec{v}_{1,0}");
+            Assert.NotNull(command);
+            Assert.Contains("\\vec{v}_{1,0}", command.TextArguments);
+            Assert.Contains("v&#x20d7;_{1,0}", command.LabelArguments);
+
+        }
+
+
+        [Fact]
+        public void Test_CommandExtractor_Special_Case_Infinity()
+        {
+            // Generic command with one argument
+            string text = "\\infty";
+
+            var nodes = _latexParser.Parse(text);
+            var commands = _commandExtractor.ExtractCommands(nodes);
+
+            var command = commands.FirstOrDefault(c => c.CommandName == "\\infty");
+            Assert.NotNull(command);
+
+            text = " From  \\(n = 3\\)  to \\(n = \\infty \\)";
+            nodes = _latexParser.Parse(text);
+            commands = _commandExtractor.ExtractCommands(nodes);
+            Assert.Contains("\\infty", commands.Select(c => c.CommandName));
+        }
     }
 }

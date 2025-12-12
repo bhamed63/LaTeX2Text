@@ -235,5 +235,24 @@ namespace LatexConverter.Tests
             var nodes2 = parser.Parse("this is another a+b*c-10>=5");
             Assert.Single(nodes2);
         }
+
+        [Fact]
+        public void Parse_WithOperators_CreatesCorrectOperatorNodes_MoreThan_One_Operand_In_One_TextNode()
+        {
+            string complicatedString = "baseball of radius r = 5.8 cm is at room temperature T = 19.8 C.  The baseball has emissivity of \\epsilon = 0.86 and the ";
+            var parser = new LatexParser();
+            var nodes = parser.Parse(complicatedString);
+
+            Assert.Equal(3, nodes.Count);
+
+            var node1 = nodes[0] as TextNode;
+            var node2 = nodes[1] as CommandNode;
+            var node3 = nodes[2] as TextNode;
+
+            Assert.Equal(2, node1.Operators.Count);
+            Assert.Equal("baseball of radius r ", node1.Operators[0].LeftOperand);
+            Assert.Equal(" 5.8 cm is at room temperature T ", node1.Operators[1].LeftOperand);
+
+        }
     }
 }

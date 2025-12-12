@@ -46,5 +46,27 @@ namespace LatexConverter
         {
             return $"\\{Command}";
         }
+
+        public string CreateSpecialCommandText()
+        {
+            return $"{this.CreateCommandName()}{{{this.Args[0].ToString()}}}";
+        }
+
+        public string CreateSpecialCommandLabel()
+        {
+            if (CreateCommandName() == "\\hat")
+                return $"{this.Args[0].ToString()}&#x0302;";
+
+            if (CreateCommandName() == "\\vec")
+                return $"{this.Args[0].ToString()}&#x20d7;";
+
+            return "";
+        }
+
+        public bool IsSpecialCommandNode()
+        {
+            return CreateCommandName() == "\\hat" ||
+                 CreateCommandName() == "\\vec";
+        }
     }
 }

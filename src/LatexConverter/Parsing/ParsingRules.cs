@@ -6,8 +6,9 @@ namespace LatexConverter.Parsing
     public static class ParsingRules
     {
         public static readonly List<string> Operators = new List<string> { "/", "+", "*", "-", "=", ">", "<", ">=", "<=", "≤", "≥", "±", "∓" };
-        public static readonly char[] SubscripDelimitor = { '\\', '}', '_', '^', '/', ' ', '`', '.' };
+        public static readonly char[] SubscripDelimitor = { '\\', '}', '_', '^', '/', ' ', '`', '.', ')', '(', '+', '-', '*', '/', '=' };
         public static readonly char[] NotAllowedAtLastChar = { ',' };
+        public static readonly List<string> NotValidVariableNames = new List<string> { "cm", "cm2", "cm3", "dB", "km" };//, "m/s", "m/s2", "m/s3" };
 
         public static bool IsNotAllowedAtLastChar(char c)
         {

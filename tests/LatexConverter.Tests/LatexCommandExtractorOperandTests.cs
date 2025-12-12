@@ -12,7 +12,7 @@ namespace LatexConverter.Tests
 
         [Theory]
         [InlineData("a+b", "a", "b")]
-        [InlineData("var1 = var2", "var1", "var2")]
+        [InlineData("var1 = var2")]
         [InlineData("x > y", "x", "y")]
         [InlineData("p < q", "p", "q")]
         [InlineData("a+b-c", "a", "b", "c")]
@@ -44,7 +44,7 @@ namespace LatexConverter.Tests
         }
 
         [Theory]
-        [InlineData("this is sample of \\sqrt{x} and i + x - this is a sample of = advanture.", "advanture", "i", "of", "this", "x")]
+        [InlineData("this is sample of \\sqrt{x} and i + x - this is a sample of = advanture.", "i", "of", "x")]
         [InlineData("A simple case is a=b.", "a", "b")]
         public void TestOperandsInMixedText(string input, params string[] expectedArguments)
         {
@@ -54,14 +54,53 @@ namespace LatexConverter.Tests
         }
 
         [Theory]
-        [InlineData("var_1+var_2", "var")]
-        [InlineData("a_b-c_d", "b", "c")]
+        [InlineData("var_1+var_2", "var_1", "var_2")]
+        [InlineData("a_b-c_d", "a_b", "c_d")]
+        public void TestCommandssWithSubscriptDelimiters(string input, params string[] expectedArguments)
+        {
+            var nodes = _parser.Parse(input);
+            var commands = _extractor.ExtractCommands(nodes);
+            Assert.Equal(expectedArguments.OrderBy(a => a), commands.Select(c => c.CommandName).OrderBy(a => a)); 
+        }
+
+        [Theory]
+        [InlineData("var_1+var_2")]
+        [InlineData("a_b-c_d")]
         [InlineData("a\\b-c\\d", "c")]
         public void TestOperandsWithSubscriptDelimiters(string input, params string[] expectedArguments)
         {
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
             Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+        }
+
+        [Theory]
+        [InlineData("baseball of radius r = 5.8 cm is at room temperature T = 19.8 C.  The baseball has  ", "r", "T")]
+        public void Test_MoreThan_One_Operand_In_One_TextNode(string input, params string[] expectedArguments)
+        {
+            var nodes = _parser.Parse(input);
+            var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+        }
+
+        [Fact]
+        public void Extract_No_Item_When_Input_Contains_Operator_With_Length_Greater_Than_2()
+        {
+            string input = "and the Stefan-Boltzman constant";
+            var nodes = _parser.Parse(input);
+            var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
+            Assert.Empty(arguments);
+        }
+
+        [Fact]
+        public void Extract_One_Item_When_Input_Contains_Operator_With_Length_2()
+        {
+            string input = "and the St-Fo constant";
+            var nodes = _parser.Parse(input);
+            var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
+            Assert.Equal(2, arguments.Count);
+            Assert.Contains("St", arguments);
+            Assert.Contains("Fo", arguments);
         }
     }
 }

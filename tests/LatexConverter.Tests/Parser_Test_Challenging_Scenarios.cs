@@ -1,9 +1,10 @@
 using LatexConverter;
 using LatexConverter.Parsing;
+using System.Xml.Linq;
 using Xunit;
 
 namespace LatexConvertorTests
-{ 
+{
     public sealed class Parser_Test_Challenging_Scenarios
     {
         LatexParser _latexParser;
@@ -11,6 +12,14 @@ namespace LatexConvertorTests
         public Parser_Test_Challenging_Scenarios()
         {
             _latexParser = new LatexParser();
+        }
+
+        [Fact]
+        public void Test_Incomplete_Latex_Command_Without_Exception()
+        {
+            string text = " From  \\(n = 3\\)  to \\(n = \\infty \\";
+
+            var nodes = _latexParser.Parse(text);
         }
 
         [Fact]
@@ -96,7 +105,7 @@ namespace LatexConvertorTests
             Assert.True(cmd.Args.Count == 1);
             Assert.True(cmd.Args[0] is ScriptNode);
         }
-        
+
         [Fact]
         public void Test_Edge_Cases()
         {
@@ -500,7 +509,7 @@ namespace LatexConvertorTests
             Assert.Equal(1, nodes6.Count);
             Assert.True(nodes6[0] is ScriptNode);
             var script6 = nodes6[0] as ScriptNode;
-            Assert.Equal("\\theta", (script6.Base ).ToString());
+            Assert.Equal("\\theta", (script6.Base).ToString());
             Assert.Equal("1", (script6.Script as TextNode).Text);
         }
 
@@ -554,6 +563,46 @@ namespace LatexConvertorTests
 
             var text = (TextNode)nodes[2];
             Assert.Equal(", righ", text.Text);
+
+
         }
+
+        [Fact]
+        public void Parse_With_Parantes_CorrectlyTerminatesScript()
+        {
+            var complicatedStr = "cos(\\theta_3)";
+            var nodes = _latexParser.Parse(complicatedStr);
+            Assert.Equal(3, nodes.Count);
+            Assert.IsType<TextNode>(nodes[0]);
+            Assert.IsType<ScriptNode>(nodes[1]);
+            Assert.IsType<TextNode>(nodes[2]);
+
+            var scriptNode = nodes[1] as ScriptNode;
+            Assert.Equal("\\theta", (scriptNode.Base).ToString());
+            Assert.Equal("3", (scriptNode.Script as TextNode).Text);
+
+
+            complicatedStr = "( M_3 R_3 cos(\\theta_3) - M_1 R_1 cos(\\theta_1) - M_2 R_2 cos(\\theta_2) ) / M_4";
+            nodes = _latexParser.Parse(complicatedStr);
+
+            Assert.Equal(20, nodes.Count);
+
+
+            complicatedStr = "The (N_2) oxygen(O_2), b";
+            nodes = _latexParser.Parse(complicatedStr);
+            Assert.Equal(5, nodes.Count);
+
+        }
+
+        [Fact]
+        public void Parse_With_Equal_And_Subscript_CorrectlyTerminatesScript()
+        {
+            var complicatedStr = "x=x_i";
+            var nodes = _latexParser.Parse(complicatedStr);
+            Assert.Equal(2, nodes.Count);
+
+
+        }
+
     }
 }

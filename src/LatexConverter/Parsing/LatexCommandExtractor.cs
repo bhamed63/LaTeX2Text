@@ -9,9 +9,17 @@ namespace LatexConverter.Parsing
     {
         public class CommandInfo
         {
+            public CommandInfo()
+            {
+                TextArguments = new List<string>();
+                LabelArguments = new List<string>();
+            }
+
             public string CommandName { get; set; }
             public List<string> TextArguments { get; set; } = new List<string>();
+            public List<string> LabelArguments { get; set; } = new List<string>();
             public int ArgumentCount => TextArguments.Count;
+            public bool IsSpecialCommand { get; set; }
 
             public override string ToString()
             {
@@ -35,6 +43,71 @@ namespace LatexConverter.Parsing
             return arguments.ToList();
         }
 
+        public List<string> ExtractMathrmArguments(List<AstNode> nodes)
+        {
+            var arguments = new HashSet<string>();
+            ExtractMathrmArgumentsRecursive(nodes, arguments);
+            return arguments.ToList();
+        }
+
+        private void ExtractMathrmArgumentsRecursive(List<AstNode> nodes, HashSet<string> arguments)
+        {
+            foreach (var node in nodes)
+            {
+                if (node is TextNode textNode)
+                    continue;
+
+                else if (node is GroupNode groupNode)
+                {
+                    ExtractMathrmArgumentsRecursive(groupNode.Body, arguments);
+                }
+                else if (node is CommandNode cmdNode)
+                {
+                    if (cmdNode.CreateCommandName().ToLower() == "\\mathrm")
+                    {
+                        foreach (var arg in cmdNode.Args.Where(c => c is TextNode))
+                        {
+                            var argValue = arg.ToString();
+                            if (isValidRegularArgument(argValue))
+                            {
+                                arguments.Add(argValue);
+                            }
+                        }
+                    }
+
+                    ExtractMathrmArgumentsRecursive(cmdNode.Args, arguments);
+                    if (cmdNode.Subscript != null)
+                    {
+                        ExtractMathrmArgumentsRecursive(new List<AstNode> { cmdNode.Subscript }, arguments);
+                    }
+                    if (cmdNode.Superscript != null)
+                    {
+                        ExtractMathrmArgumentsRecursive(new List<AstNode> { cmdNode.Superscript }, arguments);
+                    }
+                }
+                else if (node is ScriptNode scriptNode)
+                {
+                    ExtractMathrmArgumentsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, arguments);
+                }
+                else if (node is RootNode rootNode)
+                {
+                    ExtractMathrmArgumentsRecursive(new List<AstNode> { rootNode.Radicand }, arguments);
+                    if (rootNode.Degree != null)
+                    {
+                        ExtractMathrmArgumentsRecursive(new List<AstNode> { rootNode.Degree }, arguments);
+                    }
+                }
+                else if (node is FracNode fracNode)
+                {
+                    ExtractMathrmArgumentsRecursive(new List<AstNode> { fracNode.Numerator, fracNode.Denominator }, arguments);
+                }
+                else if (node is BinomNode binomNode)
+                {
+                    ExtractMathrmArgumentsRecursive(new List<AstNode> { binomNode.Top, binomNode.Bottom }, arguments);
+                }
+            }
+        }
+
         private void ExtractArgumentsRecursive(List<AstNode> nodes, HashSet<string> arguments)
         {
             foreach (var node in nodes)
@@ -43,8 +116,17 @@ namespace LatexConverter.Parsing
                 {
                     foreach (var opNode in textNode.Operators)
                     {
-                        ExtractFromRightOperand(opNode.RightOperand, arguments);
-                        ExtractFromLeftOperand(opNode.LeftOperand, arguments);
+                        string rightOperand = ExtractFromRightOperand(opNode.RightOperand);
+                        string leftOperand = ExtractFromLeftOperand(opNode.LeftOperand);
+                        string appendedOperands = $"{leftOperand}{opNode.Operator}{rightOperand}";
+                        if (isInAllowedAppendedOperands(appendedOperands))
+                        {
+                            if (!string.IsNullOrEmpty(rightOperand))
+                                arguments.Add(rightOperand);
+
+                            if (!string.IsNullOrEmpty(leftOperand))
+                                arguments.Add(leftOperand);
+                        }
                     }
                 }
                 else if (node is GroupNode groupNode)
@@ -86,10 +168,10 @@ namespace LatexConverter.Parsing
             }
         }
 
-        private void ExtractFromRightOperand(string rightOperand, HashSet<string> arguments)
+        private string ExtractFromRightOperand(string rightOperand)
         {
             if (string.IsNullOrEmpty(rightOperand))
-                return;
+                return string.Empty;
 
             string text = rightOperand.Trim();
 
@@ -101,7 +183,7 @@ namespace LatexConverter.Parsing
             }
 
             if (startIndex >= text.Length)
-                return;
+                return string.Empty;
 
             // Now, find the end of the argument
             int endIndex = startIndex;
@@ -111,16 +193,17 @@ namespace LatexConverter.Parsing
             }
 
             string potentialArgument = text.Substring(startIndex, endIndex - startIndex);
-            if (isValidArgument(potentialArgument))
+            if (isValidRegularArgument(potentialArgument))
             {
-                arguments.Add(potentialArgument);
+                return potentialArgument;
             }
+            return string.Empty;
         }
 
-        private void ExtractFromLeftOperand(string leftOperand, HashSet<string> arguments)
+        private string ExtractFromLeftOperand(string leftOperand)
         {
             if (string.IsNullOrEmpty(leftOperand))
-                return;
+                return string.Empty;
 
             leftOperand = leftOperand.Trim();
 
@@ -131,10 +214,11 @@ namespace LatexConverter.Parsing
             }
 
             string potentialArgument = leftOperand.Substring(startIndex + 1).Trim();
-            if (isValidArgument(potentialArgument))
+            if (isValidRegularArgument(potentialArgument))
             {
-                arguments.Add(potentialArgument);
+                return potentialArgument;
             }
+            return string.Empty;
         }
 
         private void ExtractCommandsRecursive(List<AstNode> nodes, List<CommandInfo> commands, CommandInfo currentCommandInfo)
@@ -143,15 +227,25 @@ namespace LatexConverter.Parsing
             {
                 if (node is CommandNode cmdNode)
                 {
-                    var commandInfo = new CommandInfo { CommandName = cmdNode.CreateCommandName() };
-                    foreach (var arg in cmdNode.Args)
+                    if (cmdNode.IsSpecialCommandNode())
                     {
-                        if (arg is not TextNode)
-                            continue;
-                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
+                        var commandInfo = new CommandInfo { CommandName = cmdNode.CreateSpecialCommandText(), IsSpecialCommand = true };
+                        commandInfo.TextArguments.Add(cmdNode.CreateSpecialCommandText());
+                        commandInfo.LabelArguments.Add(cmdNode.CreateSpecialCommandLabel());
+                        commands.Add(commandInfo);
                     }
-                    commands.Add(commandInfo);
-                    ExtractCommandsRecursive(cmdNode.Args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
+                    else
+                    {
+                        var commandInfo = new CommandInfo { CommandName = cmdNode.CreateCommandName() };
+                        foreach (var arg in cmdNode.Args)
+                        {
+                            if (arg is not TextNode)
+                                continue;
+                            commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg, false));
+                        }
+                        commands.Add(commandInfo);
+                        ExtractCommandsRecursive(cmdNode.Args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
+                    }
                 }
                 else if (node is FracNode fracNode)
                 {
@@ -161,7 +255,7 @@ namespace LatexConverter.Parsing
                     {
                         if (arg is not TextNode)
                             continue;
-                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg, false));
                     }
                     commands.Add(commandInfo);
                     ExtractCommandsRecursive(args, commands, commandInfo);
@@ -174,7 +268,7 @@ namespace LatexConverter.Parsing
                     {
                         if (arg is not TextNode)
                             continue;
-                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg, false));
                     }
                     commands.Add(commandInfo);
                     ExtractCommandsRecursive(args, commands, commandInfo);
@@ -183,27 +277,49 @@ namespace LatexConverter.Parsing
                 {
                     foreach (var arg in groupNode.Body.OfType<TextNode>())
                     {
-                        if (!isValidArgument(arg.Text))
+                        if (!isValidRegularArgument(arg.Text))
                             continue;
 
                         CommandInfo commandInfo = new CommandInfo() { CommandName = "" };
                         commands.Add(commandInfo);
-                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg));
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg, false));
                     }
                     ExtractCommandsRecursive(groupNode.Body, commands, null);
                 }
                 else if (node is ScriptNode scriptNode)
                 {
+                    if (!isInAllowedCommands(scriptNode))
+                        continue;
+
                     CommandInfo commandInfo = null;
                     if (scriptNode.Base is TextNode && scriptNode.Script is TextNode)
                     {
-                        if (isValidArgument(scriptNode.Base.ToString()))
+                        if (isValidBaseArgument(scriptNode.Base.ToString()))
                         {
                             //commandInfo = new CommandInfo { CommandName = "" };
                             commandInfo = new CommandInfo { CommandName = scriptNode.ToVariableName() };
                             commandInfo.TextArguments.Add(scriptNode.ToVariableName());
                             commands.Add(commandInfo);
                         }
+                    }
+                    else if (scriptNode.Base is TextNode && scriptNode.Script is GroupNode grpNode)
+                    {
+                        if (isValidBaseArgument(scriptNode.Base.ToString()))
+                        {
+                            //commandInfo = new CommandInfo { CommandName = "" };
+                            commandInfo = new CommandInfo { CommandName = scriptNode.ToVariableName() };
+                            commandInfo.TextArguments.Add(scriptNode.ToVariableName());
+                            commands.Add(commandInfo);
+                        }
+                    }
+                    else if (scriptNode.Base is CommandNode specialCommandNode &&
+                        specialCommandNode.IsSpecialCommandNode() &&
+                        specialCommandNode.Args.Count == 1)
+                    {
+                        commandInfo = new CommandInfo { CommandName = scriptNode.ToVariableName(), IsSpecialCommand = true };
+                        commandInfo.TextArguments.Add(scriptNode.ToSpecialBaseCommandText());
+                        commandInfo.LabelArguments.Add(scriptNode.ToSpecialBaseCommandLabel());
+                        commands.Add(commandInfo);
                     }
                     else if (scriptNode.Base is CommandNode commandNode &&
                         commandNode.Args.Count == 0 &&
@@ -219,43 +335,65 @@ namespace LatexConverter.Parsing
                 }
                 else if (node is TextNode textNode && currentCommandInfo != null)
                 {
-                    currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(textNode));
+                    currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(textNode, true));
                 }
             }
         }
 
-        private List<string> ExtractTextContentIfArgument(AstNode node)
+        private List<string> ExtractTextContentIfArgumentWithLengthCheck(AstNode node)
+        {
+            return ExtractTextContentIfArgument(node, true);
+        }
+
+        private List<string> ExtractTextContentIfArgumentWithoutLengthCheck(AstNode node)
+        {
+            return ExtractTextContentIfArgument(node, false);
+        }
+
+        private List<string> ExtractTextContentIfArgument(AstNode node, bool lengthCheck)
         {
             var textContents = new List<string>();
+            var subTextContents = new List<string>();
             if (node is TextNode textNode)
             {
                 textContents.Add(textNode.Text);
             }
             else if (node is CommandNode commandNode)
             {
-                textContents.AddRange(commandNode.Args.SelectMany(c => ExtractTextContentIfArgument(c)));
+                subTextContents.AddRange(commandNode.Args.SelectMany(c => ExtractTextContentIfArgument(c, false)));
             }
             else if (node is GroupNode groupNode)
             {
-                textContents.AddRange(groupNode.Body.SelectMany(c => ExtractTextContentIfArgument(c)));
+                subTextContents.AddRange(groupNode.Body.SelectMany(c => ExtractTextContentIfArgument(c, false)));
             }
             else if (node is RootNode rootNode)
             {
-                textContents.AddRange(ExtractTextContentIfArgument(rootNode.Radicand));
-                textContents.AddRange(ExtractTextContentIfArgument(rootNode.Degree));
+                subTextContents.AddRange(ExtractTextContentIfArgument(rootNode.Radicand, false));
+                subTextContents.AddRange(ExtractTextContentIfArgument(rootNode.Degree, false));
             }
             else if (node is ScriptNode scriptNode)
             {
-                textContents.AddRange(ExtractTextContentIfArgument(scriptNode.Base));
-                textContents.AddRange(ExtractTextContentIfArgument(scriptNode.Script));
+                subTextContents.AddRange(ExtractTextContentIfArgument(scriptNode.Base, false));
+                subTextContents.AddRange(ExtractTextContentIfArgument(scriptNode.Script, false));
             }
 
             return textContents
-                .Where(c => isValidArgument(c))
+                .Where(c => lengthCheck ? isValidRegularArgument(c) : isValidBaseArgument(c))
+                .Union(subTextContents)
                 .ToList();
         }
 
-        private bool isValidArgument(string text)
+        private bool isValidBaseArgument(string text)
+        {
+            return checkValidArgument(text, false);
+        }
+
+        private bool isValidRegularArgument(string text)
+        {
+            return checkValidArgument(text, true);
+        }
+
+        private bool checkValidArgument(string text, bool validateLength)
         {
             if (string.IsNullOrEmpty(text) || string.IsNullOrWhiteSpace(text))
                 return false;
@@ -278,7 +416,8 @@ namespace LatexConverter.Parsing
             {
                 "{", "}", ")", "(",
                 ",", ";", "'", "\"",
-                "/", "\\", "=", "+"
+                "/", "\\", "=", "+",
+                "-", "*"
             };
 
             if (notAllowedForStart.Any(c => text.StartsWith(c)))
@@ -290,7 +429,26 @@ namespace LatexConverter.Parsing
             if (text.Trim().Contains(" "))
                 return false;
 
+            if (validateLength && text.Length > 2)
+                return false;
+
             return true;
+        }
+
+        private bool isInAllowedCommands(ScriptNode scriptNode)
+        {
+            var baseText = scriptNode.Base.ToString().ToLower().Trim();
+            var scriptText = scriptNode.Script.ToString().ToLower().Trim();
+            return !(baseText == "cm" && (scriptText == "2" || scriptText == "3"));
+        }
+
+        private bool isInAllowedAppendedOperands(string appendedOperand)
+        {
+            return
+                appendedOperand != "m/s" &&
+                appendedOperand != "m/s2" &&
+                appendedOperand != "m/s3" &&
+                appendedOperand != "km/h";
         }
     }
 }
