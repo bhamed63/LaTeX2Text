@@ -12,5 +12,6 @@ namespace LatexConverter
         public abstract List<AstNode> GetAllSubNodes();
 
         public abstract string CreateCommandName();
+        public abstract override string ToString();
     }
 }

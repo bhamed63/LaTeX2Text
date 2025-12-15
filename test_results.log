@@ -1,0 +1,134 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  LatexConverter -> /app/src/LatexConverter/bin/Debug/net7.0/LatexConverter.dll
+  LatexConverter.Tests -> /app/tests/LatexConverter.Tests/bin/Debug/net8.0/LatexConverter.Tests.dll
+Test run for /app/tests/LatexConverter.Tests/bin/Debug/net8.0/LatexConverter.Tests.dll (.NETCoreApp,Version=v8.0)
+Microsoft (R) Test Execution Command Line Tool Version 17.8.0 (x64)
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:01.64]     LatexConvertorTests.Parser_Test_Challenging_Scenarios.Test_Escaped_Script_Characters [FAIL]
+  Failed LatexConvertorTests.Parser_Test_Challenging_Scenarios.Test_Escaped_Script_Characters [1 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Challenging_Scenarios.Test_Escaped_Script_Characters() in /app/tests/LatexConverter.Tests/Parser_Test_Challenging_Scenarios.cs:line 88
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.64]     LatexConverter.Tests.LatexCommandExtractorOperandTests.TestOperandsWithSubscriptDelimiters(input: "a_b-c_d", expectedArguments: []) [FAIL]
+[xUnit.net 00:00:01.64]     LatexConverter.Tests.LatexCommandExtractorOperandTests.TestOperandsWithSubscriptDelimiters(input: "var_1+var_2", expectedArguments: []) [FAIL]
+[xUnit.net 00:00:01.64]     LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_WithCommaDelimiter_CorrectlyTerminatesScript [FAIL]
+  Failed LatexConverter.Tests.LatexCommandExtractorOperandTests.TestOperandsWithSubscriptDelimiters(input: "a_b-c_d", expectedArguments: []) [7 ms]
+  Error Message:
+   Assert.Equal() Failure
+           ↓ (pos 0)
+Expected: []
+Actual:   ["c"]
+           ↑ (pos 0)
+  Stack Trace:
+     at LatexConverter.Tests.LatexCommandExtractorOperandTests.TestOperandsWithSubscriptDelimiters(String input, String[] expectedArguments) in /app/tests/LatexConverter.Tests/LatexCommandExtractorOperandTests.cs:line 74
+   at InvokeStub_LatexCommandExtractorOperandTests.TestOperandsWithSubscriptDelimiters(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed LatexConverter.Tests.LatexCommandExtractorOperandTests.TestOperandsWithSubscriptDelimiters(input: "var_1+var_2", expectedArguments: []) [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure
+           ↓ (pos 0)
+Expected: []
+Actual:   ["var"]
+           ↑ (pos 0)
+  Stack Trace:
+     at LatexConverter.Tests.LatexCommandExtractorOperandTests.TestOperandsWithSubscriptDelimiters(String input, String[] expectedArguments) in /app/tests/LatexConverter.Tests/LatexCommandExtractorOperandTests.cs:line 74
+   at InvokeStub_LatexCommandExtractorOperandTests.TestOperandsWithSubscriptDelimiters(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_WithCommaDelimiter_CorrectlyTerminatesScript [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure
+Expected: 3
+Actual:   2
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_WithCommaDelimiter_CorrectlyTerminatesScript() in /app/tests/LatexConverter.Tests/Parser_Test_Challenging_Scenarios.cs:line 556
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.64]     LatexConvertorTests.Parser_Test_Challenging_Scenarios.Test_Scripts_With_Whitespace_Content [FAIL]
+[xUnit.net 00:00:01.65]     LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_WithSlashDelimiter_CorrectlySplitsScripts [FAIL]
+  Failed LatexConvertorTests.Parser_Test_Challenging_Scenarios.Test_Scripts_With_Whitespace_Content [4 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Challenging_Scenarios.Test_Scripts_With_Whitespace_Content() in /app/tests/LatexConverter.Tests/Parser_Test_Challenging_Scenarios.cs:line 330
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_WithSlashDelimiter_CorrectlySplitsScripts [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure
+Expected: 3
+Actual:   2
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_WithSlashDelimiter_CorrectlySplitsScripts() in /app/tests/LatexConverter.Tests/Parser_Test_Challenging_Scenarios.cs:line 520
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.65]     LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_With_Equal_And_Subscript_CorrectlyTerminatesScript [FAIL]
+  Failed LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_With_Equal_And_Subscript_CorrectlyTerminatesScript [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure
+Expected: 2
+Actual:   1
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Challenging_Scenarios.Parse_With_Equal_And_Subscript_CorrectlyTerminatesScript() in /app/tests/LatexConverter.Tests/Parser_Test_Challenging_Scenarios.cs:line 602
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.68]     LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Scripts_With_Whitespace [FAIL]
+  Failed LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Scripts_With_Whitespace [1 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Scripts_With_Whitespace() in /app/tests/LatexConverter.Tests/Parser_Test_Count_Of_Created_Nodes.cs:line 208
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.69]     LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Nodes_Created_On_First_Level [FAIL]
+  Failed LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Nodes_Created_On_First_Level [17 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Nodes_Created_On_First_Level() in /app/tests/LatexConverter.Tests/Parser_Test_Count_Of_Created_Nodes.cs:line 31
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.70]     LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Whole_Nodes_Created [FAIL]
+  Failed LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Whole_Nodes_Created [1 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Check_The_Count_Of_Whole_Nodes_Created() in /app/tests/LatexConverter.Tests/Parser_Test_Count_Of_Created_Nodes.cs:line 59
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.72]     LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Greedy_Script_Parsing [FAIL]
+  Failed LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Greedy_Script_Parsing [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure
+Expected: 2
+Actual:   1
+  Stack Trace:
+     at LatexConvertorTests.Parser_Test_Count_Of_Created_Nodes.Test_Parser_Greedy_Script_Parsing() in /app/tests/LatexConverter.Tests/Parser_Test_Count_Of_Created_Nodes.cs:line 217
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.87]     LatexConverter.Tests.LatexParser_Relational_Operators_Tests.Parse_TextOperandsWithPrecedingText_Correctly [FAIL]
+  Failed LatexConverter.Tests.LatexParser_Relational_Operators_Tests.Parse_TextOperandsWithPrecedingText_Correctly [< 1 ms]
+  Error Message:
+   Assert.Equal() Failure
+Expected: 2
+Actual:   3
+  Stack Trace:
+     at LatexConverter.Tests.LatexParser_Relational_Operators_Tests.Parse_TextOperandsWithPrecedingText_Correctly() in /app/tests/LatexConverter.Tests/LatexParser_Relational_Operators_Tests.cs:line 21
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)

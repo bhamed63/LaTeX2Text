@@ -27,5 +27,11 @@ namespace LatexConverter.Ast
         {
             return OperatorName;
         }
+
+        public override string ToString()
+        {
+            var op = OperatorName.Length > 1 ? $"\\{OperatorName}" : OperatorName;
+            return $"{LeftOperand} {op} {RightOperand}";
+        }
     }
 }

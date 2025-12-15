@@ -111,36 +111,14 @@ namespace LatexConverter.Parsing
             while (position < input.Length)
             {
                 AstNode node = null;
-                while (position < input.Length && char.IsWhiteSpace(input[position]))
-                {
-                    position++;
-                }
-                if (position >= input.Length) break;
-
-                string opChar = input[position].ToString();
-                if (opChar.Length == 1 && ParsingRules.RelationalCommands.Contains(opChar))
-                {
-                    position++;
-                    node = ParseRelationalOperator(opChar, input, ref position, nodes);
-                }
-                else if (position + 1 < input.Length &&
+                if (position + 1 < input.Length &&
                     input[position] == '\\' && (input[position + 1] == '(' || input[position + 1] == '['))
                 {
                     node = ParseGroup(input, ref position);
                 }
                 else if (input[position] == '\\')
                 {
-                    int peekPos = position + 1;
-                    string commandName = PeekCommandName(input, peekPos);
-                    if (ParsingRules.RelationalCommands.Contains(commandName))
-                    {
-                        position++; // Consume '\'
-                        node = ParseRelationalOperator(commandName, input, ref position, nodes);
-                    }
-                    else
-                    {
-                        node = ParseCommand(input, ref position);
-                    }
+                    node = ParseCommand(input, ref position);
                 }
                 else
                 {
@@ -148,8 +126,9 @@ namespace LatexConverter.Parsing
                     if (textNodes.Count > 0)
                     {
                         nodes.AddRange(textNodes);
+                        node = textNodes.Last();
+                        nodes.RemoveAt(nodes.Count - 1);
                     }
-                    continue;
                 }
 
                 if (node != null)
@@ -173,64 +152,6 @@ namespace LatexConverter.Parsing
                 }
             }
             return nodes;
-        }
-
-        private AstNode ParseRelationalOperator(string operatorName, string input, ref int position, List<AstNode> precedingNodes)
-        {
-            if (!precedingNodes.Any())
-            {
-                // Operator at start of input, parse as a 0-arg command to avoid crashing.
-                return new CommandNode(operatorName, new List<AstNode>(), null, null);
-            }
-
-            AstNode leftOperand = precedingNodes.Last();
-            precedingNodes.RemoveAt(precedingNodes.Count - 1);
-
-            if (leftOperand is TextNode textNode)
-            {
-                string text = textNode.Text;
-                var trimmedText = text.TrimEnd();
-                int splitIndex = trimmedText.LastIndexOfAny(new[] { ' ', '\t', '\n', '\r' });
-
-                if (splitIndex != -1 && splitIndex < trimmedText.Length -1)
-                {
-                    string preceding = text.Substring(0, splitIndex + 1);
-                    precedingNodes.Add(new TextNode(preceding));
-                    leftOperand = new TextNode(trimmedText.Substring(splitIndex + 1));
-                }
-                else
-                {
-                    leftOperand = new TextNode(trimmedText);
-                }
-            }
-
-            if (operatorName.Length > 1) // It's a command like \ge, not a char like >
-            {
-                 ReadCommandName(input, ref position); // This consumes the name from the input stream.
-            }
-
-            AstNode rightOperand = ParseArgument(input, ref position);
-
-            return new RelationalOperatorNode(leftOperand, operatorName, rightOperand);
-        }
-
-        private string PeekCommandName(string input, int position)
-        {
-            int start = position;
-            while (position < input.Length && char.IsLetter(input[position]))
-            {
-                position++;
-            }
-
-            if (position == start)
-            {
-                if (position < input.Length)
-                {
-                    return input[position].ToString();
-                }
-                return "";
-            }
-            return input.Substring(start, position - start);
         }
 
         private AstNode ParseScript(string input, ref int position, AstNode baseNode)
@@ -285,54 +206,6 @@ namespace LatexConverter.Parsing
                 if (c == '\\' || c == '_' || c == '^' || ParsingRules.RelationalCommands.Contains(c.ToString()))
                 {
                     break;
-                }
-
-                else if (input[position] == '_' || input[position] == '^')
-                {
-                    string textBefore = input.Substring(start, position - start);
-                    AstNode baseOfScript;
-
-                    if (string.IsNullOrWhiteSpace(textBefore))
-                    {
-                        if (!string.IsNullOrEmpty(textBefore))
-                        {
-                            nodes.Add(new TextNode(textBefore));
-                        }
-                        baseOfScript = new TextNode("");
-                    }
-                    else
-                    {
-                        int baseEnd = position;
-                        while (baseEnd > start && char.IsWhiteSpace(input[baseEnd - 1]))
-                        {
-                            baseEnd--;
-                        }
-
-                        int baseStart = baseEnd;
-                        while (baseStart > start)
-                        {
-                            char prevChar = input[baseStart - 1];
-                            //if (char.IsWhiteSpace(prevChar) || prevChar == '/')
-                            if (ParsingRules.IsScriptDelimiter(prevChar))
-                            {
-                                break;
-                            }
-                            baseStart--;
-                        }
-
-                        string precedingText = input.Substring(start, baseStart - start);
-                        string baseText = input.Substring(baseStart, baseEnd - baseStart);
-
-                        if (!string.IsNullOrEmpty(precedingText))
-                        {
-                            nodes.Add(new TextNode(precedingText));
-                        }
-                        baseOfScript = new TextNode(baseText);
-                    }
-
-                    var scriptNode = ParseScript(input, ref position, baseOfScript);
-                    nodes.Add(scriptNode);
-                    return nodes;
                 }
                 else
                 {
