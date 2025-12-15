@@ -121,10 +121,10 @@ namespace LatexConverter.Parsing
                         string appendedOperands = $"{leftOperand}{opNode.Operator}{rightOperand}";
                         if (isInAllowedAppendedOperands(appendedOperands))
                         {
-                            if (!string.IsNullOrEmpty(rightOperand))
+                            if (isValidRegularArgument(rightOperand))
                                 arguments.Add(rightOperand);
 
-                            if (!string.IsNullOrEmpty(leftOperand))
+                            if (isValidRegularArgument(leftOperand))
                                 arguments.Add(leftOperand);
                         }
                     }
@@ -417,7 +417,7 @@ namespace LatexConverter.Parsing
                 "{", "}", ")", "(",
                 ",", ";", "'", "\"",
                 "/", "\\", "=", "+",
-                "-", "*", "."
+                "-", "*", ".", "\"", "“",
             };
 
             if (notAllowedForStart.Any(c => text.StartsWith(c)))
@@ -429,7 +429,7 @@ namespace LatexConverter.Parsing
             if (text.Trim().Contains(" "))
                 return false;
 
-            if (validateLength && text.Length > 2)
+            if (validateLength && text.Length > 3)
                 return false;
 
             return true;
@@ -449,6 +449,8 @@ namespace LatexConverter.Parsing
                 appendedOperand != "m/s2" &&
                 appendedOperand != "m/s3" &&
                 appendedOperand != "km/h" &&
+                appendedOperand != "kg/sec" &&
+                appendedOperand != "m/sec" &&
                 appendedOperand != "N/s";
         }
     }
