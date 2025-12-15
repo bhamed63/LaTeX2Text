@@ -31,6 +31,11 @@ namespace LatexConverter
 
         public override string CreateCommandName()
         {
+            if (Degree is TextNode textNode && textNode.Text != "2")
+                return $"\\sqrt[]";
+
+            if (Degree is GroupNode groupNode && groupNode.Body.Count == 1 && groupNode.Body.First() is TextNode textNode2 && textNode2.Text != "2")
+                return $"\\sqrt[]";
             return $"\\sqrt";
         }
     }

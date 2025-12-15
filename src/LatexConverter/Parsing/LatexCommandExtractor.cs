@@ -417,7 +417,7 @@ namespace LatexConverter.Parsing
                 "{", "}", ")", "(",
                 ",", ";", "'", "\"",
                 "/", "\\", "=", "+",
-                "-", "*"
+                "-", "*", "."
             };
 
             if (notAllowedForStart.Any(c => text.StartsWith(c)))
@@ -448,7 +448,8 @@ namespace LatexConverter.Parsing
                 appendedOperand != "m/s" &&
                 appendedOperand != "m/s2" &&
                 appendedOperand != "m/s3" &&
-                appendedOperand != "km/h";
+                appendedOperand != "km/h" &&
+                appendedOperand != "N/s";
         }
     }
 }
