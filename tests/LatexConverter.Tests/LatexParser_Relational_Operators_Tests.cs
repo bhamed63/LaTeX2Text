@@ -24,16 +24,16 @@ namespace LatexConverter.Tests
             var relationalNode = Assert.IsType<RelationalOperatorNode>(result[1]);
             Assert.Equal("ge", relationalNode.OperatorName);
             var leftOperand = Assert.IsType<TextNode>(relationalNode.LeftOperand);
-            Assert.Equal("X", leftOperand.Text);
+            Assert.Equal("X ", leftOperand.Text);
             var rightOperand = Assert.IsType<TextNode>(relationalNode.RightOperand);
-            Assert.Equal("1", rightOperand.Text);
+            Assert.Equal(" 1", rightOperand.Text);
         }
 
         [Fact]
         public void Parse_CommandOnLeftTextOnRight_Correctly()
         {
             // Arrange
-            var input = "\\sqrt{a} > b";
+            var input = "\\sqrt{a} \\gt b";
 
             // Act
             var result = _parser.Parse(input);
@@ -51,7 +51,7 @@ namespace LatexConverter.Tests
         public void Parse_TextOnLeftCommandOnRight_Correctly()
         {
             // Arrange
-            var input = "v < \\frac{p}{m}";
+            var input = "v \\lt \\frac{p}{m}";
 
             // Act
             var result = _parser.Parse(input);
@@ -96,14 +96,14 @@ namespace LatexConverter.Tests
             var outerNode = Assert.IsType<RelationalOperatorNode>(result[0]);
             Assert.Equal("le", outerNode.OperatorName);
             var rightOperand = Assert.IsType<TextNode>(outerNode.RightOperand);
-            Assert.Equal("N", rightOperand.Text);
+            Assert.Equal(" N", rightOperand.Text);
 
             var innerNode = Assert.IsType<RelationalOperatorNode>(outerNode.LeftOperand);
             Assert.Equal("le", innerNode.OperatorName);
             var innerLeft = Assert.IsType<TextNode>(innerNode.LeftOperand);
-            Assert.Equal("1", innerLeft.Text);
+            Assert.Equal("1 ", innerLeft.Text);
             var innerRight = Assert.IsType<TextNode>(innerNode.RightOperand);
-            Assert.Equal("i", innerRight.Text);
+            Assert.Equal(" i ", innerRight.Text);
         }
     }
 }

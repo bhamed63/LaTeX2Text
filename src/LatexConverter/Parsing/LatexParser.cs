@@ -43,11 +43,11 @@ namespace LatexConverter.Parsing
                         {
                             string preceding = text.Substring(0, splitIndex + 1);
                             newNodes.Add(new TextNode(preceding));
-                            leftOperand = new TextNode(trimmedText.Substring(splitIndex + 1));
+                            leftOperand = new TextNode(text.Substring(splitIndex + 1));
                         }
                         else
                         {
-                            leftOperand = new TextNode(trimmedText);
+                            leftOperand = new TextNode(text);
                         }
                     }
                     var rightOperand = nodes[i + 1];

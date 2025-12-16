@@ -9,7 +9,7 @@ namespace LatexConverter.Parsing
         public static readonly List<string> RelationalCommands = new List<string> { "ge", "le", "ne", "approx", "equiv", "ll", "gg", "pm", "mp", "in", "ni", "subset", "supset", "subseteq", "supseteq", "parallel", "perp", "vdash", "models", "mid", "sim", "simeq", "cong", "asymp", "propto", "bowtie", ">", "<" };
         public static readonly char[] SubscripDelimitor = { '\\', '}', '_', '^', '/', ' ', '`', '.', ')', '(', '+', '-', '*', '/', '=', ';', ':' };
         public static readonly char[] NotAllowedAtLastChar = { ',' };
-        public static readonly List<string> NotValidVariableNames = new List<string> { "cm", "cm2", "cm3", "dB", "km", "kg" };//, "m/s", "m/s2", "m/s3" };
+        public static readonly List<string> NotValidVariableNames = new List<string> { "cm", "cm2", "cm3", "dB", "km", "kg" };
 
         public static bool IsNotAllowedAtLastChar(char c)
         {
