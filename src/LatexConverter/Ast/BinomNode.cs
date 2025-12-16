@@ -21,5 +21,7 @@ namespace LatexConverter
         {
             return $"\\binom";
         }
+
+        public override string ToString() => $"{CreateCommandName()}{{{Top}}}{{{Bottom}}}";
     }
 }

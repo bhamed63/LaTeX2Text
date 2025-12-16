@@ -12,7 +12,7 @@ namespace LatexConverter.Parsing
         {
             var nodes = ExecuteParsing(input);
             AnalyzeOperators(nodes);
-            return nodes;
+            return AnalyzeRelationalOperators(nodes);
         }
 
         private void AnalyzeOperators(List<AstNode> nodes)
@@ -23,10 +23,53 @@ namespace LatexConverter.Parsing
             }
         }
 
+        private List<AstNode> AnalyzeRelationalOperators(List<AstNode> nodes)
+        {
+            var newNodes = new List<AstNode>();
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                var node = nodes[i];
+                if (i > 0 && i < nodes.Count - 1 && node is CommandNode cmdNode && ParsingRules.RelationalCommands.Contains(cmdNode.Command))
+                {
+                    var leftOperand = newNodes.Last();
+                    newNodes.RemoveAt(newNodes.Count - 1);
+                    if (leftOperand is TextNode textNode)
+                    {
+                        var text = textNode.Text;
+                        var trimmedText = text.TrimEnd();
+                        int splitIndex = trimmedText.LastIndexOfAny(new[] { ' ', '\t', '\n', '\r' });
+
+                        if (splitIndex != -1 && splitIndex < trimmedText.Length - 1)
+                        {
+                            string preceding = text.Substring(0, splitIndex + 1);
+                            newNodes.Add(new TextNode(preceding));
+                            leftOperand = new TextNode(text.Substring(splitIndex + 1));
+                        }
+                        else
+                        {
+                            leftOperand = new TextNode(text);
+                        }
+                    }
+                    var rightOperand = nodes[i + 1];
+                    i++;
+                    newNodes.Add(new RelationalOperatorNode(leftOperand, cmdNode.Command, rightOperand));
+                }
+                else
+                {
+                    newNodes.Add(node);
+                }
+            }
+            return newNodes;
+        }
+
         private void AnalyzeNodeRecursively(AstNode node)
         {
             switch (node)
             {
+                case RelationalOperatorNode relNode:
+                    AnalyzeNodeRecursively(relNode.LeftOperand);
+                    AnalyzeNodeRecursively(relNode.RightOperand);
+                    break;
                 case TextNode textNode:
                     ProcessTextNode(textNode);
                     break;
@@ -126,8 +169,22 @@ namespace LatexConverter.Parsing
                     if (textNodes.Count > 0)
                     {
                         nodes.AddRange(textNodes);
+                        var lastNode = textNodes.Last();
+                        if (lastNode is TextNode)
+                        {
+                            int currentPos = position;
+                            while (currentPos < input.Length && char.IsWhiteSpace(input[currentPos]))
+                            {
+                                currentPos++;
+                            }
+                            if (currentPos < input.Length && (input[currentPos] == '_' || input[currentPos] == '^'))
+                            {
+                                position = currentPos;
+                                nodes.Remove(lastNode);
+                                node = ParseScript(input, ref position, lastNode);
+                            }
+                        }
                     }
-                    continue;
                 }
 
                 if (node != null)
@@ -265,11 +322,6 @@ namespace LatexConverter.Parsing
                     position++;
                 }
             }
-
-            //if (position > start) 
-            //{
-            //    nodes.Add(new TextNode(input.Substring(start, position - start)));
-            //}
 
             if (position > start && (start + position - start) <= input.Length)
             {
@@ -587,7 +639,16 @@ namespace LatexConverter.Parsing
                 var argumentContent = ExtractBracedContent(input, ref position);
                 if (argumentContent != null)
                 {
-                    arguments.AddRange(ExecuteParsing(argumentContent));
+                    var argNodes = ExecuteParsing(argumentContent);
+                    if (argNodes.Count == 1)
+                    {
+                        arguments.Add(argNodes[0]);
+                    }
+                    else
+                    {
+                        arguments.Add(new GroupNode(argNodes, "", ""));
+                    }
+
                     if (position < input.Length && input[position] == '}')
                         position++;
                 }
