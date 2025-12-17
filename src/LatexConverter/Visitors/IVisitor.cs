@@ -1,3 +1,5 @@
+using LatexConverter.Ast;
+
 namespace LatexConverter
 {
     /// <summary>
@@ -25,5 +27,7 @@ namespace LatexConverter
         T ExceptionalVisitMath(MathNode node);
         T VisitLim(LimNode node);
         T ExceptionalVisitLim(LimNode node);
+        T VisitRelationalOperator(RelationalOperatorNode node);
+        T ExceptionalVisitRelationalOperator(RelationalOperatorNode node);
     }
 }

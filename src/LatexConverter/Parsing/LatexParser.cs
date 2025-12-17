@@ -12,7 +12,104 @@ namespace LatexConverter.Parsing
         {
             var nodes = ExecuteParsing(input);
             AnalyzeOperators(nodes);
-            return AnalyzeRelationalOperators(nodes);
+            return ProcessRelationalOperators(nodes);
+        }
+
+        private List<AstNode> ProcessRelationalOperators(List<AstNode> nodes)
+        {
+            var processedNodes = new List<AstNode>();
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                var node = nodes[i];
+
+                if (node is CommandNode cmdNode && ParsingRules.RelationalCommands.Contains(cmdNode.Command))
+                {
+                    // Find the true left operand by skipping whitespace
+                    int leftIndex = processedNodes.Count - 1;
+                    while (leftIndex >= 0 && IsWhitespaceNode(processedNodes[leftIndex]))
+                    {
+                        leftIndex--;
+                    }
+
+                    // Find the true right operand by skipping whitespace
+                    int rightIndex = i + 1;
+                    while (rightIndex < nodes.Count && IsWhitespaceNode(nodes[rightIndex]))
+                    {
+                        rightIndex++;
+                    }
+
+                    if (leftIndex >= 0 && rightIndex < nodes.Count)
+                    {
+                        var leftOperand = processedNodes[leftIndex];
+                        var rightOperand = nodes[rightIndex];
+
+                        // Handle splitting of text nodes
+                        if (leftOperand is TextNode leftTextNode)
+                        {
+                            var text = leftTextNode.Text;
+                            var trimmedText = text.TrimEnd();
+                            int splitIndex = trimmedText.LastIndexOfAny(new[] { ' ', '\t', '\n', '\r' });
+
+                            if (splitIndex != -1 && splitIndex < trimmedText.Length - 1)
+                            {
+                                string preceding = text.Substring(0, splitIndex + 1);
+                                processedNodes[leftIndex] = new TextNode(preceding);
+                                leftOperand = new TextNode(trimmedText.Substring(splitIndex + 1));
+                            }
+                        }
+
+                        if (rightOperand is TextNode rightTextNode)
+                        {
+                            var text = rightTextNode.Text;
+                            var trimmedText = text.TrimStart();
+                            int splitIndex = trimmedText.IndexOfAny(new[] { ' ', '\t', '\n', '\r' });
+
+                            if (splitIndex != -1)
+                            {
+                                string succeeding = text.Substring(splitIndex);
+                                nodes[rightIndex] = new TextNode(succeeding);
+                                rightOperand = new TextNode(trimmedText.Substring(0, splitIndex));
+                            }
+                        }
+
+                        // Get the original sequence of nodes including whitespace
+                        var originalSequence = new List<AstNode>();
+                        for (int j = leftIndex; j < processedNodes.Count; j++)
+                        {
+                            originalSequence.Add(processedNodes[j]);
+                        }
+                        originalSequence.Add(cmdNode);
+                        for (int j = i + 1; j <= rightIndex; j++)
+                        {
+                            originalSequence.Add(nodes[j]);
+                        }
+
+                        // Remove the left operand and any trailing whitespace from processedNodes
+                        processedNodes.RemoveRange(leftIndex, processedNodes.Count - leftIndex);
+
+                        var relNode = new RelationalOperatorNode(leftOperand, rightOperand, cmdNode.Command, originalSequence);
+                        processedNodes.Add(relNode);
+
+                        // Skip the nodes that are now part of the RelationalOperatorNode
+                        i = rightIndex;
+                    }
+                    else
+                    {
+                        processedNodes.Add(node);
+                    }
+                }
+                else
+                {
+                    processedNodes.Add(node);
+                }
+            }
+
+            return processedNodes;
+        }
+
+        private bool IsWhitespaceNode(AstNode node)
+        {
+            return node is TextNode textNode && string.IsNullOrWhiteSpace(textNode.Text);
         }
 
         private void AnalyzeOperators(List<AstNode> nodes)
@@ -23,53 +120,10 @@ namespace LatexConverter.Parsing
             }
         }
 
-        private List<AstNode> AnalyzeRelationalOperators(List<AstNode> nodes)
-        {
-            var newNodes = new List<AstNode>();
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                var node = nodes[i];
-                if (i > 0 && i < nodes.Count - 1 && node is CommandNode cmdNode && ParsingRules.RelationalCommands.Contains(cmdNode.Command))
-                {
-                    var leftOperand = newNodes.Last();
-                    newNodes.RemoveAt(newNodes.Count - 1);
-                    if (leftOperand is TextNode textNode)
-                    {
-                        var text = textNode.Text;
-                        var trimmedText = text.TrimEnd();
-                        int splitIndex = trimmedText.LastIndexOfAny(new[] { ' ', '\t', '\n', '\r' });
-
-                        if (splitIndex != -1 && splitIndex < trimmedText.Length - 1)
-                        {
-                            string preceding = text.Substring(0, splitIndex + 1);
-                            newNodes.Add(new TextNode(preceding));
-                            leftOperand = new TextNode(text.Substring(splitIndex + 1));
-                        }
-                        else
-                        {
-                            leftOperand = new TextNode(text);
-                        }
-                    }
-                    var rightOperand = nodes[i + 1];
-                    i++;
-                    newNodes.Add(new RelationalOperatorNode(leftOperand, cmdNode.Command, rightOperand));
-                }
-                else
-                {
-                    newNodes.Add(node);
-                }
-            }
-            return newNodes;
-        }
-
         private void AnalyzeNodeRecursively(AstNode node)
         {
             switch (node)
             {
-                case RelationalOperatorNode relNode:
-                    AnalyzeNodeRecursively(relNode.LeftOperand);
-                    AnalyzeNodeRecursively(relNode.RightOperand);
-                    break;
                 case TextNode textNode:
                     ProcessTextNode(textNode);
                     break;
@@ -169,22 +223,8 @@ namespace LatexConverter.Parsing
                     if (textNodes.Count > 0)
                     {
                         nodes.AddRange(textNodes);
-                        var lastNode = textNodes.Last();
-                        if (lastNode is TextNode)
-                        {
-                            int currentPos = position;
-                            while (currentPos < input.Length && char.IsWhiteSpace(input[currentPos]))
-                            {
-                                currentPos++;
-                            }
-                            if (currentPos < input.Length && (input[currentPos] == '_' || input[currentPos] == '^'))
-                            {
-                                position = currentPos;
-                                nodes.Remove(lastNode);
-                                node = ParseScript(input, ref position, lastNode);
-                            }
-                        }
                     }
+                    continue;
                 }
 
                 if (node != null)
@@ -322,6 +362,11 @@ namespace LatexConverter.Parsing
                     position++;
                 }
             }
+
+            //if (position > start)
+            //{
+            //    nodes.Add(new TextNode(input.Substring(start, position - start)));
+            //}
 
             if (position > start && (start + position - start) <= input.Length)
             {
@@ -639,16 +684,7 @@ namespace LatexConverter.Parsing
                 var argumentContent = ExtractBracedContent(input, ref position);
                 if (argumentContent != null)
                 {
-                    var argNodes = ExecuteParsing(argumentContent);
-                    if (argNodes.Count == 1)
-                    {
-                        arguments.Add(argNodes[0]);
-                    }
-                    else
-                    {
-                        arguments.Add(new GroupNode(argNodes, "", ""));
-                    }
-
+                    arguments.AddRange(ExecuteParsing(argumentContent));
                     if (position < input.Length && input[position] == '}')
                         position++;
                 }

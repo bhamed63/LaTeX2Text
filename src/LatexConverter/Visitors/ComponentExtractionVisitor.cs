@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LatexConverter.Data;
+using LatexConverter.Ast;
 
 namespace LatexConverter.Visitors
 {
@@ -279,6 +280,29 @@ namespace LatexConverter.Visitors
         public override object ExceptionalVisitMath(MathNode node)
         {
             return VisitMath(node);
+        }
+
+        public override object VisitRelationalOperator(RelationalOperatorNode node)
+        {
+            if (_visitedNodes.Contains(node))
+            {
+                return null;
+            }
+            _visitedNodes.Add(node);
+
+            Result.Operators.Add(node.OperatorName);
+            var oldContext = _isMathContext;
+            _isMathContext = true;
+            try
+            {
+                node.LeftOperand.Accept(this);
+                node.RightOperand.Accept(this);
+            }
+            finally
+            {
+                _isMathContext = oldContext;
+            }
+            return null;
         }
     }
 }

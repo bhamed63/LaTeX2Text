@@ -1,6 +1,7 @@
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using LatexConverter.Ast;
 
 namespace LatexConverter
 {
@@ -238,6 +239,14 @@ namespace LatexConverter
         public override string ExceptionalVisitMath(MathNode node)
         {
             return VisitMath(node);
+        }
+
+        public override string VisitRelationalOperator(RelationalOperatorNode node)
+        {
+            var left = node.LeftOperand.Accept(this);
+            var right = node.RightOperand.Accept(this);
+            var op = _templateProcessor.ProcessTemplateCommand(node.OperatorName, new string[0], this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
+            return $"{left} {op} {right}";
         }
     }
 }

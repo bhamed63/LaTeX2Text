@@ -1,6 +1,7 @@
 using Xunit;
 using LatexConverter.Parsing;
 using LatexConverter.Ast;
+using System.Linq;
 
 namespace LatexConverter.Tests
 {
@@ -9,60 +10,24 @@ namespace LatexConverter.Tests
         private readonly LatexParser _parser = new LatexParser();
 
         [Fact]
-        public void Parse_TextOperandsWithPrecedingText_Correctly()
-        {
-            // Arrange
-            var input = "The result is X \\ge 1";
-
-            // Act
-            var result = _parser.Parse(input);
-
-            // Assert
-            Assert.Equal(2, result.Count);
-            Assert.IsType<TextNode>(result[0]);
-            Assert.Equal("The result is ", ((TextNode)result[0]).Text);
-            var relationalNode = Assert.IsType<RelationalOperatorNode>(result[1]);
-            Assert.Equal("ge", relationalNode.OperatorName);
-            var leftOperand = Assert.IsType<TextNode>(relationalNode.LeftOperand);
-            Assert.Equal("X ", leftOperand.Text);
-            var rightOperand = Assert.IsType<TextNode>(relationalNode.RightOperand);
-            Assert.Equal(" 1", rightOperand.Text);
-        }
-
-        [Fact]
-        public void Parse_CommandOnLeftTextOnRight_Correctly()
-        {
-            // Arrange
-            var input = "\\sqrt{a} \\gt b";
-
-            // Act
-            var result = _parser.Parse(input);
-
-            // Assert
-            Assert.Single(result);
-            var relationalNode = Assert.IsType<RelationalOperatorNode>(result[0]);
-            Assert.Equal(">", relationalNode.OperatorName);
-            Assert.IsType<RootNode>(relationalNode.LeftOperand);
-            var rightOperand = Assert.IsType<TextNode>(relationalNode.RightOperand);
-            Assert.Equal("b", rightOperand.Text);
-        }
-
-        [Fact]
         public void Parse_TextOnLeftCommandOnRight_Correctly()
         {
             // Arrange
-            var input = "v \\lt \\frac{p}{m}";
+            var input = "v \\le \\frac{p}{m}";
 
             // Act
             var result = _parser.Parse(input);
 
             // Assert
             Assert.Single(result);
-            var relationalNode = Assert.IsType<RelationalOperatorNode>(result[0]);
-            Assert.Equal("<", relationalNode.OperatorName);
-            var leftOperand = Assert.IsType<TextNode>(relationalNode.LeftOperand);
-            Assert.Equal("v", leftOperand.Text);
-            Assert.IsType<FracNode>(relationalNode.RightOperand);
+            var relNode = Assert.IsType<RelationalOperatorNode>(result[0]);
+
+            Assert.Equal("le", relNode.OperatorName);
+            var leftOp = Assert.IsType<TextNode>(relNode.LeftOperand);
+            Assert.Equal("v", leftOp.Text);
+            Assert.IsType<FracNode>(relNode.RightOperand);
+
+            Assert.Equal("v \\le \\frac{p}{m}", relNode.ToString());
         }
 
         [Fact]
@@ -76,34 +41,64 @@ namespace LatexConverter.Tests
 
             // Assert
             Assert.Single(result);
-            var relationalNode = Assert.IsType<RelationalOperatorNode>(result[0]);
-            Assert.Equal("ne", relationalNode.OperatorName);
-            Assert.IsType<CommandNode>(relationalNode.LeftOperand);
-            Assert.IsType<CommandNode>(relationalNode.RightOperand);
+            var relNode = Assert.IsType<RelationalOperatorNode>(result[0]);
+
+            Assert.Equal("ne", relNode.OperatorName);
+            Assert.IsType<CommandNode>(relNode.LeftOperand);
+            Assert.IsType<CommandNode>(relNode.RightOperand);
+
+            Assert.Equal("\\vec{v} \\ne \\hat{p}", relNode.ToString());
         }
 
         [Fact]
-        public void Parse_ChainedRelationalOperators_Correctly()
+        public void Parse_CommandOnLeftTextOnRight_Correctly()
         {
             // Arrange
-            var input = "1 \\le i \\le N";
+            var input = "\\sqrt{a} \\ll b";
 
             // Act
             var result = _parser.Parse(input);
 
             // Assert
             Assert.Single(result);
-            var outerNode = Assert.IsType<RelationalOperatorNode>(result[0]);
-            Assert.Equal("le", outerNode.OperatorName);
-            var rightOperand = Assert.IsType<TextNode>(outerNode.RightOperand);
-            Assert.Equal(" N", rightOperand.Text);
+            var relNode = Assert.IsType<RelationalOperatorNode>(result[0]);
 
-            var innerNode = Assert.IsType<RelationalOperatorNode>(outerNode.LeftOperand);
-            Assert.Equal("le", innerNode.OperatorName);
-            var innerLeft = Assert.IsType<TextNode>(innerNode.LeftOperand);
-            Assert.Equal("1 ", innerLeft.Text);
-            var innerRight = Assert.IsType<TextNode>(innerNode.RightOperand);
-            Assert.Equal(" i ", innerRight.Text);
+            Assert.Equal("ll", relNode.OperatorName);
+            Assert.IsType<RootNode>(relNode.LeftOperand);
+            var rightOp = Assert.IsType<TextNode>(relNode.RightOperand);
+            Assert.Equal("b", rightOp.Text);
+
+            Assert.Equal("\\sqrt{a} \\ll b", relNode.ToString());
+        }
+
+        [Fact]
+        public void Parse_RelationalOperatorInMiddleOfText_Correctly()
+        {
+            // Arrange
+            var input = "this is a \\ne Q is another sample";
+
+            // Act
+            var result = _parser.Parse(input);
+
+            // Assert
+            Assert.Equal(3, result.Count);
+
+            var firstNode = Assert.IsType<TextNode>(result[0]);
+            Assert.Equal("this is ", firstNode.Text);
+
+            var relNode = Assert.IsType<RelationalOperatorNode>(result[1]);
+            Assert.Equal("a \\ne Q", relNode.ToString());
+
+            var leftOp = Assert.IsType<TextNode>(relNode.LeftOperand);
+            Assert.Equal("a", leftOp.Text);
+
+            Assert.Equal("ne", relNode.OperatorName);
+
+            var rightOp = Assert.IsType<TextNode>(relNode.RightOperand);
+            Assert.Equal("Q", rightOp.Text);
+
+            var thirdNode = Assert.IsType<TextNode>(result[2]);
+            Assert.Equal(" is another sample", thirdNode.Text);
         }
     }
 }

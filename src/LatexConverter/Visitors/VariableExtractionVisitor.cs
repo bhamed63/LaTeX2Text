@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using LatexConverter.Ast;
 
 namespace LatexConverter.Visitors
 {
@@ -142,6 +143,14 @@ namespace LatexConverter.Visitors
         public override List<string> VisitLim(LimNode node)
         {
             return Visit(node.Subscript, true);
+        }
+
+        public override List<string> VisitRelationalOperator(RelationalOperatorNode node)
+        {
+            var variables = new List<string>();
+            variables.AddRange(Visit(node.LeftOperand, true));
+            variables.AddRange(Visit(node.RightOperand, true));
+            return variables;
         }
     }
 }

@@ -1,37 +1,34 @@
-using LatexConverter.Parsing;
 using System.Collections.Generic;
 
 namespace LatexConverter.Ast
 {
-    public record RelationalOperatorNode(AstNode LeftOperand, string OperatorName, AstNode RightOperand) : AstNode
+    public record RelationalOperatorNode(AstNode LeftOperand, AstNode RightOperand, string OperatorName, IEnumerable<AstNode> OriginalNodes) : AstNode
     {
+        private readonly GroupNode _originalNodes = new GroupNode(OriginalNodes);
+
         public override T Accept<T>(IVisitor<T> visitor)
         {
-            throw new System.NotImplementedException();
+            return visitor.VisitRelationalOperator(this);
         }
 
         public override T ExceptionalAccept<T>(IVisitor<T> visitor)
         {
-            throw new System.NotImplementedException();
+            return visitor.ExceptionalVisitRelationalOperator(this);
         }
 
         public override List<AstNode> GetAllSubNodes()
         {
-            var nodes = new List<AstNode> { LeftOperand, RightOperand };
-            nodes.AddRange(LeftOperand.GetAllSubNodes());
-            nodes.AddRange(RightOperand.GetAllSubNodes());
-            return nodes;
+            var subNodes = new List<AstNode>();
+            subNodes.AddRange(LeftOperand.GetAllSubNodes());
+            subNodes.AddRange(RightOperand.GetAllSubNodes());
+            return subNodes;
         }
 
-        public override string CreateCommandName()
-        {
-            return OperatorName;
-        }
+        public override string CreateCommandName() => OperatorName;
 
         public override string ToString()
         {
-            var op = OperatorName.Length > 1 ? $"\\{OperatorName}" : OperatorName;
-            return $"{LeftOperand} {op} {RightOperand}";
+            return _originalNodes.ToString();
         }
     }
 }
