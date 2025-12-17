@@ -23,6 +23,9 @@ namespace LatexConvertorTests
             checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{y}}, it is simple Latex.", 2, 2);
             checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 1);
             checkCommandsAndArgumentsCount("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 2);
+            checkCommandsAndArgumentsCount("here it is a \\ne b for qui", 1, 2);
+            checkCommandsAndArgumentsCount("here it is w \\ll \\sqrt{x22} for qui", 2, 2);
+            checkCommandsAndArgumentsCount("here it is 23 \\ll \\sqrt{x_2} for qui", 3, 1);
         }
 
         private void checkCommandsAndArgumentsCount(string text, int commandsCount, int argumentCount)

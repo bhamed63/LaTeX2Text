@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Text;
+using LatexConverter.Ast;
 
 namespace LatexConverter.Visitors
 {
@@ -100,6 +101,11 @@ namespace LatexConverter.Visitors
         public override string VisitLim(LimNode node)
         {
             return node.Command + "_{" + node.Subscript.Accept(this) + "}";
+        }
+
+        public override string VisitRelationalOperator(RelationalOperatorNode node)
+        {
+            return node.ToString();
         }
     }
 }

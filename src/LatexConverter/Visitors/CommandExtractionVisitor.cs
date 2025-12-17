@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using LatexConverter.Ast;
 
 namespace LatexConverter.Visitors
 {
@@ -98,6 +99,14 @@ namespace LatexConverter.Visitors
         {
             var commands = new List<string> { node.Command };
             commands.AddRange(node.Subscript.Accept(this));
+            return commands;
+        }
+
+        public override List<string> VisitRelationalOperator(RelationalOperatorNode node)
+        {
+            var commands = new List<string> { node.OperatorName };
+            commands.AddRange(node.LeftOperand.Accept(this));
+            commands.AddRange(node.RightOperand.Accept(this));
             return commands;
         }
     }

@@ -1,3 +1,5 @@
+using LatexConverter.Ast;
+
 namespace LatexConverter
 {
     /// <summary>
@@ -60,6 +62,12 @@ namespace LatexConverter
         public virtual T ExceptionalVisitMath(MathNode node)
         {
             return VisitMath(node);
+        }
+
+        public abstract T VisitRelationalOperator(RelationalOperatorNode node);
+        public virtual T ExceptionalVisitRelationalOperator(RelationalOperatorNode node)
+        {
+            return VisitRelationalOperator(node);
         }
 
         public virtual string GetPreProcessedResult(string text)

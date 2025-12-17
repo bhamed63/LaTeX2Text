@@ -1,4 +1,5 @@
 using System.Linq;
+using LatexConverter.Ast;
 
 namespace LatexConverter
 {
@@ -46,6 +47,11 @@ namespace LatexConverter
         public override string VisitLim(LimNode node)
         {
             return node.Command + node.Subscript.Accept(this);
+        }
+
+        public override string VisitRelationalOperator(RelationalOperatorNode node)
+        {
+            return node.LeftOperand.Accept(this) + node.OperatorName + node.RightOperand.Accept(this);
         }
     }
 }
