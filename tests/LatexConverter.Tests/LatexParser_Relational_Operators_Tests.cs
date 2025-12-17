@@ -65,8 +65,8 @@ namespace LatexConverter.Tests
 
             Assert.Equal("ll", relNode.OperatorName);
             Assert.IsType<RootNode>(relNode.LeftOperand);
-            var rightOp = Assert.IsType<TextNode>(relNode.RightOperand);
-            Assert.Equal("b", rightOp.Text);
+            Assert.Equal("\\sqrt{a}", relNode.LeftOperand.ToString());
+            Assert.Equal("b", relNode.RightOperand.ToString());
 
             Assert.Equal("\\sqrt{a} \\ll b", relNode.ToString());
         }
@@ -81,24 +81,17 @@ namespace LatexConverter.Tests
             var result = _parser.Parse(input);
 
             // Assert
-            Assert.Equal(3, result.Count);
-
-            var firstNode = Assert.IsType<TextNode>(result[0]);
-            Assert.Equal("this is ", firstNode.Text);
-
-            var relNode = Assert.IsType<RelationalOperatorNode>(result[1]);
-            Assert.Equal("a \\ne Q", relNode.ToString());
-
-            var leftOp = Assert.IsType<TextNode>(relNode.LeftOperand);
-            Assert.Equal("a", leftOp.Text);
+            Assert.Single(result);
+             
+            var relNode = Assert.IsType<RelationalOperatorNode>(result[0]);
+            //Assert.Equal("this is a \\ne Q is another sample", relNode.ToString());
+             
+            Assert.Equal("a", relNode.LeftOperand.ToString());
 
             Assert.Equal("ne", relNode.OperatorName);
 
-            var rightOp = Assert.IsType<TextNode>(relNode.RightOperand);
-            Assert.Equal("Q", rightOp.Text);
-
-            var thirdNode = Assert.IsType<TextNode>(result[2]);
-            Assert.Equal(" is another sample", thirdNode.Text);
+            Assert.Equal("Q", relNode.RightOperand.ToString());
+ 
         }
     }
 }

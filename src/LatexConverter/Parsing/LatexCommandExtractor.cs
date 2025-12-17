@@ -1,7 +1,9 @@
+using LatexConverter.Ast;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static LatexConverter.Parsing.LatexCommandExtractor;
 
 namespace LatexConverter.Parsing
 {
@@ -333,6 +335,21 @@ namespace LatexConverter.Parsing
                     else
                         ExtractCommandsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, commands, commandInfo);
                 }
+                else if (node is RelationalOperatorNode relationalNode)
+                {
+                    CommandInfo commandInfo = new CommandInfo { CommandName = relationalNode.OperatorName };
+                    if (relationalNode.LeftOperand is TextNode leftOperand)
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(leftOperand, true));
+                    else
+                        ExtractCommandsRecursive(new List<AstNode> { relationalNode.LeftOperand }, commands, commandInfo);
+
+                    if (relationalNode.RightOperand is TextNode rightOperand)
+                        commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(rightOperand, true));
+                    else
+                        ExtractCommandsRecursive(new List<AstNode> { relationalNode.RightOperand }, commands, commandInfo);
+
+                    commands.Add(commandInfo);
+                }
                 else if (node is TextNode textNode && currentCommandInfo != null)
                 {
                     currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(textNode, true));
@@ -375,6 +392,11 @@ namespace LatexConverter.Parsing
             {
                 subTextContents.AddRange(ExtractTextContentIfArgument(scriptNode.Base, false));
                 subTextContents.AddRange(ExtractTextContentIfArgument(scriptNode.Script, false));
+            }
+            else if (node is RelationalOperatorNode relationalNode)
+            {
+                subTextContents.AddRange(ExtractTextContentIfArgument(relationalNode.LeftOperand, false));
+                subTextContents.AddRange(ExtractTextContentIfArgument(relationalNode.RightOperand, false));
             }
 
             return textContents

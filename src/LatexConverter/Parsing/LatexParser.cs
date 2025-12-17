@@ -87,6 +87,8 @@ namespace LatexConverter.Parsing
                         // Remove the left operand and any trailing whitespace from processedNodes
                         processedNodes.RemoveRange(leftIndex, processedNodes.Count - leftIndex);
 
+                        leftOperand = leftOperand is TextNode ? new TextNode(leftOperand.ToString().Trim()) : leftOperand;
+                        rightOperand = rightOperand is TextNode ? new TextNode(rightOperand.ToString().Trim()): rightOperand;
                         var relNode = new RelationalOperatorNode(leftOperand, rightOperand, cmdNode.Command, originalSequence);
                         processedNodes.Add(relNode);
 

@@ -4,7 +4,7 @@ namespace LatexConverter.Ast
 {
     public record RelationalOperatorNode(AstNode LeftOperand, AstNode RightOperand, string OperatorName, IEnumerable<AstNode> OriginalNodes) : AstNode
     {
-        private readonly GroupNode _originalNodes = new GroupNode(OriginalNodes);
+        private readonly GroupNode _originalNodes = new GroupNode(OriginalNodes.ToList(), "", "");
 
         public override T Accept<T>(IVisitor<T> visitor)
         {
