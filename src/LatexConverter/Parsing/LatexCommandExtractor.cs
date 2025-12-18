@@ -116,8 +116,9 @@ namespace LatexConverter.Parsing
             {
                 if (node is TextNode textNode && textNode.Operators.Any())
                 {
-                    foreach (var opNode in textNode.Operators)
+                    for (int i = 0; i < textNode.Operators.Count; i++)
                     {
+                        var opNode = textNode.Operators[i];
                         string rightOperand = ExtractFromRightOperand(opNode.RightOperand);
                         string leftOperand = ExtractFromLeftOperand(opNode.LeftOperand);
                         string appendedOperands = $"{leftOperand}{opNode.Operator}{rightOperand}";
@@ -128,7 +129,7 @@ namespace LatexConverter.Parsing
 
                             if (isValidRegularArgument(leftOperand))
                                 arguments.Add(leftOperand);
-                        }
+                        } 
                     }
                 }
                 else if (node is GroupNode groupNode)
@@ -195,7 +196,7 @@ namespace LatexConverter.Parsing
             }
 
             string potentialArgument = text.Substring(startIndex, endIndex - startIndex);
-            if (isValidRegularArgument(potentialArgument))
+            if (ParsingRules.NotValidVariableNames.Contains(potentialArgument) || isValidRegularArgument(potentialArgument))
             {
                 return potentialArgument;
             }
@@ -454,6 +455,9 @@ namespace LatexConverter.Parsing
             if (validateLength && text.Length > 3)
                 return false;
 
+            if (ParsingRules.NotValidVariableNames.Contains(text))
+                return false;
+
             return true;
         }
 
@@ -467,13 +471,23 @@ namespace LatexConverter.Parsing
         private bool isInAllowedAppendedOperands(string appendedOperand)
         {
             return
-                appendedOperand != "m/s" &&
-                appendedOperand != "m/s2" &&
-                appendedOperand != "m/s3" &&
-                appendedOperand != "km/h" &&
-                appendedOperand != "kg/sec" &&
-                appendedOperand != "m/sec" &&
-                appendedOperand != "N/s";
+                    appendedOperand != "m/s" &&
+                    appendedOperand != "m/s2" &&
+                    appendedOperand != "m/s3" &&
+
+                    appendedOperand != "km/s" &&
+                    appendedOperand != "km/h" &&
+
+                    appendedOperand != "kg/sec" &&
+                    appendedOperand != "m/sec" &&
+                    appendedOperand != "N/s" &&
+
+                    appendedOperand != "rad/s" &&
+                    appendedOperand != "rev/s" &&
+                    appendedOperand != "rad/sec" &&
+                    appendedOperand != "rev/sec" &&
+
+                    appendedOperand != "N/s";
         }
     }
 }

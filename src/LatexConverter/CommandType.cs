@@ -7,7 +7,7 @@ namespace LatexConverter
         MathFunction,
         Spacing,
         AccentDecoration,
-        Symbol,
+        GreekLetter,
         Unknown,
         ArrowRelation
     }

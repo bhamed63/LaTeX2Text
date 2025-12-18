@@ -83,7 +83,7 @@ namespace LatexConverter.Visitors
                     case CommandType.Formatting:
                         return commandNode.Args.SelectMany(arg => Visit(arg, true)).ToList();
 
-                    case CommandType.Symbol:
+                    case CommandType.GreekLetter:
                     default:
                         return new List<string> { commandNode.Accept(_latexVisitor) };
                 }
