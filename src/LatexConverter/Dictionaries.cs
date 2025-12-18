@@ -33,7 +33,7 @@ namespace LatexConverter
     /// <summary>
     /// Provides centralized storage for symbol and character mappings used in LaTeX conversion.
     /// </summary>
-    internal static class Dictionaries
+    public static class Dictionaries
     {
         static Dictionaries()
         {
@@ -111,6 +111,10 @@ namespace LatexConverter
                 .ToDictionary(sc => sc.Subscript!.Value, sc => sc.BaseChar);
 
             DeniedConvertWithoutSlash = Data.RawData.DeniedConvertWithoutSlash;
+
+            GreekLetters = Data.RawData.SymbolLibrary
+                .Where(c => c.Value.CommandType == CommandType.GreekLetter)
+                .ToDictionary(c => c.Key, v => v.Value);
         }
 
         /// <summary>
@@ -195,5 +199,7 @@ namespace LatexConverter
         public static readonly Dictionary<char, string> HumanFriendlyMathscrMap;
 
         public static readonly Dictionary<string, string> ReverseMathFontMap;
+
+        public static readonly Dictionary<string, SymbolDefinition> GreekLetters;
     }
 }
