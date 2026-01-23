@@ -107,5 +107,10 @@ namespace LatexConverter.Visitors
         {
             return node.ToString();
         }
+
+        public override string VisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            return $"|{string.Concat(node.InnerGroup.Body.Select(n => n.Accept(this)))}|";
+        }
     }
 }

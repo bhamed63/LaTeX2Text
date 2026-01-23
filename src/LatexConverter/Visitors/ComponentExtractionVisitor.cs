@@ -304,5 +304,27 @@ namespace LatexConverter.Visitors
             }
             return null;
         }
+
+        public override object VisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            if (_visitedNodes.Contains(node))
+            {
+                return null;
+            }
+            _visitedNodes.Add(node);
+
+            Result.Commands.Add(new Tuple<CommandType, string>(CommandType.MathFunction, "abs"));
+            var oldContext = _isMathContext;
+            _isMathContext = true;
+            try
+            {
+                node.InnerGroup.Accept(this);
+            }
+            finally
+            {
+                _isMathContext = oldContext;
+            }
+            return null;
+        }
     }
 }

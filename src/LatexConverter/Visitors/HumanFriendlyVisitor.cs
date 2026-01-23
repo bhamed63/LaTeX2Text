@@ -149,5 +149,10 @@ namespace LatexConverter
             var op = _templateProcessor.ProcessTemplateCommand(node.OperatorName, new string[0], this, Dictionaries.HumanFriendlyTemplateMap, Dictionaries.HumanFriendlySymbolMap);
             return $"{left} {op} {right}";
         }
+
+        public override string VisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            return $"|{node.InnerGroup.Accept(this)}|";
+        }
     }
 }

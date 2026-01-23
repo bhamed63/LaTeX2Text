@@ -248,5 +248,10 @@ namespace LatexConverter
             var op = _templateProcessor.ProcessTemplateCommand(node.OperatorName, new string[0], this, Dictionaries.ScreenReaderTemplateMap, Dictionaries.ScreenReaderSymbolMap);
             return $"{left} {op} {right}";
         }
+
+        public override string VisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            return $"absolute value of {node.InnerGroup.Accept(this)}";
+        }
     }
 }

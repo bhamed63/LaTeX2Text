@@ -70,6 +70,12 @@ namespace LatexConverter
             return VisitRelationalOperator(node);
         }
 
+        public abstract T VisitAbsoluteValue(AbsoluteValueNode node);
+        public virtual T ExceptionalVisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            return VisitAbsoluteValue(node);
+        }
+
         public virtual string GetPreProcessedResult(string text)
         {
             return text;

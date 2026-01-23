@@ -152,5 +152,10 @@ namespace LatexConverter.Visitors
             variables.AddRange(Visit(node.RightOperand, true));
             return variables;
         }
+
+        public override List<string> VisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            return Visit(node.InnerGroup, true);
+        }
     }
 }

@@ -153,6 +153,9 @@ namespace LatexConverter.Parsing
                     AnalyzeNodeRecursively(bNode.Top);
                     AnalyzeNodeRecursively(bNode.Bottom);
                     break;
+                case AbsoluteValueNode absNode:
+                    AnalyzeNodeRecursively(absNode.InnerGroup);
+                    break;
             }
         }
 
@@ -218,6 +221,22 @@ namespace LatexConverter.Parsing
                 else if (input[position] == '\\')
                 {
                     node = ParseCommand(input, ref position);
+                }
+                else if (input[position] == '|')
+                {
+                    int end = FindMatchingBar(input, position);
+                    if (end != -1)
+                    {
+                        string content = input.Substring(position + 1, end - (position + 1));
+                        var body = ExecuteParsing(content);
+                        node = new AbsoluteValueNode(new GroupNode(body, "", ""));
+                        position = end + 1;
+                    }
+                    else
+                    {
+                        position++;
+                        node = new TextNode("|");
+                    }
                 }
                 else
                 {
@@ -293,6 +312,25 @@ namespace LatexConverter.Parsing
             return finalNode;
         }
 
+        private int FindMatchingBar(string input, int startPos)
+        {
+            int braceLevel = 0;
+            for (int i = startPos + 1; i < input.Length; i++)
+            {
+                if (input[i] == '\\' && i + 1 < input.Length)
+                {
+                    if (input[i + 1] == '|') { i++; continue; }
+                }
+                if (input[i] == '{') braceLevel++;
+                else if (input[i] == '}') braceLevel--;
+                else if (input[i] == '|' && braceLevel == 0)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         private List<AstNode> ParseText(string input, ref int position)
         {
             var nodes = new List<AstNode>();
@@ -311,6 +349,10 @@ namespace LatexConverter.Parsing
                         }
                     }
                     position += 2;
+                }
+                else if (input[position] == '|')
+                {
+                    break;
                 }
                 else if (input[position] == '_' || input[position] == '^')
                 {

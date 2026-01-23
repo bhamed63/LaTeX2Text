@@ -109,5 +109,12 @@ namespace LatexConverter.Visitors
             commands.AddRange(node.RightOperand.Accept(this));
             return commands;
         }
+
+        public override List<string> VisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            var commands = new List<string> { "abs" };
+            commands.AddRange(node.InnerGroup.Accept(this));
+            return commands;
+        }
     }
 }

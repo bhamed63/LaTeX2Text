@@ -53,5 +53,10 @@ namespace LatexConverter
         {
             return node.LeftOperand.Accept(this) + node.OperatorName + node.RightOperand.Accept(this);
         }
+
+        public override string VisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            return $"|{node.InnerGroup.Accept(this)}|";
+        }
     }
 }

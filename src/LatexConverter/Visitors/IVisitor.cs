@@ -29,5 +29,7 @@ namespace LatexConverter
         T ExceptionalVisitLim(LimNode node);
         T VisitRelationalOperator(RelationalOperatorNode node);
         T ExceptionalVisitRelationalOperator(RelationalOperatorNode node);
+        T VisitAbsoluteValue(AbsoluteValueNode node);
+        T ExceptionalVisitAbsoluteValue(AbsoluteValueNode node);
     }
 }

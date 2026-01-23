@@ -180,5 +180,10 @@ namespace LatexConverter
             var op = _templateProcessor.ProcessTemplateCommand(node.OperatorName, new string[0], this, Dictionaries.OpenAITemplateMap, Dictionaries.SymbolMap);
             return $"{left} {op} {right}";
         }
+
+        public override string VisitAbsoluteValue(AbsoluteValueNode node)
+        {
+            return $"abs({node.InnerGroup.Accept(this)})";
+        }
     }
 }

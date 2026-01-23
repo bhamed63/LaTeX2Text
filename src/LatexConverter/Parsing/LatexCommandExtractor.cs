@@ -409,6 +409,12 @@ namespace LatexConverter.Parsing
 
                     commands.Add(commandInfo);
                 }
+                else if (node is AbsoluteValueNode absNode)
+                {
+                    CommandInfo commandInfo = new CommandInfo { CommandName = "abs" };
+                    commands.Add(commandInfo);
+                    ExtractCommandsRecursive(new List<AstNode> { absNode.InnerGroup }, commands, commandInfo);
+                }
                 else if (node is TextNode textNode && currentCommandInfo != null)
                 {
                     currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(textNode, true));
@@ -446,6 +452,10 @@ namespace LatexConverter.Parsing
             {
                 subTextContents.AddRange(ExtractTextContentIfArgument(relationalNode.LeftOperand, false));
                 subTextContents.AddRange(ExtractTextContentIfArgument(relationalNode.RightOperand, false));
+            }
+            else if (node is AbsoluteValueNode absNode)
+            {
+                subTextContents.AddRange(ExtractTextContentIfArgument(absNode.InnerGroup, false));
             }
 
             return textContents
