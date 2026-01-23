@@ -150,11 +150,11 @@ namespace LatexConverter.Parsing
                                         commandInfo.TextArguments.Add(leftOperand);
                                     }
                                 }
-                                else if (isValidRegularArgument(rightOperand) && isValidNumber(opNode.LeftOperand))
+                                else if (isValidRegularArgument(rightOperand) && (isValidNumber(opNode.LeftOperand) || string.IsNullOrEmpty(opNode.LeftOperand)))
                                 {
                                     commandInfo.TextArguments.Add(rightOperand);
                                 }
-                                else if (isValidNumber(opNode.RightOperand) && isValidRegularArgument(leftOperand))
+                                else if ((isValidNumber(opNode.RightOperand) || string.IsNullOrEmpty(opNode.RightOperand)) && isValidRegularArgument(leftOperand))
                                 {
                                     commandInfo.TextArguments.Add(rightOperand);
                                 }

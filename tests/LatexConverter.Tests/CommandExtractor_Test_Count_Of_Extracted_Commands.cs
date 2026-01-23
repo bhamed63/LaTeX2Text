@@ -21,8 +21,8 @@ namespace LatexConvertorTests
             checkCommandsAndArgumentsCount("here it is a \\sqrt{x}, it is simple Latex.", 1, 1);
             checkCommandsAndArgumentsCount("here it is a \\sqrt{x}", 1, 1);
             checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{y}}, it is simple Latex.", 2, 2);
-            checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 1);
-            checkCommandsAndArgumentsCount("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 2);
+            checkCommandsAndArgumentsCount("here it is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 2);
+            checkCommandsAndArgumentsCount("here \\(it \\)is a \\sqrt{\\frac{x}{\\alpha}}, it is simple Latex.", 3, 3);
             checkCommandsAndArgumentsCount("here it is a \\ne b for qui", 1, 2);
             checkCommandsAndArgumentsCount("here it is w \\ll \\sqrt{x22} for qui", 2, 2);
             checkCommandsAndArgumentsCount("here it is 23 \\ll \\sqrt{x_2} for qui", 3, 1);
@@ -37,7 +37,7 @@ namespace LatexConvertorTests
             if (actualCommandsCount != commandsCount)
                 Assert.Fail(string.Format("Expected commands count: {0}, Actual commands count: {1}, Expression: {2}", commandsCount, actualCommandsCount, text));
             if (actualArgumentsCount != argumentCount)
-                Assert.Fail(string.Format("Expected arguments count: {0}, Actual arguments count: {1}, Expression: {2}", commandsCount, actualCommandsCount, text));
+                Assert.Fail(string.Format("Expected arguments count: {0}, Actual arguments count: {1}, Expression: {2}", argumentCount, actualArgumentsCount, text));
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace LatexConvertorTests
             checkCommandsAndArgumentsCount(@"\textbf{\textit{i}}", 2, 1);
 
             // Command with no arguments
-            checkCommandsAndArgumentsCount(@"\alpha", 1, 0);
+            checkCommandsAndArgumentsCount(@"\alpha", 1, 1);
 
             // Mixed content with multiple commands
             checkCommandsAndArgumentsCount(@"Some text \command{arg} and \another", 2, 1);

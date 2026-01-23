@@ -7,7 +7,7 @@ namespace LatexConverter.Parsing
     {
         public static readonly List<string> Operators = new List<string> { "/", "+", "*", "-", "=", ">", "<", ">=", "<=", "≤", "≥", "±", "∓" };
         public static readonly List<string> RelationalCommands = new List<string> { "ge", "le", "ne", "approx", "equiv", "ll", "gg", "pm", "mp", "in", "ni", "subset", "supset", "subseteq", "supseteq", "parallel", "perp", "vdash", "models", "mid", "sim", "simeq", "cong", "asymp", "propto", "bowtie", ">", "<" };
-        public static readonly char[] SubscripDelimitor = { '\\', '}', '_', '^', '/', ' ', '`', '.', ')', '(', '+', '-', '*', '/', '=', ';', ':', '\r', '\n', ',', '~', '?' };
+        public static readonly char[] SubscripDelimitor = { '\\', '}', '_', '^', '/', ' ', '`', '.', ')', '(', '+', '-', '*', '/', '=', ';', ':', '\r', '\n',  '~', '?' };
         public static readonly char[] NotAllowedAtLastChar = { ',' };
         public static readonly List<string> NotValidVariableNames = new List<string> { "cm", "cm2", "cm3", "dB", "km", "kg", "sec", "mg",
             "min", "max" ,

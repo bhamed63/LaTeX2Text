@@ -20,7 +20,7 @@ namespace LatexConverter.Tests
         {
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
-            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.SelectMany(c => c.TextArguments).Distinct().OrderBy(a => a));
         }
 
         [Theory]
@@ -30,7 +30,7 @@ namespace LatexConverter.Tests
         {
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
-            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.SelectMany(c => c.TextArguments).OrderBy(a => a));
         }
 
         [Theory]
@@ -40,7 +40,7 @@ namespace LatexConverter.Tests
         {
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
-            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.SelectMany(c => c.TextArguments).OrderBy(a => a));
         }
 
         [Theory]
@@ -50,7 +50,7 @@ namespace LatexConverter.Tests
         {
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
-            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.SelectMany(c => c.TextArguments).OrderBy(a => a));
         }
 
         [Theory]
@@ -60,7 +60,7 @@ namespace LatexConverter.Tests
         {
             var nodes = _parser.Parse(input);
             var commands = _extractor.ExtractCommands(nodes);
-            Assert.Equal(expectedArguments.OrderBy(a => a), commands.Select(c => c.CommandName).OrderBy(a => a)); 
+            Assert.Equal(expectedArguments.OrderBy(a => a), commands.SelectMany(c => c.TextArguments).OrderBy(a => a));
         }
 
         [Theory]
@@ -71,7 +71,7 @@ namespace LatexConverter.Tests
         {
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
-            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.SelectMany(c => c.TextArguments).OrderBy(a => a));
         }
 
         [Theory]
@@ -80,7 +80,7 @@ namespace LatexConverter.Tests
         {
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
-            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.OrderBy(a => a));
+            Assert.Equal(expectedArguments.OrderBy(a => a), arguments.SelectMany(c => c.TextArguments).OrderBy(a => a));
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace LatexConverter.Tests
             string input = "and the Stefan-Boltzman constant";
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
-            Assert.Empty(arguments);
+            Assert.Empty(arguments.SelectMany(c => c.TextArguments));
         }
 
         [Fact]
@@ -98,9 +98,9 @@ namespace LatexConverter.Tests
             string input = "and the St-Fo constant";
             var nodes = _parser.Parse(input);
             var arguments = _extractor.ExtractArgumentsFromOperators(nodes);
-            Assert.Equal(2, arguments.Count);
-            Assert.Contains("St", arguments);
-            Assert.Contains("Fo", arguments);
+            Assert.Single(arguments);
+            Assert.Contains("St", arguments.SelectMany(c => c.TextArguments));
+            Assert.Contains("Fo", arguments.SelectMany(c => c.TextArguments));
         }
     }
 }

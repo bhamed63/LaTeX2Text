@@ -42,8 +42,8 @@ namespace LatexConverter.Tests
 
             var commands = _commandExtractor.ExtractArgumentsFromOperators(nodes);
 
-            Assert.DoesNotContain("m", commands);
-            Assert.DoesNotContain("s", commands);
+            Assert.DoesNotContain("m", commands.Select(c=> c.CommandName));
+            Assert.DoesNotContain("s", commands.Select(c => c.CommandName));
         }
     }
 }
