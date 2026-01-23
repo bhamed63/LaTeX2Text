@@ -17,14 +17,25 @@ namespace LatexConverter
 
         public override string ToString()
         {
+            if (!string.IsNullOrEmpty(Script.ToString().Trim()))
+            {
+                return regularToString();
+            }
+            return Base.ToString();
+        }
+
+        private string regularToString()
+        {
             char scriptChar = getScriptChar();
             if (Script is TextNode textNode && textNode.Text.Length == 1)
             {
                 return $"{Base}{scriptChar}{Script}";
             }
-            return $"{Base}{scriptChar}{{{Script}}}";
-        }
+            if (!Script.IsGreekLetter())
+                return $"{Base}{scriptChar}{{{Script}}}";
 
+            return $"{Base}{scriptChar}{Script}";
+        }
 
         public override List<AstNode> GetAllSubNodes()
         {
@@ -36,8 +47,8 @@ namespace LatexConverter
 
         internal string ToVariableName()
         {
-            if(IsSuperscript)
-                return Base.ToString();;
+            if (IsSuperscript)
+                return Base.ToString();
             return ToString();
         }
 

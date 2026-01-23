@@ -230,7 +230,7 @@ namespace LatexConverter.Data
             { CommandNames.BigPhi, new SymbolDefinition { PlainText = "Phi", ScreenReader = "Phi", HumanFriendly = "Φ" , CommandType = CommandType.GreekLetter } },
             { CommandNames.BigPsi, new SymbolDefinition { PlainText = "Psi", ScreenReader = "Psi", HumanFriendly = "Ψ" , CommandType = CommandType.GreekLetter } },
             { CommandNames.BigOmega, new SymbolDefinition { PlainText = "Omega", ScreenReader = "Omega", HumanFriendly = "Ω" , CommandType = CommandType.GreekLetter } },
-            { CommandNames.Times, new SymbolDefinition { PlainText = "times", ScreenReader = "times", HumanFriendly = "×" , CommandType = CommandType.GreekLetter } },
+            { CommandNames.Times, new SymbolDefinition { PlainText = "times", ScreenReader = "times", HumanFriendly = "×"  } },
             { CommandNames.Div, new SymbolDefinition { PlainText = "div", ScreenReader = "divided by", HumanFriendly = "÷" } },
             { CommandNames.Pm, new SymbolDefinition { PlainText = "pm", ScreenReader = "plus-minus", HumanFriendly = "±" , OpenAI="±" } },
             { CommandNames.Mp, new SymbolDefinition { PlainText = "mp", ScreenReader = "minus-plus", HumanFriendly = "∓" } },

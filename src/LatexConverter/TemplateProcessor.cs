@@ -23,7 +23,7 @@ namespace LatexConverter
                 if (args.Length > 0)
                     return string.Format(template, args);
                 return removeUnnecessaryParameters(template);
-            }
+            } 
             return defaultMap != null ? defaultMap.GetValueOrDefault(command, command) : command;
         }
 

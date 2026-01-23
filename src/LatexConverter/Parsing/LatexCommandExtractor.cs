@@ -38,9 +38,9 @@ namespace LatexConverter.Parsing
             return commands;
         }
 
-        public List<string> ExtractArgumentsFromOperators(List<AstNode> nodes)
+        public List<CommandInfo> ExtractArgumentsFromOperators(List<AstNode> nodes)
         {
-            var arguments = new HashSet<string>();
+            var arguments = new List<CommandInfo>();
             ExtractArgumentsRecursive(nodes, arguments);
             return arguments.ToList();
         }
@@ -67,7 +67,12 @@ namespace LatexConverter.Parsing
                 {
                     if (cmdNode.CreateCommandName().ToLower() == "\\mathrm")
                     {
-                        foreach (var arg in cmdNode.Args.Where(c => c is TextNode))
+                        var textNodeArgs = cmdNode.Args.Where(c => c is TextNode).ToList();
+                        if (textNodeArgs.Count == 0 && cmdNode.Args.First() is GroupNode)
+                        {
+                            arguments.Add(cmdNode.Args.First().ToString());
+                        }
+                        foreach (var arg in textNodeArgs)
                         {
                             var argValue = arg.ToString();
                             if (isValidRegularArgument(argValue))
@@ -75,6 +80,10 @@ namespace LatexConverter.Parsing
                                 arguments.Add(argValue);
                             }
                         }
+                        //foreach (var groupNode2 in cmdNode.Args.Where(c => c is GroupNode))
+                        //{
+                        //    ExtractMathrmArgumentsRecursive((groupNode2 as GroupNode).Body, arguments);
+                        //}
                     }
 
                     ExtractMathrmArgumentsRecursive(cmdNode.Args, arguments);
@@ -110,7 +119,7 @@ namespace LatexConverter.Parsing
             }
         }
 
-        private void ExtractArgumentsRecursive(List<AstNode> nodes, HashSet<string> arguments)
+        private void ExtractArgumentsRecursive(List<AstNode> nodes, List<CommandInfo> arguments)
         {
             foreach (var node in nodes)
             {
@@ -119,17 +128,47 @@ namespace LatexConverter.Parsing
                     for (int i = 0; i < textNode.Operators.Count; i++)
                     {
                         var opNode = textNode.Operators[i];
+                        CommandInfo commandInfo = new CommandInfo() { CommandName = opNode.Operator };
+                        arguments.Add(commandInfo);
                         string rightOperand = ExtractFromRightOperand(opNode.RightOperand);
                         string leftOperand = ExtractFromLeftOperand(opNode.LeftOperand);
                         string appendedOperands = $"{leftOperand}{opNode.Operator}{rightOperand}";
                         if (isInAllowedAppendedOperands(appendedOperands))
                         {
-                            if (isValidRegularArgument(rightOperand))
-                                arguments.Add(rightOperand);
+                            if (opNode.Operator == "-" ||
+                                opNode.Operator == "/" ||
+                                opNode.Operator == "*" ||
+                                opNode.Operator == "+")
+                            {
+                                if (isValidRegularArgument(rightOperand) && isValidRegularArgument(leftOperand))
+                                {
+                                    if ((opNode.LeftOperand.EndsWith(" ") && opNode.RightOperand.StartsWith(" "))
+                                        ||
+                                        (!opNode.LeftOperand.EndsWith(" ") && !opNode.RightOperand.StartsWith(" ")))
+                                    {
+                                        commandInfo.TextArguments.Add(rightOperand);
+                                        commandInfo.TextArguments.Add(leftOperand);
+                                    }
+                                }
+                                else if (isValidRegularArgument(rightOperand) && isValidNumber(opNode.LeftOperand))
+                                {
+                                    commandInfo.TextArguments.Add(rightOperand);
+                                }
+                                else if (isValidNumber(opNode.RightOperand) && isValidRegularArgument(leftOperand))
+                                {
+                                    commandInfo.TextArguments.Add(rightOperand);
+                                }
+                            }
+                            else
+                            {
+                                if (isValidRegularArgument(rightOperand))
+                                    commandInfo.TextArguments.Add(rightOperand);
 
-                            if (isValidRegularArgument(leftOperand))
-                                arguments.Add(leftOperand);
-                        } 
+                                if (isValidRegularArgument(leftOperand))
+                                    commandInfo.TextArguments.Add(leftOperand);
+
+                            }
+                        }
                     }
                 }
                 else if (node is GroupNode groupNode)
@@ -169,6 +208,11 @@ namespace LatexConverter.Parsing
                     ExtractArgumentsRecursive(new List<AstNode> { binomNode.Top, binomNode.Bottom }, arguments);
                 }
             }
+        }
+
+        private bool isValidNumber(string givenString)
+        {
+            return double.TryParse(givenString, out double d);
         }
 
         private string ExtractFromRightOperand(string rightOperand)
@@ -246,6 +290,10 @@ namespace LatexConverter.Parsing
                                 continue;
                             commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(arg, false));
                         }
+
+                        if (cmdNode.IsGreekLetter() && cmdNode.Args.Count == 0)
+                            commandInfo.TextArguments.Add(commandInfo.CommandName);
+
                         commands.Add(commandInfo);
                         ExtractCommandsRecursive(cmdNode.Args.Where(c => c is not TextNode).ToList(), commands, commandInfo);
                     }
@@ -315,6 +363,16 @@ namespace LatexConverter.Parsing
                             commands.Add(commandInfo);
                         }
                     }
+                    else if (scriptNode.Base is TextNode && scriptNode.Script is CommandNode scriptCmdNode)
+                    {
+                        if (isValidBaseArgument(scriptNode.Base.ToString()))// && scriptCmdNode.IsGreekCommandNode())
+                        {
+                            //commandInfo = new CommandInfo { CommandName = "" };
+                            commandInfo = new CommandInfo { CommandName = scriptNode.ToVariableName() };
+                            commandInfo.TextArguments.Add(scriptNode.ToVariableName());
+                            commands.Add(commandInfo);
+                        }
+                    }
                     else if (scriptNode.Base is CommandNode specialCommandNode &&
                         specialCommandNode.IsSpecialCommandNode() &&
                         specialCommandNode.Args.Count == 1)
@@ -356,16 +414,6 @@ namespace LatexConverter.Parsing
                     currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(textNode, true));
                 }
             }
-        }
-
-        private List<string> ExtractTextContentIfArgumentWithLengthCheck(AstNode node)
-        {
-            return ExtractTextContentIfArgument(node, true);
-        }
-
-        private List<string> ExtractTextContentIfArgumentWithoutLengthCheck(AstNode node)
-        {
-            return ExtractTextContentIfArgument(node, false);
         }
 
         private List<string> ExtractTextContentIfArgument(AstNode node, bool lengthCheck)
@@ -433,15 +481,9 @@ namespace LatexConverter.Parsing
                 text = text.Substring(1, text.Length - 2);
             }
 
-            var notAllowedForStart = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "_" };
+            var notAllowedForStart = ParsingRules.NotValidForStartVariable;
 
-            var notAllowedForContain = new List<string>()
-            {
-                "{", "}", ")", "(",
-                ",", ";", "'", "\"",
-                "/", "\\", "=", "+",
-                "-", "*", ".", "\"", "“",
-            };
+            var notAllowedForContain = ParsingRules.NotValidForContainVariableName;
 
             if (notAllowedForStart.Any(c => text.StartsWith(c)))
                 return false;
@@ -470,24 +512,51 @@ namespace LatexConverter.Parsing
 
         private bool isInAllowedAppendedOperands(string appendedOperand)
         {
-            return
-                    appendedOperand != "m/s" &&
-                    appendedOperand != "m/s2" &&
-                    appendedOperand != "m/s3" &&
+            return !ParsingRules.NotValidForAppendedOperandVariableName.Any(c => c == appendedOperand);
 
-                    appendedOperand != "km/s" &&
-                    appendedOperand != "km/h" &&
 
-                    appendedOperand != "kg/sec" &&
-                    appendedOperand != "m/sec" &&
-                    appendedOperand != "N/s" &&
+            //return
+            //        appendedOperand != "m/s" &&
+            //        appendedOperand != "m/s2" &&
+            //        appendedOperand != "m/s3" &&
 
-                    appendedOperand != "rad/s" &&
-                    appendedOperand != "rev/s" &&
-                    appendedOperand != "rad/sec" &&
-                    appendedOperand != "rev/sec" &&
+            //        appendedOperand != "km/sec" &&
+            //        appendedOperand != "km/s" &&
+            //        appendedOperand != "km/h" &&
 
-                    appendedOperand != "N/s";
+            //        appendedOperand != "kg/sec" &&
+            //        appendedOperand != "kg/s" &&
+            //        appendedOperand != "kg/h" &&
+
+            //        appendedOperand != "m/sec" &&
+            //        appendedOperand != "m/s" &&
+            //        appendedOperand != "m/h" &&
+
+            //        appendedOperand != "N/sec" &&
+            //        appendedOperand != "N/s" &&
+            //        appendedOperand != "N/h" &&
+            //        appendedOperand != "N/m" &&
+
+            //        appendedOperand != "rad/sec" &&
+            //        appendedOperand != "rad/s" &&
+            //        appendedOperand != "rad/h" &&
+            //        appendedOperand != "rad/m" &&
+
+            //        appendedOperand != "rev/sec" &&
+            //        appendedOperand != "rev/s" &&
+            //        appendedOperand != "rev/h" &&
+
+            //        appendedOperand != "W/m" &&
+            //        appendedOperand != "W/m2" &&
+            //        appendedOperand != "W/m3" &&
+
+            //        appendedOperand != "kW/m" &&
+            //        appendedOperand != "kW/m2" &&
+            //        appendedOperand != "kW/m3" &&
+
+
+            //        appendedOperand.ToLower() != "x-ray"
+            //        ;
         }
     }
 }
