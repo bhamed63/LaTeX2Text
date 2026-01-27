@@ -253,5 +253,10 @@ namespace LatexConverter
         {
             return $"absolute value of {node.InnerGroup.Accept(this)}";
         }
+
+        public override string VisitPrescript(PrescriptNode node)
+        {
+            return $"{node.Script.Accept(this).Trim()} {node.Base.Accept(this).Trim()}";
+        }
     }
 }

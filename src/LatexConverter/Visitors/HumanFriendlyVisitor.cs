@@ -154,5 +154,10 @@ namespace LatexConverter
         {
             return $"|{node.InnerGroup.Accept(this)}|";
         }
+
+        public override string VisitPrescript(PrescriptNode node)
+        {
+            return $"{node.Script.Accept(this)}{node.Base.Accept(this)}";
+        }
     }
 }

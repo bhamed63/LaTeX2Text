@@ -157,5 +157,13 @@ namespace LatexConverter.Visitors
         {
             return Visit(node.InnerGroup, true);
         }
+
+        public override List<string> VisitPrescript(PrescriptNode node)
+        {
+            var variables = new List<string>();
+            variables.AddRange(Visit(node.Script, true));
+            variables.AddRange(Visit(node.Base, true));
+            return variables;
+        }
     }
 }

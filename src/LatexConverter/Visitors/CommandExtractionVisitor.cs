@@ -116,5 +116,13 @@ namespace LatexConverter.Visitors
             commands.AddRange(node.InnerGroup.Accept(this));
             return commands;
         }
+
+        public override List<string> VisitPrescript(PrescriptNode node)
+        {
+            var commands = new List<string> { "prescript" };
+            commands.AddRange(node.Script.Accept(this));
+            commands.AddRange(node.Base.Accept(this));
+            return commands;
+        }
     }
 }

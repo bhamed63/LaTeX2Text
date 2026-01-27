@@ -116,6 +116,10 @@ namespace LatexConverter.Parsing
                 {
                     ExtractMathrmArgumentsRecursive(new List<AstNode> { binomNode.Top, binomNode.Bottom }, arguments);
                 }
+                else if (node is PrescriptNode prescriptNode)
+                {
+                    ExtractMathrmArgumentsRecursive(new List<AstNode> { prescriptNode.Script, prescriptNode.Base }, arguments);
+                }
             }
         }
 
@@ -206,6 +210,10 @@ namespace LatexConverter.Parsing
                 else if (node is BinomNode binomNode)
                 {
                     ExtractArgumentsRecursive(new List<AstNode> { binomNode.Top, binomNode.Bottom }, arguments);
+                }
+                else if (node is PrescriptNode prescriptNode)
+                {
+                    ExtractArgumentsRecursive(new List<AstNode> { prescriptNode.Script, prescriptNode.Base }, arguments);
                 }
             }
         }
@@ -392,7 +400,7 @@ namespace LatexConverter.Parsing
                         commands.Add(commandInfo);
                     }
                     else
-                        ExtractCommandsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, commands, commandInfo);
+                        ExtractCommandsRecursive(new List<AstNode> { scriptNode.Base, scriptNode.Script }, commands, currentCommandInfo);
                 }
                 else if (node is RelationalOperatorNode relationalNode)
                 {
@@ -414,6 +422,14 @@ namespace LatexConverter.Parsing
                     CommandInfo commandInfo = new CommandInfo { CommandName = "abs" };
                     commands.Add(commandInfo);
                     ExtractCommandsRecursive(new List<AstNode> { absNode.InnerGroup }, commands, commandInfo);
+                }
+                else if (node is PrescriptNode prescriptNode)
+                {
+                    CommandInfo commandInfo = new CommandInfo { CommandName = "prescript" };
+                    commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(prescriptNode.Script, false));
+                    commandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(prescriptNode.Base, false));
+                    commands.Add(commandInfo);
+                    ExtractCommandsRecursive(new List<AstNode> { prescriptNode.Script, prescriptNode.Base }, commands, null);
                 }
                 else if (node is TextNode textNode && currentCommandInfo != null)
                 {
@@ -456,6 +472,11 @@ namespace LatexConverter.Parsing
             else if (node is AbsoluteValueNode absNode)
             {
                 subTextContents.AddRange(ExtractTextContentIfArgument(absNode.InnerGroup, false));
+            }
+            else if (node is PrescriptNode prescriptNode)
+            {
+                subTextContents.AddRange(ExtractTextContentIfArgument(prescriptNode.Script, false));
+                subTextContents.AddRange(ExtractTextContentIfArgument(prescriptNode.Base, false));
             }
 
             return textContents

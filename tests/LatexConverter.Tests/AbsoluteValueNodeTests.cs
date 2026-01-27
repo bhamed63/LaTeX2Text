@@ -78,5 +78,18 @@ namespace LatexConverter.Tests
             var plainText = result[0].Accept(new PlainTextVisitor());
             Assert.Equal("|x|", plainText);
         }
+
+        [Fact]
+        public void Parse_NestedAbsoluteValue_Works()
+        {
+            var parser = new LatexParser();
+            var nodes = parser.Parse("|a+|b||");
+
+            Assert.Single(nodes);
+            Assert.IsType<AbsoluteValueNode>(nodes[0]);
+            var outer = (AbsoluteValueNode)nodes[0];
+            var inner = outer.InnerGroup.Body.OfType<AbsoluteValueNode>().FirstOrDefault();
+            Assert.NotNull(inner);
+        }
     }
 }

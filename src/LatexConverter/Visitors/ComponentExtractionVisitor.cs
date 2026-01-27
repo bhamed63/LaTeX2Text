@@ -326,5 +326,28 @@ namespace LatexConverter.Visitors
             }
             return null;
         }
+
+        public override object VisitPrescript(PrescriptNode node)
+        {
+            if (_visitedNodes.Contains(node))
+            {
+                return null;
+            }
+            _visitedNodes.Add(node);
+
+            Result.Commands.Add(new Tuple<CommandType, string>(CommandType.MathFunction, "prescript"));
+            var oldContext = _isMathContext;
+            _isMathContext = true;
+            try
+            {
+                node.Script.Accept(this);
+                node.Base.Accept(this);
+            }
+            finally
+            {
+                _isMathContext = oldContext;
+            }
+            return null;
+        }
     }
 }

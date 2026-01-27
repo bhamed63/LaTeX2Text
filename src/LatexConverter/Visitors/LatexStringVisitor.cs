@@ -112,5 +112,10 @@ namespace LatexConverter.Visitors
         {
             return $"|{string.Concat(node.InnerGroup.Body.Select(n => n.Accept(this)))}|";
         }
+
+        public override string VisitPrescript(PrescriptNode node)
+        {
+            return $"{node.Script.Accept(this)}{node.Base.Accept(this)}";
+        }
     }
 }

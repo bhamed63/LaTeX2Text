@@ -31,5 +31,7 @@ namespace LatexConverter
         T ExceptionalVisitRelationalOperator(RelationalOperatorNode node);
         T VisitAbsoluteValue(AbsoluteValueNode node);
         T ExceptionalVisitAbsoluteValue(AbsoluteValueNode node);
+        T VisitPrescript(PrescriptNode node);
+        T ExceptionalVisitPrescript(PrescriptNode node);
     }
 }

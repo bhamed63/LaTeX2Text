@@ -156,6 +156,10 @@ namespace LatexConverter.Parsing
                 case AbsoluteValueNode absNode:
                     AnalyzeNodeRecursively(absNode.InnerGroup);
                     break;
+                case PrescriptNode prescriptNode:
+                    AnalyzeNodeRecursively(prescriptNode.Script);
+                    AnalyzeNodeRecursively(prescriptNode.Base);
+                    break;
             }
         }
 
@@ -271,6 +275,75 @@ namespace LatexConverter.Parsing
             return nodes;
         }
 
+        private AstNode ParseSingleNode(string input, ref int position)
+        {
+            if (position >= input.Length) return null;
+
+            AstNode node = null;
+            if (position + 1 < input.Length &&
+                input[position] == '\\' && (input[position + 1] == '(' || input[position + 1] == '['))
+            {
+                node = ParseGroup(input, ref position);
+            }
+            else if (input[position] == '\\')
+            {
+                node = ParseCommand(input, ref position);
+            }
+            else if (input[position] == '|')
+            {
+                int end = FindMatchingBar(input, position);
+                if (end != -1)
+                {
+                    string content = input.Substring(position + 1, end - (position + 1));
+                    var body = ExecuteParsing(content);
+                    node = new AbsoluteValueNode(new GroupNode(body, "", ""));
+                    position = end + 1;
+                }
+                else
+                {
+                    position++;
+                    node = new TextNode("|");
+                }
+            }
+            else if (input[position] == '{')
+            {
+                position++; // Skip '{'
+                var argumentContent = ExtractBracedContent(input, ref position);
+                if (argumentContent != null)
+                {
+                    if (position < input.Length && input[position] == '}')
+                        position++;
+                    var contentNodes = ExecuteParsing(argumentContent);
+                    if (contentNodes.Count == 1) node = contentNodes[0];
+                    else node = new GroupNode(contentNodes, "", "");
+                }
+                else
+                {
+                    node = new TextNode("{");
+                }
+            }
+            else
+            {
+                node = new TextNode(input[position++].ToString());
+            }
+
+            if (node != null)
+            {
+                int currentPos = position;
+                while (currentPos < input.Length && char.IsWhiteSpace(input[currentPos]))
+                {
+                    currentPos++;
+                }
+
+                if (currentPos < input.Length && (input[currentPos] == '_' || input[currentPos] == '^'))
+                {
+                    position = currentPos;
+                    node = ParseScript(input, ref position, node);
+                }
+            }
+            return node;
+        }
+
         private AstNode ParseScript(string input, ref int position, AstNode baseNode)
         {
             AstNode finalNode = baseNode;
@@ -310,25 +383,6 @@ namespace LatexConverter.Parsing
             }
             position = currentPos;
             return finalNode;
-        }
-
-        private int FindMatchingBar(string input, int startPos)
-        {
-            int braceLevel = 0;
-            for (int i = startPos + 1; i < input.Length; i++)
-            {
-                if (input[i] == '\\' && i + 1 < input.Length)
-                {
-                    if (input[i + 1] == '|') { i++; continue; }
-                }
-                if (input[i] == '{') braceLevel++;
-                else if (input[i] == '}') braceLevel--;
-                else if (input[i] == '|' && braceLevel == 0)
-                {
-                    return i;
-                }
-            }
-            return -1;
         }
 
         private List<AstNode> ParseText(string input, ref int position)
@@ -398,6 +452,25 @@ namespace LatexConverter.Parsing
                     }
 
                     var scriptNode = ParseScript(input, ref position, baseOfScript);
+
+                    // If it's a single script at start/after delimiter, bind with following base
+                    if (scriptNode is ScriptNode sn && sn.Base is TextNode tn && tn.Text == "" && position < input.Length)
+                    {
+                        int checkpoint = position;
+                        while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+
+                        if (position < input.Length && input[position] != '^' && input[position] != '_')
+                        {
+                            var followNode = ParseSingleNode(input, ref position);
+                            if (followNode != null)
+                            {
+                                nodes.Add(new PrescriptNode(sn, followNode));
+                                return nodes;
+                            }
+                        }
+                        position = checkpoint;
+                    }
+
                     nodes.Add(scriptNode);
                     return nodes;
                 }
@@ -418,6 +491,54 @@ namespace LatexConverter.Parsing
             }
 
             return nodes;
+        }
+
+        private int FindMatchingBar(string input, int startPos)
+        {
+            int braceLevel = 0;
+            int depth = 1;
+            for (int i = startPos + 1; i < input.Length; i++)
+            {
+                if (input[i] == '\\' && i + 1 < input.Length)
+                {
+                    if (input[i + 1] == '|') { i++; continue; }
+                }
+                if (input[i] == '{') braceLevel++;
+                else if (input[i] == '}') braceLevel--;
+                else if (input[i] == '|' && braceLevel == 0)
+                {
+                    if (IsClosingBar(input, i))
+                    {
+                        depth--;
+                        if (depth == 0) return i;
+                    }
+                    else
+                    {
+                        depth++;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        private bool IsClosingBar(string input, int pos)
+        {
+            if (pos == 0) return false;
+            char prev = '\0';
+            for (int i = pos - 1; i >= 0; i--)
+            {
+                if (!char.IsWhiteSpace(input[i]))
+                {
+                    prev = input[i];
+                    break;
+                }
+            }
+
+            if (prev == '\0') return false;
+            if (char.IsLetterOrDigit(prev) || prev == '}' || prev == ')' || prev == ']' || prev == '|' || prev == '.' || prev == '!')
+                return true;
+
+            return false;
         }
 
         private AstNode ParseScriptContent(string input, ref int position)

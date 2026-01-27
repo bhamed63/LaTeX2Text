@@ -76,6 +76,12 @@ namespace LatexConverter
             return VisitAbsoluteValue(node);
         }
 
+        public abstract T VisitPrescript(PrescriptNode node);
+        public virtual T ExceptionalVisitPrescript(PrescriptNode node)
+        {
+            return VisitPrescript(node);
+        }
+
         public virtual string GetPreProcessedResult(string text)
         {
             return text;
