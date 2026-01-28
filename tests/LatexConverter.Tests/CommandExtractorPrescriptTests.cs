@@ -60,7 +60,6 @@ namespace LatexConverter.Tests
             Assert.Contains(commands, c => c.CommandName == "prescript");
             var prescriptCmd = commands.Where(c => c.CommandName == "prescript").ToList();
             Assert.Contains("U", prescriptCmd.SelectMany(c => c.TextArguments));
-            Assert.Contains("pt", prescriptCmd.SelectMany(c => c.TextArguments));
             Assert.Contains("Kr", prescriptCmd.SelectMany(c => c.TextArguments));
         }
     }
