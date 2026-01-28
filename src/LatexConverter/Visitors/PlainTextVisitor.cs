@@ -63,5 +63,10 @@ namespace LatexConverter
         {
             return $"{node.Script.Accept(this)}{node.Base.Accept(this)}";
         }
+
+        public override string VisitPrime(PrimeNode node)
+        {
+            return node.Base.Accept(this);
+        }
     }
 }

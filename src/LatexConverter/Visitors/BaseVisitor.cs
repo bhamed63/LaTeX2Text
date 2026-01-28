@@ -82,6 +82,12 @@ namespace LatexConverter
             return VisitPrescript(node);
         }
 
+        public abstract T VisitPrime(PrimeNode node);
+        public virtual T ExceptionalVisitPrime(PrimeNode node)
+        {
+            return VisitPrime(node);
+        }
+
         public virtual string GetPreProcessedResult(string text)
         {
             return text;

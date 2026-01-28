@@ -159,5 +159,12 @@ namespace LatexConverter
         {
             return $"{node.Script.Accept(this)}{node.Base.Accept(this)}";
         }
+
+        public override string VisitPrime(PrimeNode node)
+        {
+            var baseText = node.Base.Accept(this);
+            var primeString = new string('′', node.Count);
+            return $"{baseText}{primeString}";
+        }
     }
 }

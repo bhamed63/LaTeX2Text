@@ -33,5 +33,7 @@ namespace LatexConverter
         T ExceptionalVisitAbsoluteValue(AbsoluteValueNode node);
         T VisitPrescript(PrescriptNode node);
         T ExceptionalVisitPrescript(PrescriptNode node);
+        T VisitPrime(PrimeNode node);
+        T ExceptionalVisitPrime(PrimeNode node);
     }
 }

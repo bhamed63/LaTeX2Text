@@ -258,5 +258,12 @@ namespace LatexConverter
         {
             return $"{node.Script.Accept(this).Trim()} {node.Base.Accept(this).Trim()}";
         }
+
+        public override string VisitPrime(PrimeNode node)
+        {
+            var baseText = node.Base.Accept(this);
+            var primeText = string.Join(" ", Enumerable.Repeat("prime", node.Count));
+            return $"{baseText} {primeText}";
+        }
     }
 }
