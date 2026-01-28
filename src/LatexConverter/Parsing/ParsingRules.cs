@@ -20,13 +20,14 @@ namespace LatexConverter.Parsing
             "one",
             "on"
             };//, "m/s", "m/s2", "m/s3" };
-        public static readonly List<string> NotValidForStartVariable = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "_" };
+        public static readonly List<string> NotValidForStartVariable = new List<string>() { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "_"  };
         public static readonly List<string> NotValidForContainVariableName = new List<string>()
             {
                 "{", "}", ")", "(",
                 ",", ";", "'", "\"",
                 "/", "\\", "=", "+",
                 "-", "*", ".", "\"", "“", ">", "<",
+                "–",
                 "~"
             };
 
@@ -68,6 +69,8 @@ namespace LatexConverter.Parsing
                      "kW/m2" ,
                      "kW/m3" ,
 
+                     "mSv/y",
+                     "g/mol",
 
                      "x-ray"};
 

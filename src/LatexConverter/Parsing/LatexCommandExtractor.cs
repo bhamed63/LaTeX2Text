@@ -360,9 +360,10 @@ namespace LatexConverter.Parsing
                             commandInfo.TextArguments.Add(scriptNode.ToVariableName());
                             commands.Add(commandInfo);
                         }
-                        else if (isValidBaseArgument(scriptNode.Script.ToString()))
+                        else if (isValidRegularArgument(scriptNode.Script.ToString()))
                         {
                             //commandInfo = new CommandInfo { CommandName = "" };
+
                             commandInfo = new CommandInfo { CommandName = scriptNode.Script.ToString() };
                             commandInfo.TextArguments.Add(scriptNode.Script.ToString());
                             commands.Add(commandInfo);
@@ -550,7 +551,7 @@ namespace LatexConverter.Parsing
 
         private bool isInAllowedAppendedOperands(string appendedOperand)
         {
-            return !ParsingRules.NotValidForAppendedOperandVariableName.Any(c => c == appendedOperand);
+            return !ParsingRules.NotValidForAppendedOperandVariableName.Any(c => c.Equals(appendedOperand, StringComparison.OrdinalIgnoreCase));
 
 
             //return
