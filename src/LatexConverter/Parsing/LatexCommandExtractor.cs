@@ -160,7 +160,7 @@ namespace LatexConverter.Parsing
                                 }
                                 else if ((isValidNumber(opNode.RightOperand) || string.IsNullOrEmpty(opNode.RightOperand)) && isValidRegularArgument(leftOperand))
                                 {
-                                    commandInfo.TextArguments.Add(rightOperand);
+                                    commandInfo.TextArguments.Add(leftOperand);
                                 }
                             }
                             else
@@ -358,6 +358,13 @@ namespace LatexConverter.Parsing
                             //commandInfo = new CommandInfo { CommandName = "" };
                             commandInfo = new CommandInfo { CommandName = scriptNode.ToVariableName() };
                             commandInfo.TextArguments.Add(scriptNode.ToVariableName());
+                            commands.Add(commandInfo);
+                        }
+                        else if (isValidBaseArgument(scriptNode.Script.ToString()))
+                        {
+                            //commandInfo = new CommandInfo { CommandName = "" };
+                            commandInfo = new CommandInfo { CommandName = scriptNode.Script.ToString() };
+                            commandInfo.TextArguments.Add(scriptNode.Script.ToString());
                             commands.Add(commandInfo);
                         }
                     }

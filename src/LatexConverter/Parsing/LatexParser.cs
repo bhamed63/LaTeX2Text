@@ -344,6 +344,41 @@ namespace LatexConverter.Parsing
             return node;
         }
 
+        private AstNode ParseFollowNode(string input, ref int position)
+        {
+            if (position >= input.Length) return null;
+
+            if (input[position] == '\\' || input[position] == '{' || input[position] == '(' || input[position] == '[' || input[position] == '|')
+            {
+                return ParseSingleNode(input, ref position);
+            }
+
+            int start = position;
+            while (position < input.Length && !ParsingRules.IsScriptDelimiter(input[position]))
+            {
+                position++;
+            }
+
+            if (position > start)
+            {
+                AstNode node = new TextNode(input.Substring(start, position - start));
+                int currentPos = position;
+                while (currentPos < input.Length && char.IsWhiteSpace(input[currentPos]))
+                {
+                    currentPos++;
+                }
+
+                if (currentPos < input.Length && (input[currentPos] == '_' || input[currentPos] == '^'))
+                {
+                    position = currentPos;
+                    node = ParseScript(input, ref position, node);
+                }
+                return node;
+            }
+
+            return ParseSingleNode(input, ref position);
+        }
+
         private AstNode ParseScript(string input, ref int position, AstNode baseNode)
         {
             AstNode finalNode = baseNode;
@@ -423,6 +458,35 @@ namespace LatexConverter.Parsing
                     }
                     else
                     {
+                        // If there's whitespace before the script, try to treat it as a prescript first
+                        if (position > start && char.IsWhiteSpace(input[position - 1]))
+                        {
+                            int checkpoint = position;
+                            var tryScriptNode = ParseScript(input, ref position, new TextNode(""));
+                            if (tryScriptNode is ScriptNode trySn && position < input.Length)
+                            {
+                                int followCheckpoint = position;
+                                while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+
+                                if (position < input.Length && input[position] != '^' && input[position] != '_')
+                                {
+                                    var followNode = ParseFollowNode(input, ref position);
+                                    if (followNode != null)
+                                    {
+                                        if (!string.IsNullOrEmpty(textBefore))
+                                        {
+                                            nodes.Add(new TextNode(textBefore));
+                                        }
+                                        nodes.Add(new PrescriptNode(trySn, followNode));
+                                        return nodes;
+                                    }
+                                }
+                                position = followCheckpoint;
+                            }
+                            // Fallback if no follow-node found
+                            position = checkpoint;
+                        }
+
                         int baseEnd = position;
                         while (baseEnd > start && char.IsWhiteSpace(input[baseEnd - 1]))
                         {
@@ -461,7 +525,7 @@ namespace LatexConverter.Parsing
 
                         if (position < input.Length && input[position] != '^' && input[position] != '_')
                         {
-                            var followNode = ParseSingleNode(input, ref position);
+                            var followNode = ParseFollowNode(input, ref position);
                             if (followNode != null)
                             {
                                 nodes.Add(new PrescriptNode(sn, followNode));
