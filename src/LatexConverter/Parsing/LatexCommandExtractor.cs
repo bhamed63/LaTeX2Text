@@ -120,6 +120,10 @@ namespace LatexConverter.Parsing
                 {
                     ExtractMathrmArgumentsRecursive(new List<AstNode> { prescriptNode.Script, prescriptNode.Base }, arguments);
                 }
+                else if (node is PrimeNode primeNode)
+                {
+                    ExtractMathrmArgumentsRecursive(new List<AstNode> { primeNode.Base }, arguments);
+                }
             }
         }
 
@@ -214,6 +218,10 @@ namespace LatexConverter.Parsing
                 else if (node is PrescriptNode prescriptNode)
                 {
                     ExtractArgumentsRecursive(new List<AstNode> { prescriptNode.Script, prescriptNode.Base }, arguments);
+                }
+                else if (node is PrimeNode primeNode)
+                {
+                    ExtractArgumentsRecursive(new List<AstNode> { primeNode.Base }, arguments);
                 }
             }
         }
@@ -439,6 +447,22 @@ namespace LatexConverter.Parsing
                     commands.Add(commandInfo);
                     ExtractCommandsRecursive(new List<AstNode> { prescriptNode.Script, prescriptNode.Base }, commands, null);
                 }
+                else if (node is PrimeNode primeNode)
+                {
+                    var primeText = primeNode.ToString();
+                    if (isValidBaseArgument(primeNode.Base.ToString()))
+                    {
+                        var commandInfo = new CommandInfo { CommandName = primeText };
+                        commandInfo.TextArguments.Add(primeText);
+                        commands.Add(commandInfo);
+                    }
+
+                    var primeCmdInfo = new CommandInfo { CommandName = "\\prime" };
+                    primeCmdInfo.TextArguments.AddRange(ExtractTextContentIfArgument(primeNode.Base, false));
+                    commands.Add(primeCmdInfo);
+
+                    ExtractCommandsRecursive(new List<AstNode> { primeNode.Base }, commands, null);
+                }
                 else if (node is TextNode textNode && currentCommandInfo != null)
                 {
                     currentCommandInfo.TextArguments.AddRange(ExtractTextContentIfArgument(textNode, true));
@@ -485,6 +509,11 @@ namespace LatexConverter.Parsing
             {
                 subTextContents.AddRange(ExtractTextContentIfArgument(prescriptNode.Script, false));
                 subTextContents.AddRange(ExtractTextContentIfArgument(prescriptNode.Base, false));
+            }
+            else if (node is PrimeNode primeNode)
+            {
+                textContents.Add(primeNode.ToString());
+                subTextContents.AddRange(ExtractTextContentIfArgument(primeNode.Base, false));
             }
 
             return textContents

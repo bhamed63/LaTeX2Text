@@ -145,5 +145,34 @@ namespace LatexConverter.Tests
             var result = string.Join("", nodes.Select(n => n.Accept(visitor)));
             Assert.Equal("f prime prime", result);
         }
+
+        [Fact]
+        public void LatexCommandExtractor_ShouldExtractPrimeCommand()
+        {
+            var parser = new LatexParser();
+            var nodes = parser.Parse("f\\prime");
+            var extractor = new LatexCommandExtractor();
+            var commands = extractor.ExtractCommands(nodes);
+
+            // Should extract f\prime as a semantic variable
+            Assert.Contains(commands, c => c.CommandName == "f\\prime");
+
+            // Should also extract \prime command itself
+            Assert.Contains(commands, c => c.CommandName == "\\prime");
+            var primeCmd = commands.First(c => c.CommandName == "\\prime");
+            Assert.Contains("f", primeCmd.TextArguments);
+        }
+
+        [Fact]
+        public void LatexCommandExtractor_ShouldExtractMathrmFromPrimeBase()
+        {
+            var parser = new LatexParser();
+            var nodes = parser.Parse("\\mathrm{U}\\prime");
+            var extractor = new LatexCommandExtractor();
+            var mathrmArgs = extractor.ExtractMathrmArguments(nodes);
+
+            Assert.Contains("U", mathrmArgs);
+        }
+
     }
 }
