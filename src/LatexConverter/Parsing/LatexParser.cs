@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using LatexConverter.Ast;
 
 namespace LatexConverter.Parsing
@@ -225,6 +226,12 @@ namespace LatexConverter.Parsing
                 else if (input[position] == '\\')
                 {
                     node = ParseCommand(input, ref position);
+                    if (node is PrimeNode pn && pn.Base is TextNode tn && tn.Text == "")
+                    {
+                        var (baseNode, replaced) = TryExtractPrimeBase(nodes);
+                        if (replaced) continue;
+                        node = pn with { Base = baseNode };
+                    }
                 }
                 else if (input[position] == '|')
                 {
@@ -605,6 +612,49 @@ namespace LatexConverter.Parsing
             return false;
         }
 
+        private (AstNode baseNode, bool replaced) TryExtractPrimeBase(List<AstNode> nodes)
+        {
+            if (nodes.Count == 0) return (new TextNode(""), false);
+
+            var lastNode = nodes[nodes.Count - 1];
+            if (lastNode is PrimeNode existingPrime)
+            {
+                nodes[nodes.Count - 1] = existingPrime with { Count = existingPrime.Count + 1 };
+                return (null, true);
+            }
+
+            if (lastNode is TextNode tn)
+            {
+                string text = tn.Text;
+                if (string.IsNullOrEmpty(text))
+                {
+                    nodes.RemoveAt(nodes.Count - 1);
+                    return (tn, false);
+                }
+
+                // Match last word or number, allowing trailing spaces
+                var match = Regex.Match(text, @"((?:[a-zA-Z]+)|(?:[0-9]+(?:\.[0-9]+)?))\s*$");
+                if (match.Success)
+                {
+                    string baseText = match.Groups[1].Value;
+                    string preceding = text.Substring(0, match.Index);
+
+                    if (string.IsNullOrEmpty(preceding))
+                    {
+                        nodes.RemoveAt(nodes.Count - 1);
+                    }
+                    else
+                    {
+                        nodes[nodes.Count - 1] = new TextNode(preceding);
+                    }
+                    return (new TextNode(baseText), false);
+                }
+            }
+
+            nodes.RemoveAt(nodes.Count - 1);
+            return (lastNode, false);
+        }
+
         private AstNode ParseScriptContent(string input, ref int position)
         {
             if (position >= input.Length)
@@ -738,6 +788,8 @@ namespace LatexConverter.Parsing
                     return ParseLimitStyleCommand(commandName, input, ref position);
                 case "binom":
                     return ParseBinomCommand(commandName, input, ref position);
+                case "prime":
+                    return new PrimeNode(new TextNode(""), 1);
                 default:
                     var arguments = new List<AstNode>();
                     while (position < input.Length && input[position] == '{')

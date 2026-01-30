@@ -124,5 +124,12 @@ namespace LatexConverter.Visitors
             commands.AddRange(node.Base.Accept(this));
             return commands;
         }
+
+        public override List<string> VisitPrime(PrimeNode node)
+        {
+            var commands = new List<string> { "\\prime" };
+            commands.AddRange(node.Base.Accept(this));
+            return commands;
+        }
     }
 }

@@ -117,5 +117,10 @@ namespace LatexConverter.Visitors
         {
             return $"{node.Script.Accept(this)}{node.Base.Accept(this)}";
         }
+
+        public override string VisitPrime(PrimeNode node)
+        {
+            return node.ToString();
+        }
     }
 }

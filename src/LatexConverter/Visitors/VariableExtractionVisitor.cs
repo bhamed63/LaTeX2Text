@@ -165,5 +165,10 @@ namespace LatexConverter.Visitors
             variables.AddRange(Visit(node.Base, true));
             return variables;
         }
+
+        public override List<string> VisitPrime(PrimeNode node)
+        {
+            return node.Base.Accept(this);
+        }
     }
 }

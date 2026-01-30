@@ -349,5 +349,18 @@ namespace LatexConverter.Visitors
             }
             return null;
         }
+
+        public override object VisitPrime(PrimeNode node)
+        {
+            if (_visitedNodes.Contains(node))
+            {
+                return null;
+            }
+            _visitedNodes.Add(node);
+
+            node.Base.Accept(this);
+            Result.Operators.Add("prime");
+            return null;
+        }
     }
 }
